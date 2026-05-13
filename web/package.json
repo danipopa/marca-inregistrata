@@ -1,0 +1,24 @@
+{
+  "name": "marca-inregistrata",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "nuxt dev",
+    "build": "nuxt build",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "nuxt": "^4.4.5"
+  },
+  "devDependencies": {
+    "@nuxt/devtools": "^3.2.4",
+    "@nuxt/eslint-config": "^1.15.2",
+    "@types/node": "latest",
+    "eslint": "^10.3.0",
+    "typescript": "~6.0.3",
+    "vue-tsc": "^3.2.8"
+  }
+}
