@@ -5,12 +5,10 @@ namespace: marca-inregistrata
 
 resources:
   - namespace.yaml
-  - mysql-secret.example.yaml
   - mysql-configmap.yaml
   - mysql-persistentvolume.yaml
   - mysql-service.yaml
   - mysql-statefulset.yaml
-  - api-secret.example.yaml
   - api-configmap.yaml
   - api-deployment.yaml
   - api-service.yaml
