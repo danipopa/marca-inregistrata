@@ -10,8 +10,8 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   storageClassName: marca-local
   hostPath:
-    path: /home/storage/ns/marca-inregistrata
+    path: /home/storage/ns/inregistrare-marca/marca-mysql-0
     type: DirectoryOrCreate
   claimRef:
-    namespace: marca-inregistrata
+    namespace: inregistrare-marca
     name: data-marca-mysql-0

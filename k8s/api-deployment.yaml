@@ -14,9 +14,11 @@ spec:
       labels:
         app.kubernetes.io/name: marca-api
     spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
       containers:
         - name: api
-          image: ghcr.io/danipopa/marca-inregistrata-api:latest
+          image: ghcr.io/danipopa/inregistrare-marca-api:latest
           imagePullPolicy: Always
           ports:
             - name: http
