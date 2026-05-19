@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: marca-api
+  namespace: inregistrare-marca
   labels:
     app.kubernetes.io/name: marca-api
 spec:
@@ -9,5 +10,5 @@ spec:
     app.kubernetes.io/name: marca-api
   ports:
     - name: http
-      port: 80
+      port: 3000
       targetPort: 3000

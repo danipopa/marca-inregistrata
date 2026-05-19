@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: marca-web
+  namespace: inregistrare-marca
   labels:
     app.kubernetes.io/name: marca-web
 spec:

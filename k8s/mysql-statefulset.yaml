@@ -2,6 +2,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: marca-mysql
+  namespace: inregistrare-marca
   labels:
     app.kubernetes.io/name: marca-mysql
 spec:
