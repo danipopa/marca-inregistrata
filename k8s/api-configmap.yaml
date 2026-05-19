@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: marca-api-config
+data:
+  RAILS_ENV: production
+  RAILS_LOG_TO_STDOUT: "true"
+  RAILS_SERVE_STATIC_FILES: "true"
+  RAILS_MAX_THREADS: "5"
+  SOLID_QUEUE_IN_PUMA: "true"
+  DATABASE_HOST: marca-mysql
+  DATABASE_PORT: "3306"
+  DATABASE_USERNAME: marca
+  DATABASE_NAME: marca_inregistrata_production
+  DATABASE_CACHE_NAME: marca_inregistrata_cache
+  DATABASE_QUEUE_NAME: marca_inregistrata_queue
+  DATABASE_CABLE_NAME: marca_inregistrata_cable

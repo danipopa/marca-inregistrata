@@ -1,0 +1,19 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: marca-inregistrata
+
+resources:
+  - namespace.yaml
+  - mysql-secret.example.yaml
+  - mysql-configmap.yaml
+  - mysql-service.yaml
+  - mysql-statefulset.yaml
+  - api-secret.example.yaml
+  - api-configmap.yaml
+  - api-deployment.yaml
+  - api-service.yaml
+  - web-configmap.yaml
+  - web-deployment.yaml
+  - web-service.yaml
+  - ingress.yaml

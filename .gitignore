@@ -30,6 +30,8 @@ dist
 # Rails secrets and generated state
 api/config/master.key
 api/.kamal/secrets
+k8s/api-secret.yaml
+k8s/mysql-secret.yaml
 api/log/*
 !api/log/.keep
 api/tmp/*

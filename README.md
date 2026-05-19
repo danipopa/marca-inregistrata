@@ -6,6 +6,7 @@ Website and API for trademark registration requests.
 
 - `web/` - Nuxt frontend
 - `api/` - Rails API backend
+- `k8s/` - Kubernetes manifests for both apps
 
 ## Development
 
@@ -31,3 +32,7 @@ http://localhost:3001/api/v1/trademark_requests
 ```
 
 Override this with `NUXT_PUBLIC_API_BASE_URL` when needed.
+
+## Kubernetes
+
+See `k8s/README.md` for image names, secrets, ingress, and deployment commands.

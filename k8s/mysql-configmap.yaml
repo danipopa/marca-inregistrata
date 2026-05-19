@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: marca-mysql-initdb
+data:
+  01-create-rails-databases.sql: |
+    CREATE DATABASE IF NOT EXISTS marca_inregistrata_production CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CREATE DATABASE IF NOT EXISTS marca_inregistrata_cache CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CREATE DATABASE IF NOT EXISTS marca_inregistrata_queue CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+    CREATE DATABASE IF NOT EXISTS marca_inregistrata_cable CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+
+    GRANT ALL PRIVILEGES ON marca_inregistrata_production.* TO 'marca'@'%';
+    GRANT ALL PRIVILEGES ON marca_inregistrata_cache.* TO 'marca'@'%';
+    GRANT ALL PRIVILEGES ON marca_inregistrata_queue.* TO 'marca'@'%';
+    GRANT ALL PRIVILEGES ON marca_inregistrata_cable.* TO 'marca'@'%';
+    FLUSH PRIVILEGES;

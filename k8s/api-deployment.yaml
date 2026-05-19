@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: marca-api
+  labels:
+    app.kubernetes.io/name: marca-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: marca-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: marca-api
+    spec:
+      containers:
+        - name: api
+          image: ghcr.io/danipopa/marca-inregistrata-api:latest
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 80
+          envFrom:
+            - configMapRef:
+                name: marca-api-config
+            - secretRef:
+                name: marca-api-secrets
+          readinessProbe:
+            httpGet:
+              path: /up
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /up
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi

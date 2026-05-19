@@ -1,9 +1,3 @@
-# SQLite. Versions 3.8.0 and up are supported.
-#   gem install sqlite3
-#
-#   Ensure the SQLite 3 gem is defined in your Gemfile
-#   gem "sqlite3"
-#
 default: &default
   adapter: sqlite3
   max_connections: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
@@ -20,21 +14,43 @@ test:
   <<: *default
   database: storage/test.sqlite3
 
-# Store production database in the storage/ directory, which by default
-# is mounted as a persistent Docker volume in config/deploy.yml.
 production:
   primary:
-    <<: *default
-    database: storage/production.sqlite3
+    adapter: mysql2
+    encoding: utf8mb4
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+    database: <%= ENV.fetch("DATABASE_NAME", "marca_inregistrata_production") %>
+    username: <%= ENV.fetch("DATABASE_USERNAME", "marca") %>
+    password: <%= ENV.fetch("DATABASE_PASSWORD") %>
+    host: <%= ENV.fetch("DATABASE_HOST", "marca-mysql") %>
+    port: <%= ENV.fetch("DATABASE_PORT", 3306) %>
   cache:
-    <<: *default
-    database: storage/production_cache.sqlite3
+    adapter: mysql2
+    encoding: utf8mb4
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+    database: <%= ENV.fetch("DATABASE_CACHE_NAME", "marca_inregistrata_cache") %>
+    username: <%= ENV.fetch("DATABASE_USERNAME", "marca") %>
+    password: <%= ENV.fetch("DATABASE_PASSWORD") %>
+    host: <%= ENV.fetch("DATABASE_HOST", "marca-mysql") %>
+    port: <%= ENV.fetch("DATABASE_PORT", 3306) %>
     migrations_paths: db/cache_migrate
   queue:
-    <<: *default
-    database: storage/production_queue.sqlite3
+    adapter: mysql2
+    encoding: utf8mb4
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+    database: <%= ENV.fetch("DATABASE_QUEUE_NAME", "marca_inregistrata_queue") %>
+    username: <%= ENV.fetch("DATABASE_USERNAME", "marca") %>
+    password: <%= ENV.fetch("DATABASE_PASSWORD") %>
+    host: <%= ENV.fetch("DATABASE_HOST", "marca-mysql") %>
+    port: <%= ENV.fetch("DATABASE_PORT", 3306) %>
     migrations_paths: db/queue_migrate
   cable:
-    <<: *default
-    database: storage/production_cable.sqlite3
+    adapter: mysql2
+    encoding: utf8mb4
+    pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 5 } %>
+    database: <%= ENV.fetch("DATABASE_CABLE_NAME", "marca_inregistrata_cable") %>
+    username: <%= ENV.fetch("DATABASE_USERNAME", "marca") %>
+    password: <%= ENV.fetch("DATABASE_PASSWORD") %>
+    host: <%= ENV.fetch("DATABASE_HOST", "marca-mysql") %>
+    port: <%= ENV.fetch("DATABASE_PORT", 3306) %>
     migrations_paths: db/cable_migrate
