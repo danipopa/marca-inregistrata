@@ -23,6 +23,7 @@ jobs:
 
       - name: Install dependencies
         run: npx nypm@latest i
+        working-directory: web
 
       - name: Lint
         run: npm run lint
@@ -41,9 +42,12 @@ jobs:
 
       - name: Install dependencies
         run: npx nypm@latest i
+        working-directory: web
 
       - name: Playground prepare
         run: npm run dev:prepare
+        working-directory: web
 
       - name: Test
         run: npm run test
+        working-directory: web

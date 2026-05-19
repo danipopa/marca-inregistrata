@@ -47,19 +47,3 @@ spec:
         - inregistrare-marca.com
         - www.inregistrare-marca.com
       secretName: inregistrare-marca-tls
-      http:
-        paths:
-          - path: /api
-            pathType: Prefix
-            backend:
-              service:
-                name: marca-api
-                port:
-                  name: http
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: marca-web
-                port:
-                  name: http
