@@ -6,31 +6,55 @@
           <span>021 313 5799</span>
           <span>office@dansandu.ro</span>
         </div>
-        <nav aria-label="Servicii rapide" class="quick-links">
-          <a href="#reinnoire">Reinnoire marca</a>
-          <a href="#monitorizare">Monitorizare marca</a>
-          <a href="#preturi">Inregistrare marca</a>
-          <a href="#verificare">Verificare marca</a>
+        <nav
+          aria-label="Servicii rapide"
+          class="quick-links"
+        >
+          <a href="#reinnoire">{{ t.quickRenewal }}</a>
+          <a href="#monitorizare">{{ t.quickMonitoring }}</a>
+          <a href="#preturi">{{ t.quickRegistration }}</a>
+          <a href="#verificare">{{ t.quickCheck }}</a>
         </nav>
       </div>
     </div>
 
     <header class="main-header">
       <div class="wrap main-header__inner">
-        <a class="brand" href="#" aria-label="Dan Sandu si asociatii">
+        <a
+          class="brand"
+          href="#"
+          aria-label="Dan Sandu si asociatii"
+        >
           <span class="brand__mark">DS</span>
           <span>
             <strong>DAN SANDU</strong>
             <small>SI ASOCIATII</small>
           </span>
         </a>
-        <nav aria-label="Navigatie principala" class="main-nav">
-          <a href="#despre">Despre</a>
-          <a href="#cariere">Cariere</a>
-          <a href="#arii">Arii de practica</a>
+        <nav
+          aria-label="Navigatie principala"
+          class="main-nav"
+        >
+          <a href="#despre">{{ t.navAbout }}</a>
+          <a href="#cariere">{{ t.navCareers }}</a>
+          <a href="#arii">{{ t.navPractice }}</a>
           <a href="#blog">Blog</a>
-          <a href="#contact">Contact</a>
-          <a href="#english">English</a>
+          <NuxtLink to="/account">{{ t.navAccount }}</NuxtLink>
+          <a href="#contact">{{ t.navContact }}</a>
+          <div
+            class="language-switcher"
+            :aria-label="t.languageLabel"
+          >
+            <button
+              v-for="option in languages"
+              :key="option.code"
+              type="button"
+              :class="{ active: selectedLanguage === option.code }"
+              @click="setLanguage(option.code)"
+            >
+              {{ option.label }}
+            </button>
+          </div>
         </nav>
       </div>
     </header>
@@ -39,36 +63,61 @@
       <section class="hero">
         <div class="wrap hero__grid">
           <div class="hero__copy">
-            <p class="eyebrow">Proprietate intelectuala</p>
-            <h1>Inregistrare marca Romania UE</h1>
+            <p class="eyebrow">
+              {{ t.heroEyebrow }}
+            </p>
+            <h1>{{ t.heroTitle }}</h1>
             <p class="lead">
-              Procedura asistata pentru OSIM si Uniunea Europeana, cu onorarii clare,
-              taxe oficiale incluse si documentatie pregatita pe baza datelor completate online.
+              {{ t.heroLead }}
             </p>
             <div class="hero__actions">
-              <a class="primary-btn" href="#preturi">Vezi pachetele</a>
-              <a class="text-link" href="#formular">Completeaza formularul</a>
+              <a
+                class="primary-btn"
+                href="#preturi"
+              >{{ t.heroPackages }}</a>
+              <a
+                class="outline-light-btn"
+                href="/account"
+              >{{ t.heroAccount }}</a>
+              <a
+                class="text-link"
+                href="#formular"
+              >{{ t.heroForm }}</a>
             </div>
           </div>
 
-          <aside class="secure-panel" aria-label="Conexiune securizata">
-            <div class="secure-panel__icon">SSL</div>
+          <aside
+            class="secure-panel"
+            :aria-label="t.secureTitle"
+          >
+            <div class="secure-panel__icon">
+              SSL
+            </div>
             <div>
-              <strong>Conexiune securizata</strong>
-              <span>Plata online si datele de contact sunt gestionate in pasi separati.</span>
+              <strong>{{ t.secureTitle }}</strong>
+              <span>{{ t.secureCopy }}</span>
             </div>
           </aside>
         </div>
       </section>
 
-      <section id="preturi" class="pricing-section">
+      <section
+        id="preturi"
+        class="pricing-section"
+      >
         <div class="wrap">
           <div class="section-head">
-            <p class="eyebrow">RON / EUR</p>
-            <h2>Alege tipul de marca</h2>
+            <p class="eyebrow">
+              RON / EUR
+            </p>
+            <h2>{{ t.pricingTitle }}</h2>
           </div>
 
-          <div class="currency-tabs" role="tablist" aria-label="Moneda">
+          <div
+            class="currency-tabs"
+            role="tablist"
+            :aria-label="t.currencyLabel"
+          >
             <button
               v-for="currency in currencies"
               :key="currency"
@@ -81,7 +130,12 @@
           </div>
 
           <div class="price-grid">
-            <article v-for="plan in visiblePlans" :key="plan.title" class="price-card">
+            <article
+              v-for="plan in visiblePlans"
+              :key="plan.code"
+              class="price-card"
+              :class="{ selected: selectedProductCode === plan.code }"
+            >
               <div class="price-card__top">
                 <span class="country-pill">{{ plan.region }}</span>
                 <h3>{{ plan.title }}</h3>
@@ -92,371 +146,1037 @@
                 <small>{{ plan.tax }}</small>
               </div>
               <ul>
-                <li v-for="item in plan.items" :key="item">{{ item }}</li>
+                <li
+                  v-for="item in plan.items"
+                  :key="item"
+                >
+                  {{ item }}
+                </li>
               </ul>
-              <a href="#formular" class="register-btn">Inregistreaza</a>
-              <p class="card-foot">Conexiune securizata</p>
+              <a
+                href="#formular"
+                class="register-btn"
+                @click="selectProduct(plan.code)"
+              >{{ t.buy }}</a>
+              <p class="card-foot">
+                {{ t.secureTitle }}
+              </p>
             </article>
           </div>
         </div>
       </section>
 
-      <section class="start-band" id="verificare">
+      <section
+        id="verificare"
+        class="start-band"
+      >
         <div class="wrap start-band__inner">
           <div>
-            <p class="eyebrow">Nu stiti de unde sa incepeti?</p>
-            <h2>Incepeti cu o verificare de marca</h2>
+            <p class="eyebrow">
+              {{ t.startEyebrow }}
+            </p>
+            <h2>{{ t.startTitle }}</h2>
           </div>
           <p>
-            O analiza prealabila ajuta la identificarea riscurilor inainte de depunere.
-            Pentru comenzi complexe, echipa poate clarifica produsele si serviciile potrivite.
+            {{ t.startCopy }}
           </p>
-          <a class="outline-btn" href="#formular">Solicita verificare</a>
+          <a
+            class="outline-btn"
+            href="#formular"
+          >{{ t.startCta }}</a>
         </div>
       </section>
 
-      <section id="formular" class="form-section">
+      <section
+        id="formular"
+        class="form-section"
+      >
         <div class="wrap form-layout">
           <aside class="form-summary">
             <span class="country-pill">RO</span>
-            <h2>Marca verbala</h2>
-            <p class="muted">Doar litere, cifre sau caractere, fara logo.</p>
+            <h2>{{ selectedProduct.title }}</h2>
+            <p class="muted">
+              {{ selectedProduct.note }}.
+            </p>
 
             <div class="summary-box">
-              <span>Cost total estimat</span>
+              <span>{{ t.summaryTotal }}</span>
               <strong>{{ formattedTotal }}</strong>
-              <small>include TVA, onorariu si taxe oficiale pentru selectia curenta</small>
+              <small>{{ t.summaryNote }}</small>
             </div>
 
             <ol class="steps">
-              <li v-for="(step, index) in steps" :key="step" :class="{ active: currentStep === index }">
+              <li
+                v-for="(step, index) in steps"
+                :key="step"
+                :class="{ active: currentStep === index }"
+              >
                 <span>{{ index + 1 }}</span>
                 {{ step }}
               </li>
             </ol>
           </aside>
 
-          <form class="registration-form" @submit.prevent="submitForm">
-            <div v-if="currentStep === 0" class="form-step">
-              <h2>Inregistrare marca verbala</h2>
+          <div
+            class="registration-form"
+          >
+            <div
+              v-if="currentStep === 0"
+              class="form-step"
+            >
+              <h2>{{ t.stepOneTitle }}</h2>
               <p class="muted">
-                Completati atent. Documentatia pentru OSIM se pregateste pe baza acestor informatii.
+                {{ t.stepOneCopy }}
               </p>
               <label>
-                Marca pe care doriti sa o inregistrati *
-                <input v-model="form.mark" type="text" placeholder="Ex: NUMELE BRANDULUI" required>
+                {{ t.productLabel }} *
+                <select
+                  v-model="selectedProductCode"
+                  required
+                >
+                  <option
+                    v-for="plan in plans"
+                    :key="plan.code"
+                    :value="plan.code"
+                  >
+                    {{ plan.region }} - {{ plan.title }} ({{ plan.price }})
+                  </option>
+                </select>
               </label>
               <label>
-                Cate clase NISA doriti sa protejati? *
+                {{ t.markLabel }} *
+                <input
+                  v-model="form.mark"
+                  type="text"
+                  :placeholder="t.markPlaceholder"
+                  required
+                >
+              </label>
+              <label>
+                {{ t.classesLabel }} *
                 <select v-model.number="form.classes">
-                  <option v-for="count in 11" :key="count" :value="count">
+                  <option
+                    v-for="count in 11"
+                    :key="count"
+                    :value="count"
+                  >
                     {{ classLabel(count) }}
                   </option>
                 </select>
               </label>
               <div class="included-box">
-                <strong>Pretul include</strong>
-                <span>consultanta prealabila, detaliere clase NISA, depunere, raportari si certificatul original.</span>
+                <strong>{{ t.includedTitle }}</strong>
+                <span>{{ t.includedCopy }}</span>
               </div>
             </div>
 
-            <div v-else-if="currentStep === 1" class="form-step">
-              <h2>Selectie clase NISA</h2>
+            <div
+              v-else-if="currentStep === 1"
+              class="form-step"
+            >
+              <h2>{{ t.stepTwoTitle }}</h2>
               <p class="muted">
-                Alegeti clasele dorite. Dupa depunere, clasele si produsele nu pot fi adaugate retroactiv.
+                {{ t.stepTwoCopy }}
               </p>
               <label>
-                Clasa NISA inclusa *
-                <select v-model="form.primaryClass" required>
-                  <option value="" disabled>Selectati clasa NISA inclusa</option>
-                  <option v-for="niceClass in niceClasses" :key="niceClass" :value="niceClass">
-                    {{ niceClass }}
+                {{ t.primaryClassLabel }} *
+                <select
+                  v-model="form.primaryClass"
+                  required
+                >
+                  <option
+                    value=""
+                    disabled
+                  >{{ t.primaryClassPlaceholder }}</option>
+                  <option
+                    v-for="niceClass in niceClasses"
+                    :key="niceClass.number"
+                    :value="niceClass.value"
+                  >
+                    {{ niceClass.label }}
                   </option>
                 </select>
               </label>
+              <div
+                v-if="selectedNiceClass"
+                class="nice-class-details"
+              >
+                <div class="nice-class-details__head">
+                  <span class="country-pill">{{ selectedNiceClass.typeLabel }}</span>
+                  <small>{{ t.niceSource }}</small>
+                </div>
+                <strong>{{ t.niceOfficialTitle }}</strong>
+                <p>{{ selectedNiceClass.detail }}</p>
+                <div class="included-box">
+                  <strong>{{ t.niceGuidanceTitle }}</strong>
+                  <span>{{ t.niceGuidanceCopy }}</span>
+                  <span v-if="form.classes > 1">{{ t.extraClassesHint }}</span>
+                </div>
+              </div>
               <label>
-                Descrieti produsele sau serviciile
-                <textarea v-model="form.goods" rows="5" placeholder="Ex: magazin online de haine, productie software, servicii de marketing"></textarea>
+                {{ t.goodsLabel }}
+                <textarea
+                  v-model="form.goods"
+                  rows="5"
+                  :placeholder="t.goodsPlaceholder"
+                />
               </label>
             </div>
 
-            <div v-else-if="currentStep === 2" class="form-step">
-              <h2>Date contact si facturare</h2>
-              <div class="field-grid">
-                <label>
-                  Email *
-                  <input v-model="form.email" type="email" placeholder="email@companie.ro" required>
-                </label>
-                <label>
-                  Telefon mobil *
-                  <input v-model="form.phone" type="tel" placeholder="07xx xxx xxx" required>
-                </label>
-              </div>
-              <label>
-                Inregistrati marca pe
-                <select v-model="form.ownerType">
-                  <option>Societate</option>
-                  <option>Persoana fizica</option>
-                </select>
-              </label>
-              <div class="field-grid">
-                <label>
-                  CUI / identificator fiscal
-                  <input v-model="form.taxId" type="text" placeholder="RO12345678">
-                </label>
-                <label>
-                  Denumire titular
-                  <input v-model="form.ownerName" type="text" placeholder="Compania SRL">
-                </label>
-              </div>
-              <label>
-                Adresa de facturare
-                <textarea v-model="form.address" rows="4" placeholder="Strada, numar, localitate, judet"></textarea>
-              </label>
-            </div>
-
-            <div v-else class="form-step">
-              <h2>Informatii plata</h2>
-              <p class="muted">Alegeti metoda de plata. Comanda ramane in asteptare pana la confirmare.</p>
-              <div class="payment-options">
-                <label>
-                  <input v-model="form.payment" type="radio" value="card">
-                  Plata cu cardul prin Stripe
-                </label>
-                <label>
-                  <input v-model="form.payment" type="radio" value="transfer">
-                  Plata prin transfer bancar
-                </label>
-              </div>
+            <div
+              v-else-if="currentStep === 2"
+              class="form-step"
+            >
+              <h2>{{ t.stepFourTitle }}</h2>
+              <p class="muted">
+                {{ t.stepFourCopy }}
+              </p>
               <div class="payment-card">
                 <strong>{{ formattedTotal }}</strong>
-                <span>Visa / Mastercard / Amex / Google Pay</span>
-                <small>Procesare securizata. Datele cardului nu sunt salvate local.</small>
+                <span>{{ selectedProduct.title }}</span>
+                <span>{{ form.mark }}</span>
+                <small>{{ t.addToCartPaymentNote }}</small>
               </div>
               <label class="checkbox">
-                <input v-model="form.terms" type="checkbox" required>
-                Sunt de acord cu termenii de utilizare si politica de confidentialitate.
+                <input
+                  v-model="form.terms"
+                  type="checkbox"
+                  required
+                >
+                {{ t.termsLabel }}
               </label>
             </div>
 
             <div class="form-actions">
-              <button type="button" class="ghost-btn" :disabled="currentStep === 0" @click="currentStep--">
-                Inapoi
+              <button
+                type="button"
+                class="ghost-btn"
+                :disabled="currentStep === 0"
+                @click="currentStep--"
+              >
+                {{ t.back }}
               </button>
-              <button v-if="currentStep < steps.length - 1" type="button" class="primary-btn" @click="currentStep++">
-                Pasul urmator
+              <button
+                v-if="currentStep < steps.length - 1"
+                type="button"
+                class="primary-btn"
+                @click="currentStep++"
+              >
+                {{ t.next }}
               </button>
-              <button v-else type="submit" class="primary-btn" :disabled="submitting">
-                {{ submitting ? 'Se trimite...' : 'Gata de inregistrare' }}
+              <button
+                v-else
+                type="button"
+                class="primary-btn"
+                :disabled="!canAddToCart"
+                @click="addToCart"
+              >
+                {{ t.addToCart }}
               </button>
             </div>
 
-            <p v-if="submitted" class="success-message">
-              {{ successMessage }}
+            <p
+              v-if="cartMessage"
+              class="success-message"
+            >
+              {{ cartMessage }}
             </p>
 
-            <p v-if="submitError" class="error-message">
+            <p
+              v-if="submitError"
+              class="error-message"
+            >
               {{ submitError }}
             </p>
-          </form>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="cos"
+        class="cart-section"
+      >
+        <div class="wrap cart-layout">
+          <div>
+            <p class="eyebrow">
+              {{ t.cartEyebrow }}
+            </p>
+            <h2>{{ t.cartTitle }}</h2>
+            <p class="muted">
+              {{ t.cartCopy }}
+            </p>
+          </div>
+
+          <div class="cart-panel">
+            <div
+              v-if="cartItems.length"
+              class="cart-list"
+            >
+              <article
+                v-for="item in cartItems"
+                :key="item.id"
+                class="cart-item"
+              >
+                <div>
+                  <strong>{{ item.productTitle }}</strong>
+                  <span>{{ item.mark }} · {{ item.classes }} {{ t.niceClassesShort }}</span>
+                  <small>{{ item.primaryClass }}</small>
+                </div>
+                <div>
+                  <strong>{{ item.formattedTotal }}</strong>
+                  <button
+                    type="button"
+                    class="text-danger"
+                    @click="removeFromCart(item.id)"
+                  >
+                    {{ t.remove }}
+                  </button>
+                </div>
+              </article>
+            </div>
+
+            <p
+              v-else
+              class="muted"
+            >
+              {{ t.emptyCart }}
+            </p>
+
+            <div class="checkout-box">
+              <div class="checkout-summary">
+                <span>{{ t.cartTotal }}</span>
+                <strong>{{ formattedCartTotal }}</strong>
+                <small>{{ selectedPaymentDescription }}</small>
+                <small>{{ accountCheckoutStatus }}</small>
+              </div>
+              <div class="checkout-payment">
+                <span>{{ t.checkoutPaymentLabel }}</span>
+                <div class="payment-options">
+                  <label>
+                    <input
+                      v-model="checkoutPayment"
+                      type="radio"
+                      value="card"
+                    >
+                    {{ t.cardPayment }}
+                  </label>
+                  <label>
+                    <input
+                      v-model="checkoutPayment"
+                      type="radio"
+                      value="paypal"
+                    >
+                    {{ t.paypalPayment }}
+                  </label>
+                  <label>
+                    <input
+                      v-model="checkoutPayment"
+                      type="radio"
+                      value="transfer"
+                    >
+                    {{ t.bankPayment }}
+                  </label>
+                </div>
+              </div>
+              <button
+                type="button"
+                class="primary-btn"
+                :disabled="!cartItems.length || submitting"
+                @click="checkoutCart"
+              >
+                {{ submitting ? t.submitting : t.checkout }}
+              </button>
+            </div>
+          </div>
         </div>
       </section>
     </main>
 
-    <footer class="site-footer" id="contact">
+    <footer
+      id="contact"
+      class="site-footer"
+    >
       <div class="wrap footer-grid">
         <div class="footer-brand">
           <strong>DAN SANDU SI ASOCIATII</strong>
           <p>
-            Consultanta pentru inregistrare marca OSIM si UE, verificari preliminare
-            si asistenta pe parcursul procedurii.
+            {{ t.footerCopy }}
           </p>
         </div>
 
-        <nav aria-label="Despre noi" class="footer-column">
-          <h2>Despre noi</h2>
-          <a href="#despre">Echipa</a>
-          <a href="#arii">Arii de practica</a>
-          <a href="#preturi">Onorarii</a>
+        <nav
+          aria-label="Despre noi"
+          class="footer-column"
+        >
+          <h2>{{ t.footerAbout }}</h2>
+          <a href="#despre">{{ t.footerTeam }}</a>
+          <a href="#arii">{{ t.navPractice }}</a>
+          <a href="#preturi">{{ t.footerFees }}</a>
           <a href="#contact">Contact</a>
         </nav>
 
-        <nav aria-label="Resurse" class="footer-column">
-          <h2>Resurse</h2>
-          <a href="#verificare">Verificare marca</a>
-          <a href="#formular">Inregistrare marca</a>
-          <a href="#monitorizare">Monitorizare marca</a>
-          <a href="#reinnoire">Reinnoire marca</a>
+        <nav
+          aria-label="Resurse"
+          class="footer-column"
+        >
+          <h2>{{ t.footerResources }}</h2>
+          <a href="#verificare">{{ t.quickCheck }}</a>
+          <a href="#formular">{{ t.quickRegistration }}</a>
+          <a href="#monitorizare">{{ t.quickMonitoring }}</a>
+          <a href="#reinnoire">{{ t.quickRenewal }}</a>
         </nav>
 
         <div class="footer-column">
           <h2>Contact</h2>
           <a href="tel:0213135799">021 313 5799</a>
           <a href="mailto:office@dansandu.ro">office@dansandu.ro</a>
-          <span>Luni - Vineri, 09:00 - 19:00</span>
+          <span>{{ t.businessHours }}</span>
         </div>
 
-        <nav aria-label="Linkuri ANPC" class="footer-column anpc-links">
+        <nav
+          aria-label="Linkuri ANPC"
+          class="footer-column anpc-links"
+        >
           <h2>ANPC</h2>
-          <a href="https://anpc.ro/" target="_blank" rel="noopener noreferrer">ANPC</a>
-          <a href="https://ec.europa.eu/consumers/odr" target="_blank" rel="noopener noreferrer">
-            Solutionarea online a litigiilor
+          <a
+            href="https://anpc.ro/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >ANPC</a>
+          <a
+            href="https://ec.europa.eu/consumers/odr"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ t.odr }}
           </a>
-          <a href="https://anpc.ro/ce-este-sal/" target="_blank" rel="noopener noreferrer">
-            Solutionarea alternativa a litigiilor
+          <a
+            href="https://anpc.ro/ce-este-sal/"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ t.sal }}
           </a>
         </nav>
       </div>
 
       <div class="wrap footer-bottom">
-        <span>© 2026 Dan Sandu si Asociatii. Toate drepturile rezervate.</span>
-        <span>Politica de confidentialitate · Termeni de utilizare</span>
+        <span>{{ t.copyright }}</span>
+        <span>{{ t.legalLinks }}</span>
       </div>
     </footer>
   </div>
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
+import { niceClasses2024 } from '~/data/niceClasses2024'
 
 const currencies = ['RON', 'EUR']
+const languages = [
+  { code: 'ro', label: 'RO' },
+  { code: 'en', label: 'EN' },
+]
+const selectedLanguage = ref('ro')
 const selectedCurrency = ref('RON')
+const selectedProductCode = ref('ro-word')
 const currentStep = ref(0)
-const submitted = ref(false)
 const submitting = ref(false)
 const submitError = ref('')
-const successMessage = ref('')
+const cartMessage = ref('')
+const cartItems = ref([])
+const authToken = ref('')
+const currentUser = ref(null)
+const checkoutPayment = ref('card')
 const config = useRuntimeConfig()
 
-const steps = ['Marca', 'Clase NISA', 'Facturare', 'Plata']
+const translations = {
+  ro: {
+    languageLabel: 'Limba',
+    quickRenewal: 'Reinnoire marca',
+    quickMonitoring: 'Monitorizare marca',
+    quickRegistration: 'Inregistrare marca',
+    quickCheck: 'Verificare marca',
+    navAbout: 'Despre',
+    navCareers: 'Cariere',
+    navPractice: 'Arii de practica',
+    navAccount: 'Contul meu',
+    navContact: 'Contact',
+    heroEyebrow: 'Proprietate intelectuala',
+    heroTitle: 'Inregistrare marca Romania UE',
+    heroLead: 'Procedura asistata pentru OSIM si Uniunea Europeana, cu onorarii clare, taxe oficiale incluse si documentatie pregatita pe baza datelor completate online.',
+    heroPackages: 'Vezi pachetele',
+    heroAccount: 'Contul meu',
+    heroForm: 'Completeaza formularul',
+    secureTitle: 'Conexiune securizata',
+    secureCopy: 'Plata online si datele de contact sunt gestionate in pasi separati.',
+    pricingTitle: 'Alege tipul de marca',
+    currencyLabel: 'Moneda',
+    buy: 'Cumpara',
+    startEyebrow: 'Nu stiti de unde sa incepeti?',
+    startTitle: 'Incepeti cu o verificare de marca',
+    startCopy: 'O analiza prealabila ajuta la identificarea riscurilor inainte de depunere. Pentru comenzi complexe, echipa poate clarifica produsele si serviciile potrivite.',
+    startCta: 'Solicita verificare',
+    summaryTotal: 'Cost total estimat',
+    summaryNote: 'include TVA, onorariu si taxe oficiale pentru selectia curenta',
+    stepOneTitle: 'Inregistrare marca verbala',
+    stepOneCopy: 'Completati atent. Documentatia pentru OSIM se pregateste pe baza acestor informatii.',
+    productLabel: 'Produs',
+    markLabel: 'Marca pe care doriti sa o inregistrati',
+    markPlaceholder: 'Ex: NUMELE BRANDULUI',
+    classesLabel: 'Cate clase NISA doriti sa protejati?',
+    oneClass: 'O clasa NISA (inclusa)',
+    multipleClasses: count => `${count} clase NISA (+${(count - 1) * 449} Lei)`,
+    includedTitle: 'Pretul include',
+    includedCopy: 'consultanta prealabila, detaliere clase NISA, depunere, raportari si certificatul original.',
+    stepTwoTitle: 'Selectie clase NISA',
+    stepTwoCopy: 'Alegeti clasele dorite. Dupa depunere, clasele si produsele nu pot fi adaugate retroactiv.',
+    primaryClassLabel: 'Clasa NISA inclusa',
+    primaryClassPlaceholder: 'Selectati clasa NISA inclusa',
+    niceSource: 'Sursa: Clasificarea Nisa, editia a 12-a, versiunea 2024, OSIM',
+    niceGoods: 'Produse',
+    niceServices: 'Servicii',
+    niceOfficialTitle: 'Titlul clasei conform PDF',
+    niceGuidanceTitle: 'Detalii pentru formular',
+    niceGuidanceCopy: 'Folositi descrierea de mai jos ca reper, apoi scrieti concret produsele sau serviciile brandului dumneavoastra in campul urmator.',
+    extraClassesHint: 'Ati ales mai multe clase. Treceti clasele suplimentare si produsele/serviciile aferente in descriere.',
+    goodsLabel: 'Descrieti produsele sau serviciile',
+    goodsPlaceholder: 'Ex: magazin online de haine, productie software, servicii de marketing',
+    stepThreeTitle: 'Date contact si facturare',
+    phoneLabel: 'Telefon mobil',
+    phonePlaceholder: '07xx xxx xxx',
+    ownerTypeLabel: 'Inregistrati marca pe',
+    company: 'Societate',
+    person: 'Persoana fizica',
+    taxIdLabel: 'CUI / identificator fiscal',
+    ownerNameLabel: 'Denumire titular',
+    ownerNamePlaceholder: 'Compania SRL',
+    addressLabel: 'Adresa de facturare',
+    addressPlaceholder: 'Strada, numar, localitate, judet',
+    stepFourTitle: 'Revizuire solicitare',
+    stepFourCopy: 'Verificati detaliile marcii si acceptati termenii pentru a pune produsul in cos.',
+    cardPayment: 'Plata cu cardul prin Stripe',
+    paypalPayment: 'Plata prin PayPal',
+    bankPayment: 'Plata prin transfer bancar',
+    cardPaymentDescription: 'Visa / Mastercard / Amex / Google Pay prin Stripe Checkout',
+    paypalPaymentDescription: 'PayPal Checkout cu redirectionare securizata',
+    bankPaymentDescription: 'Veti primi detaliile pentru transfer dupa inregistrarea comenzii',
+    paymentNote: 'Procesare securizata. Datele cardului nu sunt salvate local.',
+    addToCartPaymentNote: 'Metoda de plata se alege la checkout, dupa ce produsul este in cos.',
+    checkoutPaymentLabel: 'Metoda de plata',
+    termsLabel: 'Sunt de acord cu termenii de utilizare si politica de confidentialitate.',
+    back: 'Inapoi',
+    next: 'Pasul urmator',
+    submitting: 'Se trimite...',
+    submit: 'Gata de inregistrare',
+    addToCart: 'Adauga in cos',
+    cartAdded: 'Produsul a fost adaugat in cos.',
+    cartEyebrow: 'Cos',
+    cartTitle: 'Cos si checkout',
+    cartCopy: 'Revizuiti produsele configurate, alegeti metoda de plata si finalizati checkout-ul.',
+    cartTotal: 'Total cos',
+    checkout: 'Checkout',
+    emptyCart: 'Cosul este gol. Configurati o marca si adaugati-o in cos.',
+    remove: 'Sterge',
+    checkoutSuccess: 'Comanda a fost trimisa.',
+    checkoutLoginRequired: 'Autentifica-te in cont inainte de checkout.',
+    checkoutBillingRequired: 'Completeaza datele de contact si facturare in cont inainte de plata.',
+    checkoutReady: 'Contul are datele necesare pentru checkout.',
+    checkoutNeedsAccount: 'Checkout-ul necesita cont si date de facturare.',
+    successFallback: 'Solicitarea a fost inregistrata.',
+    submitError: 'Nu am putut trimite solicitarea. Verificati datele si incercati din nou.',
+    accountEyebrow: 'Cont client',
+    accountTitle: 'Contul meu',
+    accountCopy: 'Introduceti emailul folosit la comanda pentru a vedea produsele cumparate, statusul platii si istoricul solicitarilor.',
+    accountEmailLabel: 'Email cont',
+    passwordLabel: 'Parola',
+    passwordPlaceholder: 'Minimum 8 caractere',
+    login: 'Login',
+    register: 'Creeaza cont',
+    logout: 'Logout',
+    signedInAs: 'Autentificat ca',
+    authNote: 'Ai nevoie de cont pentru a vedea istoricul comenzilor si pentru a lega comenzile noi de profilul tau.',
+    loadingAccount: 'Se incarca...',
+    viewAccount: 'Vezi contul',
+    loginSubmit: 'Intra in cont',
+    registerSubmit: 'Creeaza cont',
+    authError: 'Nu am putut autentifica acest cont.',
+    accountError: 'Nu am putut incarca acest cont.',
+    orderSingular: 'comanda',
+    orderPlural: 'comenzi',
+    total: 'Total',
+    niceClassesShort: 'clase NISA',
+    noPurchases: 'Nu exista comenzi pentru acest email.',
+    footerCopy: 'Consultanta pentru inregistrare marca OSIM si UE, verificari preliminare si asistenta pe parcursul procedurii.',
+    footerAbout: 'Despre noi',
+    footerTeam: 'Echipa',
+    footerFees: 'Onorarii',
+    footerResources: 'Resurse',
+    businessHours: 'Luni - Vineri, 09:00 - 19:00',
+    odr: 'Solutionarea online a litigiilor',
+    sal: 'Solutionarea alternativa a litigiilor',
+    copyright: '© 2026 Dan Sandu si Asociatii. Toate drepturile rezervate.',
+    legalLinks: 'Politica de confidentialitate · Termeni de utilizare',
+    steps: ['Marca', 'Clase NISA', 'Cos'],
+    products: {
+      'ro-word': {
+        title: 'Marca verbala',
+        note: 'doar litere si cifre, fara logo',
+        tax: 'include TVA',
+        items: ['onorariu inclus: 1.210 Lei', 'taxe OSIM incluse: 1.016 Lei', 'o clasa NISA inclusa', 'plata online securizata'],
+      },
+      'ro-monochrome': {
+        title: 'Marca alb-negru',
+        note: 'scriere speciala sau logo monocrom',
+        tax: 'include TVA',
+        items: ['onorariu inclus: 1.210 Lei', 'taxe OSIM incluse: 1.168 Lei', 'detaliere produse si servicii', 'o clasa NISA inclusa'],
+      },
+      'ro-color': {
+        title: 'Marca color',
+        note: 'logo, design sau scriere color',
+        tax: 'include TVA',
+        items: ['onorariu inclus: 1.210 Lei', 'taxe OSIM incluse: 1.930 Lei', 'upload fisier logo', 'o clasa NISA inclusa'],
+      },
+      'eu-word': {
+        title: 'Marca Uniunea Europeana',
+        note: 'protectie in statele membre UE',
+        tax: 'include TVA',
+        items: ['onorariu inclus: 240 EUR', 'taxe EUIPO incluse: 850 EUR', 'o clasa NISA inclusa', 'depunere asistata online'],
+      },
+      'eu-logo': {
+        title: 'Logo UE',
+        note: 'semn figurativ sau mixt',
+        tax: 'include TVA',
+        items: ['onorariu inclus: 240 EUR', 'taxe oficiale incluse: 380 EUR', 'detaliere clase NISA', 'procesare securizata'],
+      },
+    },
+    statuses: {
+      pending_payment: 'In asteptarea platii',
+      paid: 'Platita',
+      processing: 'In lucru',
+      completed: 'Finalizata',
+    },
+  },
+  en: {
+    languageLabel: 'Language',
+    quickRenewal: 'Trademark renewal',
+    quickMonitoring: 'Trademark monitoring',
+    quickRegistration: 'Trademark registration',
+    quickCheck: 'Trademark check',
+    navAbout: 'About',
+    navCareers: 'Careers',
+    navPractice: 'Practice areas',
+    navAccount: 'My account',
+    navContact: 'Contact',
+    heroEyebrow: 'Intellectual property',
+    heroTitle: 'Trademark registration Romania EU',
+    heroLead: 'Assisted filing for OSIM and the European Union, with clear fees, official taxes included, and documentation prepared from the details you submit online.',
+    heroPackages: 'View packages',
+    heroAccount: 'My account',
+    heroForm: 'Complete form',
+    secureTitle: 'Secure connection',
+    secureCopy: 'Online payment and contact details are handled in separate steps.',
+    pricingTitle: 'Choose trademark type',
+    currencyLabel: 'Currency',
+    buy: 'Buy',
+    startEyebrow: 'Not sure where to start?',
+    startTitle: 'Start with a trademark check',
+    startCopy: 'A preliminary analysis helps identify risks before filing. For complex orders, the team can clarify the right goods and services.',
+    startCta: 'Request check',
+    summaryTotal: 'Estimated total',
+    summaryNote: 'includes VAT, legal fee and official taxes for the current selection',
+    stepOneTitle: 'Word trademark registration',
+    stepOneCopy: 'Please fill this in carefully. The OSIM documentation is prepared from these details.',
+    productLabel: 'Product',
+    markLabel: 'Trademark you want to register',
+    markPlaceholder: 'Example: BRAND NAME',
+    classesLabel: 'How many NICE classes do you want to protect?',
+    oneClass: 'One NICE class (included)',
+    multipleClasses: count => `${count} NICE classes (+${(count - 1) * 449} Lei)`,
+    includedTitle: 'Price includes',
+    includedCopy: 'preliminary consultation, NICE class details, filing, updates and the original certificate.',
+    stepTwoTitle: 'NICE class selection',
+    stepTwoCopy: 'Choose the classes you need. After filing, classes and goods cannot be added retroactively.',
+    primaryClassLabel: 'Included NICE class',
+    primaryClassPlaceholder: 'Select included NICE class',
+    niceSource: 'Source: Nice Classification, 12th edition, 2024 version, OSIM',
+    niceGoods: 'Goods',
+    niceServices: 'Services',
+    niceOfficialTitle: 'Class title from the PDF',
+    niceGuidanceTitle: 'Details for the form',
+    niceGuidanceCopy: 'Use the description below as guidance, then write the brand’s concrete goods or services in the next field.',
+    extraClassesHint: 'You selected more than one class. Add the extra classes and their goods/services in the description.',
+    goodsLabel: 'Describe the goods or services',
+    goodsPlaceholder: 'Example: online clothing store, software production, marketing services',
+    stepThreeTitle: 'Contact and billing details',
+    phoneLabel: 'Mobile phone',
+    phonePlaceholder: '+40...',
+    ownerTypeLabel: 'Register the trademark for',
+    company: 'Company',
+    person: 'Individual',
+    taxIdLabel: 'VAT / tax identifier',
+    ownerNameLabel: 'Owner name',
+    ownerNamePlaceholder: 'Company LLC',
+    addressLabel: 'Billing address',
+    addressPlaceholder: 'Street, number, city, county',
+    stepFourTitle: 'Review request',
+    stepFourCopy: 'Check the trademark details and accept the terms before adding the product to your cart.',
+    cardPayment: 'Card payment via Stripe',
+    paypalPayment: 'PayPal payment',
+    bankPayment: 'Bank transfer',
+    cardPaymentDescription: 'Visa / Mastercard / Amex / Google Pay through Stripe Checkout',
+    paypalPaymentDescription: 'Secure redirect through PayPal Checkout',
+    bankPaymentDescription: 'You will receive bank transfer details after the order is registered',
+    paymentNote: 'Secure processing. Card details are not stored locally.',
+    addToCartPaymentNote: 'The payment method is selected at checkout, after the product is in the cart.',
+    checkoutPaymentLabel: 'Payment method',
+    termsLabel: 'I agree to the terms of use and privacy policy.',
+    back: 'Back',
+    next: 'Next step',
+    submitting: 'Submitting...',
+    submit: 'Ready to register',
+    addToCart: 'Add to cart',
+    cartAdded: 'The product was added to your cart.',
+    cartEyebrow: 'Cart',
+    cartTitle: 'Cart and checkout',
+    cartCopy: 'Review configured products, choose the payment method and complete checkout.',
+    cartTotal: 'Cart total',
+    checkout: 'Checkout',
+    emptyCart: 'Your cart is empty. Configure a trademark and add it to the cart.',
+    remove: 'Remove',
+    checkoutSuccess: 'The order was submitted.',
+    checkoutLoginRequired: 'Log in to your account before checkout.',
+    checkoutBillingRequired: 'Complete contact and billing details in your account before payment.',
+    checkoutReady: 'Your account has the details required for checkout.',
+    checkoutNeedsAccount: 'Checkout requires an account and billing details.',
+    successFallback: 'The request has been registered.',
+    submitError: 'We could not submit the request. Please check the details and try again.',
+    accountEyebrow: 'Client account',
+    accountTitle: 'My account',
+    accountCopy: 'Enter the email used for the order to see purchased products, payment status and request history.',
+    accountEmailLabel: 'Account email',
+    passwordLabel: 'Password',
+    passwordPlaceholder: 'Minimum 8 characters',
+    login: 'Login',
+    register: 'Create account',
+    logout: 'Logout',
+    signedInAs: 'Signed in as',
+    authNote: 'You need an account to view order history and attach new purchases to your profile.',
+    loadingAccount: 'Loading...',
+    viewAccount: 'View account',
+    loginSubmit: 'Log in',
+    registerSubmit: 'Create account',
+    authError: 'We could not authenticate this account.',
+    accountError: 'We could not load this account.',
+    orderSingular: 'order',
+    orderPlural: 'orders',
+    total: 'Total',
+    niceClassesShort: 'NICE classes',
+    noPurchases: 'There are no orders for this email.',
+    footerCopy: 'Consulting for OSIM and EU trademark registration, preliminary checks and support throughout the procedure.',
+    footerAbout: 'About us',
+    footerTeam: 'Team',
+    footerFees: 'Fees',
+    footerResources: 'Resources',
+    businessHours: 'Monday - Friday, 09:00 - 19:00',
+    odr: 'Online dispute resolution',
+    sal: 'Alternative dispute resolution',
+    copyright: '© 2026 Dan Sandu and Associates. All rights reserved.',
+    legalLinks: 'Privacy policy · Terms of use',
+    steps: ['Trademark', 'NICE classes', 'Cart'],
+    products: {
+      'ro-word': {
+        title: 'Word trademark',
+        note: 'letters and numbers only, without logo',
+        tax: 'includes VAT',
+        items: ['legal fee included: 1,210 Lei', 'OSIM taxes included: 1,016 Lei', 'one NICE class included', 'secure online payment'],
+      },
+      'ro-monochrome': {
+        title: 'Black-and-white trademark',
+        note: 'special lettering or monochrome logo',
+        tax: 'includes VAT',
+        items: ['legal fee included: 1,210 Lei', 'OSIM taxes included: 1,168 Lei', 'goods and services details', 'one NICE class included'],
+      },
+      'ro-color': {
+        title: 'Color trademark',
+        note: 'logo, design or colored lettering',
+        tax: 'includes VAT',
+        items: ['legal fee included: 1,210 Lei', 'OSIM taxes included: 1,930 Lei', 'logo file upload', 'one NICE class included'],
+      },
+      'eu-word': {
+        title: 'European Union trademark',
+        note: 'protection in EU member states',
+        tax: 'includes VAT',
+        items: ['legal fee included: 240 EUR', 'EUIPO taxes included: 850 EUR', 'one NICE class included', 'assisted online filing'],
+      },
+      'eu-logo': {
+        title: 'EU logo',
+        note: 'figurative or mixed sign',
+        tax: 'includes VAT',
+        items: ['legal fee included: 240 EUR', 'official taxes included: 380 EUR', 'NICE class details', 'secure processing'],
+      },
+    },
+    statuses: {
+      pending_payment: 'Pending payment',
+      paid: 'Paid',
+      processing: 'Processing',
+      completed: 'Completed',
+    },
+  },
+}
+
+const t = computed(() => translations[selectedLanguage.value])
+const locale = computed(() => selectedLanguage.value === 'ro' ? 'ro-RO' : 'en-US')
+const steps = computed(() => t.value.steps)
 
 const form = reactive({
   mark: '',
   classes: 1,
   primaryClass: '',
   goods: '',
-  email: '',
-  phone: '',
-  ownerType: 'Societate',
-  taxId: '',
-  ownerName: '',
-  address: '',
-  payment: 'card',
   terms: false,
 })
 
-const plans = [
+const baseProducts = [
   {
+    code: 'ro-word',
     currency: 'RON',
     region: 'RO',
-    title: 'Marca verbala',
-    note: 'doar litere si cifre, fara logo',
     price: '2.226 Lei',
-    tax: 'include TVA',
-    items: ['onorariu inclus: 1.210 Lei', 'taxe OSIM incluse: 1.016 Lei', 'o clasa NISA inclusa', 'plata online securizata'],
+    baseLei: 2226,
   },
   {
+    code: 'ro-monochrome',
     currency: 'RON',
     region: 'RO',
-    title: 'Marca alb-negru',
-    note: 'scriere speciala sau logo monocrom',
     price: '2.378 Lei',
-    tax: 'include TVA',
-    items: ['onorariu inclus: 1.210 Lei', 'taxe OSIM incluse: 1.168 Lei', 'detaliere produse si servicii', 'o clasa NISA inclusa'],
+    baseLei: 2378,
   },
   {
+    code: 'ro-color',
     currency: 'RON',
     region: 'RO',
-    title: 'Marca color',
-    note: 'logo, design sau scriere color',
     price: '3.140 Lei',
-    tax: 'include TVA',
-    items: ['onorariu inclus: 1.210 Lei', 'taxe OSIM incluse: 1.930 Lei', 'upload fisier logo', 'o clasa NISA inclusa'],
+    baseLei: 3140,
   },
   {
+    code: 'eu-word',
     currency: 'EUR',
     region: 'UE',
-    title: 'Marca Uniunea Europeana',
-    note: 'protectie in statele membre UE',
     price: '1.090 EUR',
-    tax: 'include TVA',
-    items: ['onorariu inclus: 240 EUR', 'taxe EUIPO incluse: 850 EUR', 'o clasa NISA inclusa', 'depunere asistata online'],
+    baseLei: 5423,
   },
   {
+    code: 'eu-logo',
     currency: 'EUR',
     region: 'UE',
-    title: 'Logo UE',
-    note: 'semn figurativ sau mixt',
     price: '620 EUR',
-    tax: 'include TVA',
-    items: ['onorariu inclus: 240 EUR', 'taxe oficiale incluse: 380 EUR', 'detaliere clase NISA', 'procesare securizata'],
+    baseLei: 3085,
   },
 ]
 
-const niceClasses = [
-  'Clasa 9: software, calculatoare, telefoane mobile',
-  'Clasa 25: imbracaminte, incaltaminte, palarii',
-  'Clasa 30: cafea, ceai, cacao, patiserie',
-  'Clasa 35: comert, retail, publicitate, marketing',
-  'Clasa 41: educatie, divertisment, activitati sportive',
-  'Clasa 42: servicii IT, programare, proiectare',
-  'Clasa 43: restaurante, baruri, hoteluri',
-  'Clasa 45: servicii juridice si protectie',
-]
-
-const visiblePlans = computed(() => plans.filter((plan) => plan.currency === selectedCurrency.value))
-const total = computed(() => 2226 + (form.classes - 1) * 449)
-const formattedTotal = computed(() => `${total.value.toLocaleString('ro-RO')} Lei`)
+const plans = computed(() => baseProducts.map(product => ({
+  ...product,
+  ...t.value.products[product.code],
+})))
+const niceClasses = computed(() => niceClasses2024.map(niceClass => ({
+  ...niceClass,
+  label: selectedLanguage.value === 'ro'
+    ? `Clasa ${niceClass.number}: ${niceClass.officialRo}`
+    : `Class ${niceClass.number}: ${niceClass.summaryEn}`,
+  value: `Clasa ${niceClass.number}: ${niceClass.officialRo}`,
+  typeLabel: niceClass.type === 'goods' ? t.value.niceGoods : t.value.niceServices,
+  detail: selectedLanguage.value === 'ro' ? niceClass.officialRo : niceClass.summaryEn,
+})))
+const selectedNiceClass = computed(() => niceClasses.value.find(niceClass => niceClass.value === form.primaryClass))
+const visiblePlans = computed(() => plans.value.filter(plan => plan.currency === selectedCurrency.value))
+const selectedProduct = computed(() => plans.value.find(plan => plan.code === selectedProductCode.value) || plans.value[0])
+const total = computed(() => selectedProduct.value.baseLei + (form.classes - 1) * 449)
+const formattedTotal = computed(() => `${total.value.toLocaleString(locale.value)} Lei`)
+const cartTotal = computed(() => cartItems.value.reduce((sum, item) => sum + item.total, 0))
+const formattedCartTotal = computed(() => `${cartTotal.value.toLocaleString(locale.value)} Lei`)
+const canAddToCart = computed(() => form.mark && form.primaryClass && form.terms)
+const accountCheckoutStatus = computed(() => {
+  if (!authToken.value) return t.value.checkoutNeedsAccount
+  return currentUser.value?.billing_complete ? t.value.checkoutReady : t.value.checkoutBillingRequired
+})
+const selectedPaymentDescription = computed(() => ({
+  card: t.value.cardPaymentDescription,
+  paypal: t.value.paypalPaymentDescription,
+  transfer: t.value.bankPaymentDescription,
+})[checkoutPayment.value])
 
 function classLabel(count) {
-  if (count === 1) return 'O clasa NISA (inclusa)'
-  return `${count} clase NISA (+${(count - 1) * 449} Lei)`
+  if (count === 1) return t.value.oneClass
+  return t.value.multipleClasses(count)
 }
 
-async function submitForm() {
-  submitted.value = false
+function selectProduct(code) {
+  selectedProductCode.value = code
+}
+
+function setLanguage(code) {
+  selectedLanguage.value = code
+}
+
+function authHeaders() {
+  return authToken.value ? { Authorization: `Bearer ${authToken.value}` } : {}
+}
+
+function clearSession() {
+  authToken.value = ''
+  currentUser.value = null
+  window.localStorage.removeItem('account-token')
+  window.localStorage.removeItem('account-user')
+}
+
+function persistCart() {
+  window.localStorage.setItem('cart-items', JSON.stringify(cartItems.value))
+}
+
+function loadCart() {
+  const storedCart = window.localStorage.getItem('cart-items')
+  cartItems.value = storedCart ? JSON.parse(storedCart) : []
+}
+
+function buildCartItem() {
+  return {
+    id: crypto.randomUUID(),
+    productCode: selectedProductCode.value,
+    productTitle: selectedProduct.value.title,
+    mark: form.mark,
+    classes: form.classes,
+    primaryClass: form.primaryClass,
+    goods: form.goods,
+    terms: form.terms,
+    total: total.value,
+    formattedTotal: formattedTotal.value,
+  }
+}
+
+function addToCart() {
   submitError.value = ''
-  successMessage.value = ''
+  cartMessage.value = ''
+
+  if (!canAddToCart.value) {
+    submitError.value = t.value.submitError
+    return
+  }
+
+  cartItems.value = [...cartItems.value, buildCartItem()]
+  persistCart()
+  cartMessage.value = t.value.cartAdded
+}
+
+function removeFromCart(id) {
+  cartItems.value = cartItems.value.filter(item => item.id !== id)
+  persistCart()
+}
+
+async function hydrateSession() {
+  const storedToken = window.localStorage.getItem('account-token')
+
+  if (!storedToken) return
+
+  authToken.value = storedToken
+
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/session`, {
+      headers: authHeaders(),
+    })
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok) throw new Error()
+
+    window.localStorage.setItem('account-user', JSON.stringify(payload.user))
+    currentUser.value = payload.user
+  }
+  catch {
+    clearSession()
+  }
+}
+
+async function submitCartItem(item) {
+  const response = await fetch(`${config.public.apiBaseUrl}/api/v1/trademark_requests`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(),
+    },
+    body: JSON.stringify({
+      trademark_request: {
+        mark: item.mark,
+        product_code: item.productCode,
+        classes: item.classes,
+        primary_class: item.primaryClass,
+        goods: item.goods,
+        payment: checkoutPayment.value,
+        terms: item.terms,
+      },
+    }),
+  })
+  const payload = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(payload.message || t.value.submitError)
+  }
+
+  return payload
+}
+
+async function checkoutCart() {
+  submitError.value = ''
+  cartMessage.value = ''
+
+  if (!authToken.value) {
+    submitError.value = t.value.checkoutLoginRequired
+    return
+  }
+
+  if (!currentUser.value?.billing_complete) {
+    submitError.value = t.value.checkoutBillingRequired
+    return
+  }
+
   submitting.value = true
 
   try {
-    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/trademark_requests`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        trademark_request: {
-          mark: form.mark,
-          classes: form.classes,
-          primary_class: form.primaryClass,
-          goods: form.goods,
-          email: form.email,
-          phone: form.phone,
-          owner_type: form.ownerType,
-          tax_id: form.taxId,
-          owner_name: form.ownerName,
-          address: form.address,
-          payment: form.payment,
-          terms: form.terms,
-        },
-      }),
-    })
+    const payloads = []
 
-    const payload = await response.json().catch(() => ({}))
-
-    if (!response.ok) {
-      throw new Error(payload.message || 'Nu am putut trimite solicitarea. Verificati datele si incercati din nou.')
+    for (const item of cartItems.value) {
+      payloads.push(await submitCartItem(item))
     }
 
-    submitted.value = true
-    successMessage.value = payload.message || 'Solicitarea a fost inregistrata.'
-  } catch (error) {
-    submitError.value = error instanceof Error ? error.message : 'Nu am putut trimite solicitarea.'
-  } finally {
+    cartItems.value = []
+    persistCart()
+    cartMessage.value = t.value.checkoutSuccess
+    const payload = payloads.find(result => result.payment?.checkout_url)
+    if (payload.payment?.checkout_url) {
+      window.location.href = payload.payment.checkout_url
+    }
+  }
+  catch (error) {
+    submitError.value = error instanceof Error ? error.message : t.value.submitError
+  }
+  finally {
     submitting.value = false
   }
 }
+
+onMounted(() => {
+  const storedLanguage = window.localStorage.getItem('preferred-language')
+
+  if (storedLanguage && translations[storedLanguage]) {
+    selectedLanguage.value = storedLanguage
+  }
+
+  hydrateSession()
+  loadCart()
+})
+
+watch(selectedLanguage, (language) => {
+  window.localStorage.setItem('preferred-language', language)
+})
 </script>
 
 <style>
@@ -537,6 +1257,32 @@ a {
 .main-nav a {
   text-decoration: none;
   text-transform: uppercase;
+}
+
+.language-switcher {
+  display: inline-flex;
+  border: 1px solid var(--line);
+}
+
+.language-switcher button {
+  width: 38px;
+  height: 30px;
+  border: 0;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.language-switcher button + button {
+  border-left: 1px solid var(--line);
+}
+
+.language-switcher button.active {
+  background: #2b2926;
+  color: #fff;
 }
 
 .main-header {
@@ -647,6 +1393,7 @@ a {
 
 .primary-btn,
 .outline-btn,
+.outline-light-btn,
 .register-btn,
 .ghost-btn {
   display: inline-flex;
@@ -674,6 +1421,13 @@ a {
   color: #fff;
   font-family: Arial, sans-serif;
   text-underline-offset: 4px;
+}
+
+.outline-light-btn {
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  background: transparent;
+  color: #fffaf2;
+  padding: 0 20px;
 }
 
 .secure-panel {
@@ -715,8 +1469,121 @@ a {
 }
 
 .pricing-section,
-.form-section {
+.form-section,
+.cart-section,
+.account-section {
   padding: 64px 0;
+}
+
+.cart-section {
+  border-top: 1px solid var(--line);
+  background: #fff;
+}
+
+.cart-layout {
+  display: grid;
+  grid-template-columns: 330px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.cart-layout h2 {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 400;
+}
+
+.cart-panel {
+  display: grid;
+  gap: 16px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 24px;
+}
+
+.cart-list {
+  display: grid;
+  gap: 12px;
+}
+
+.cart-item,
+.checkout-box {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+}
+
+.cart-item span,
+.cart-item small,
+.checkout-box span {
+  display: block;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.cart-item small {
+  margin-top: 4px;
+}
+
+.cart-item div:last-child {
+  min-width: 130px;
+  text-align: right;
+}
+
+.checkout-box {
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.checkout-summary {
+  min-width: 180px;
+}
+
+.checkout-summary small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.checkout-payment {
+  display: grid;
+  gap: 10px;
+  min-width: min(100%, 320px);
+}
+
+.checkout-payment .payment-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.checkout-payment .payment-options label {
+  align-items: flex-start;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 10px;
+}
+
+.checkout-box strong {
+  display: block;
+  margin-top: 4px;
+  font-family: Georgia, 'Times New Roman', serif;
+  font-size: 30px;
+  font-weight: 400;
+}
+
+.text-danger {
+  border: 0;
+  background: transparent;
+  color: #8f3d22;
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  font-weight: 700;
+  margin-top: 8px;
+  padding: 0;
 }
 
 .section-head {
@@ -770,6 +1637,11 @@ a {
   border: 1px solid var(--line);
   background: #fff;
   padding: 28px;
+}
+
+.price-card.selected {
+  border-color: var(--gold);
+  box-shadow: inset 0 0 0 2px rgba(183, 146, 84, 0.25);
 }
 
 .price-card__top {
@@ -1006,6 +1878,34 @@ a {
   font-family: Arial, sans-serif;
 }
 
+.nice-class-details {
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 16px;
+}
+
+.nice-class-details__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.nice-class-details strong {
+  font-family: Arial, sans-serif;
+}
+
+.nice-class-details p,
+.nice-class-details small {
+  margin: 0;
+  color: var(--muted);
+  font-family: Arial, sans-serif;
+  line-height: 1.6;
+}
+
 .payment-options {
   display: grid;
   gap: 12px;
@@ -1066,6 +1966,145 @@ a {
   padding: 14px;
   font-family: Arial, sans-serif;
   font-weight: 700;
+}
+
+.account-section {
+  border-top: 1px solid var(--line);
+  background: #fff;
+}
+
+.account-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.78fr) minmax(0, 1.22fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.account-copy h2 {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 400;
+}
+
+.account-copy p:not(.eyebrow) {
+  color: var(--muted);
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.account-panel {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 24px;
+}
+
+.account-search {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: end;
+}
+
+.account-search label {
+  display: grid;
+  gap: 8px;
+  color: #2d2924;
+  font-family: Arial, sans-serif;
+  font-weight: 700;
+}
+
+.account-search input {
+  width: 100%;
+  border: 1px solid #cfc7bc;
+  background: #fff;
+  color: var(--ink);
+  padding: 13px 14px;
+  font-weight: 400;
+}
+
+.auth-mode {
+  display: inline-flex;
+  border: 1px solid var(--line);
+}
+
+.auth-mode button {
+  min-height: 44px;
+  border: 0;
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: Arial, sans-serif;
+  font-weight: 700;
+  padding: 0 16px;
+}
+
+.auth-mode button + button {
+  border-left: 1px solid var(--line);
+}
+
+.auth-mode button.active {
+  background: #2b2926;
+  color: #fff;
+}
+
+.signed-in-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+}
+
+.signed-in-bar span {
+  display: block;
+  color: var(--muted);
+  margin-bottom: 4px;
+}
+
+.auth-note {
+  margin: 18px 0 0;
+}
+
+.account-result {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.account-total,
+.purchase-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+}
+
+.account-total {
+  align-items: center;
+}
+
+.account-total span,
+.account-total small,
+.purchase-item span {
+  display: block;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.purchase-list {
+  display: grid;
+  gap: 10px;
+}
+
+.purchase-item div:last-child {
+  text-align: right;
 }
 
 .site-footer {
@@ -1144,6 +2183,8 @@ a {
   .top-strip__inner,
   .start-band__inner,
   .form-layout,
+  .cart-layout,
+  .account-layout,
   .hero__grid {
     grid-template-columns: 1fr;
   }
@@ -1156,7 +2197,9 @@ a {
   }
 
   .hero__grid,
-  .form-layout {
+  .form-layout,
+  .cart-layout,
+  .account-layout {
     display: grid;
   }
 
@@ -1197,12 +2240,16 @@ a {
   }
 
   .pricing-section,
-  .form-section {
+  .form-section,
+  .cart-section,
+  .account-section {
     padding: 42px 0;
   }
 
   .form-summary,
   .registration-form,
+  .cart-panel,
+  .account-panel,
   .price-card {
     padding: 20px;
   }
@@ -1214,6 +2261,34 @@ a {
   .form-actions .primary-btn,
   .form-actions .ghost-btn {
     width: 100%;
+  }
+
+  .account-search,
+  .signed-in-bar,
+  .account-total,
+  .cart-item,
+  .checkout-box,
+  .purchase-item {
+    grid-template-columns: 1fr;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .account-search .primary-btn {
+    width: 100%;
+  }
+
+  .purchase-item div:last-child {
+    text-align: left;
+  }
+
+  .checkout-payment .payment-options {
+    grid-template-columns: 1fr;
+  }
+
+  .cart-item div:last-child {
+    min-width: 0;
+    text-align: left;
   }
 
   .footer-grid,

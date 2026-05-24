@@ -2,6 +2,15 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :trademark_requests, only: :create
+      resources :users, only: :create
+      resource :session, only: %i[create show destroy]
+      post "session/google", to: "sessions#google"
+      get "account", to: "accounts#show"
+      patch "account", to: "accounts#update"
+
+      namespace :admin do
+        get "dashboard", to: "dashboard#show"
+      end
     end
   end
 

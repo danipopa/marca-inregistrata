@@ -26,6 +26,8 @@ dist
 
 # Env
 .env
+api/.env
+web/.env
 
 # Rails secrets and generated state
 api/config/master.key
