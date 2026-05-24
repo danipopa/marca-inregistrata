@@ -1,0 +1,55 @@
+module Api
+  module V1
+    module Admin
+      class DashboardController < BaseController
+        before_action :authenticate_admin!
+
+        def show
+          orders = TrademarkRequest.includes(:user).order(created_at: :desc)
+
+          render json: {
+            stats: {
+              orders_count: orders.count,
+              users_count: User.count,
+              revenue_lei: orders.sum(:total_cents) / 100,
+              pending_orders_count: orders.where(status: "pending_payment").count
+            },
+            orders: orders.limit(100).map { |order| serialize_order(order) },
+            users: User.order(created_at: :desc).limit(100).map { |user| serialize_admin_user(user) }
+          }
+        end
+
+        private
+
+        def serialize_order(order)
+          {
+            id: order.id,
+            product_code: order.product_code,
+            product_name: order.product_name,
+            mark: order.mark,
+            classes: order.classes_count,
+            status: order.status,
+            payment_method: order.payment_method,
+            email: order.email,
+            owner_name: order.owner_name,
+            phone: order.phone,
+            total: {
+              amount: order.total_lei,
+              currency: order.currency,
+              formatted: order.formatted_total
+            },
+            user: order.user ? serialize_user(order.user) : nil,
+            created_at: order.created_at.iso8601
+          }
+        end
+
+        def serialize_admin_user(user)
+          serialize_user(user).merge(
+            orders_count: user.trademark_requests.count,
+            created_at: user.created_at.iso8601
+          )
+        end
+      end
+    end
+  end
+end
