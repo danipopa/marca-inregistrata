@@ -23,11 +23,11 @@
         <a
           class="brand"
           href="#"
-          aria-label="Dan Sandu si asociatii"
+          aria-label="Sandu si asociatii"
         >
           <span class="brand__mark">DS</span>
           <span>
-            <strong>DAN SANDU</strong>
+            <strong>SANDU</strong>
             <small>SI ASOCIATII</small>
           </span>
         </a>
@@ -498,7 +498,7 @@
     >
       <div class="wrap footer-grid">
         <div class="footer-brand">
-          <strong>DAN SANDU SI ASOCIATII</strong>
+          <strong>SANDU SI ASOCIATII</strong>
           <p>
             {{ t.footerCopy }}
           </p>
@@ -715,7 +715,7 @@ const translations = {
     businessHours: 'Luni - Vineri, 09:00 - 19:00',
     odr: 'Solutionarea online a litigiilor',
     sal: 'Solutionarea alternativa a litigiilor',
-    copyright: '© 2026 Dan Sandu si Asociatii. Toate drepturile rezervate.',
+    copyright: '© 2026 Sandu si Asociatii. Toate drepturile rezervate.',
     legalLinks: 'Politica de confidentialitate · Termeni de utilizare',
     steps: ['Marca', 'Clase NISA', 'Cos'],
     products: {

@@ -5,11 +5,11 @@
         <NuxtLink
           class="brand"
           to="/"
-          aria-label="Dan Sandu si asociatii"
+          aria-label="Sandu si asociatii"
         >
           <span class="brand__mark">DS</span>
           <span>
-            <strong>DAN SANDU</strong>
+            <strong>SANDU</strong>
             <small>ADMIN</small>
           </span>
         </NuxtLink>
