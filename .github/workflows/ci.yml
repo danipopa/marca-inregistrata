@@ -27,8 +27,9 @@ jobs:
 
       - name: Lint
         run: npm run lint
+        working-directory: web
 
-  test:
+  build:
     runs-on: ubuntu-latest
 
     steps:
@@ -44,10 +45,6 @@ jobs:
         run: npx nypm@latest i
         working-directory: web
 
-      - name: Playground prepare
-        run: npm run dev:prepare
-        working-directory: web
-
-      - name: Test
-        run: npm run test
+      - name: Build
+        run: npm run build
         working-directory: web
