@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :trademark_requests, only: :create
+      post "trademark_monitoring/search", to: "trademark_monitoring#search"
       resources :users, only: :create
       resource :session, only: %i[create show destroy]
       post "session/google", to: "sessions#google"

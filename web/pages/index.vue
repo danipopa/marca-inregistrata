@@ -188,6 +188,131 @@
       </section>
 
       <section
+        id="monitorizare"
+        class="monitoring-section"
+      >
+        <div class="wrap monitoring-layout">
+          <div class="monitoring-copy">
+            <p class="eyebrow">
+              {{ t.monitoringEyebrow }}
+            </p>
+            <h2>{{ t.monitoringTitle }}</h2>
+            <p class="muted">
+              {{ t.monitoringCopy }}
+            </p>
+          </div>
+
+          <div class="monitoring-panel">
+            <form
+              class="monitoring-form"
+              @submit.prevent="searchMonitoring"
+            >
+              <label>
+                {{ t.monitoringMarkLabel }}
+                <input
+                  v-model="monitoringForm.mark"
+                  type="search"
+                  :placeholder="t.monitoringMarkPlaceholder"
+                  required
+                  minlength="2"
+                >
+              </label>
+
+              <div class="field-grid">
+                <label>
+                  {{ t.monitoringOfficeLabel }}
+                  <select
+                    v-model="monitoringForm.offices"
+                    multiple
+                  >
+                    <option value="RO">
+                      OSIM / RO
+                    </option>
+                    <option value="EM">
+                      EUIPO / UE
+                    </option>
+                    <option value="WO">
+                      WIPO
+                    </option>
+                  </select>
+                </label>
+
+                <label>
+                  {{ t.monitoringClassLabel }}
+                  <select
+                    v-model="monitoringForm.classes"
+                    multiple
+                  >
+                    <option
+                      v-for="niceClass in niceClasses"
+                      :key="niceClass.number"
+                      :value="String(niceClass.number)"
+                    >
+                      {{ selectedLanguage === 'ro' ? `Clasa ${niceClass.number}` : `Class ${niceClass.number}` }}
+                    </option>
+                  </select>
+                </label>
+              </div>
+
+              <button
+                class="primary-btn"
+                type="submit"
+                :disabled="monitoringLoading"
+              >
+                {{ monitoringLoading ? t.monitoringLoading : t.monitoringSubmit }}
+              </button>
+            </form>
+
+            <p
+              v-if="monitoringError"
+              class="error-message"
+            >
+              {{ monitoringError }}
+            </p>
+
+            <div
+              v-if="monitoringSearched && !monitoringLoading"
+              class="monitoring-results"
+            >
+              <div class="monitoring-results__head">
+                <span>{{ t.monitoringResults }}</span>
+                <strong>{{ monitoringTotalLabel }}</strong>
+              </div>
+
+              <article
+                v-for="result in monitoringResults"
+                :key="result.id || `${result.name}-${result.office}`"
+                class="monitoring-item"
+              >
+                <div>
+                  <strong>{{ result.name || t.monitoringUntitled }}</strong>
+                  <span>{{ result.office || t.monitoringUnknownOffice }} · {{ result.status || t.monitoringUnknownStatus }}</span>
+                  <small v-if="result.owner">{{ result.owner }}</small>
+                  <small v-if="result.nice_classes?.length">{{ t.monitoringClasses }} {{ result.nice_classes.join(', ') }}</small>
+                </div>
+                <a
+                  v-if="result.source_url"
+                  class="text-danger"
+                  :href="result.source_url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ t.monitoringOpen }}
+                </a>
+              </article>
+
+              <p
+                v-if="!monitoringResults.length"
+                class="muted"
+              >
+                {{ t.monitoringNoResults }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section
         id="formular"
         class="form-section"
       >
@@ -588,6 +713,11 @@ const cartItems = ref([])
 const authToken = ref('')
 const currentUser = ref(null)
 const checkoutPayment = ref('card')
+const monitoringLoading = ref(false)
+const monitoringError = ref('')
+const monitoringSearched = ref(false)
+const monitoringResults = ref([])
+const monitoringTotal = ref(0)
 const config = useRuntimeConfig()
 
 const translations = {
@@ -617,6 +747,23 @@ const translations = {
     startTitle: 'Incepeti cu o verificare de marca',
     startCopy: 'O analiza prealabila ajuta la identificarea riscurilor inainte de depunere. Pentru comenzi complexe, echipa poate clarifica produsele si serviciile potrivite.',
     startCta: 'Solicita verificare',
+    monitoringEyebrow: 'Monitorizare marca',
+    monitoringTitle: 'Cautare rapida TMview',
+    monitoringCopy: 'Verificati denumiri similare in registrele TMview pentru Romania, Uniunea Europeana si WIPO.',
+    monitoringMarkLabel: 'Denumire marca',
+    monitoringMarkPlaceholder: 'Ex: NUMELE BRANDULUI',
+    monitoringOfficeLabel: 'Oficii',
+    monitoringClassLabel: 'Clase NISA',
+    monitoringSubmit: 'Cauta in TMview',
+    monitoringLoading: 'Se cauta...',
+    monitoringResults: 'Rezultate',
+    monitoringOpen: 'Deschide',
+    monitoringClasses: 'Clase:',
+    monitoringUntitled: 'Marca fara denumire',
+    monitoringUnknownOffice: 'Oficiu necunoscut',
+    monitoringUnknownStatus: 'Status necunoscut',
+    monitoringNoResults: 'Nu am gasit rezultate pentru cautarea curenta.',
+    monitoringError: 'Nu am putut interoga TMview. Incercati din nou.',
     summaryTotal: 'Cost total estimat',
     summaryNote: 'include TVA, onorariu si taxe oficiale pentru selectia curenta',
     stepOneTitle: 'Inregistrare marca verbala',
@@ -783,6 +930,23 @@ const translations = {
     startTitle: 'Start with a trademark check',
     startCopy: 'A preliminary analysis helps identify risks before filing. For complex orders, the team can clarify the right goods and services.',
     startCta: 'Request check',
+    monitoringEyebrow: 'Trademark monitoring',
+    monitoringTitle: 'Quick TMview search',
+    monitoringCopy: 'Check similar names across TMview registers for Romania, the European Union and WIPO.',
+    monitoringMarkLabel: 'Trademark name',
+    monitoringMarkPlaceholder: 'Example: BRAND NAME',
+    monitoringOfficeLabel: 'Offices',
+    monitoringClassLabel: 'NICE classes',
+    monitoringSubmit: 'Search TMview',
+    monitoringLoading: 'Searching...',
+    monitoringResults: 'Results',
+    monitoringOpen: 'Open',
+    monitoringClasses: 'Classes:',
+    monitoringUntitled: 'Untitled trademark',
+    monitoringUnknownOffice: 'Unknown office',
+    monitoringUnknownStatus: 'Unknown status',
+    monitoringNoResults: 'No results were found for this search.',
+    monitoringError: 'We could not query TMview. Please try again.',
     summaryTotal: 'Estimated total',
     summaryNote: 'includes VAT, legal fee and official taxes for the current selection',
     stepOneTitle: 'Word trademark registration',
@@ -936,6 +1100,11 @@ const form = reactive({
   goods: '',
   terms: false,
 })
+const monitoringForm = reactive({
+  mark: '',
+  offices: ['RO', 'EM'],
+  classes: [],
+})
 
 const baseProducts = [
   {
@@ -1005,6 +1174,7 @@ const selectedPaymentDescription = computed(() => ({
   paypal: t.value.paypalPaymentDescription,
   transfer: t.value.bankPaymentDescription,
 })[checkoutPayment.value])
+const monitoringTotalLabel = computed(() => monitoringTotal.value.toLocaleString(locale.value))
 
 function classLabel(count) {
   if (count === 1) return t.value.oneClass
@@ -1160,6 +1330,44 @@ async function checkoutCart() {
   }
   finally {
     submitting.value = false
+  }
+}
+
+async function searchMonitoring() {
+  monitoringError.value = ''
+  monitoringSearched.value = false
+  monitoringLoading.value = true
+
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/trademark_monitoring/search`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        monitoring: {
+          mark: monitoringForm.mark,
+          offices: monitoringForm.offices,
+          classes: monitoringForm.classes,
+          page_size: 8,
+        },
+      }),
+    })
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(payload.message || t.value.monitoringError)
+    }
+
+    monitoringResults.value = payload.results || []
+    monitoringTotal.value = payload.total || monitoringResults.value.length
+    monitoringSearched.value = true
+  }
+  catch (error) {
+    monitoringError.value = error instanceof Error ? error.message : t.value.monitoringError
+  }
+  finally {
+    monitoringLoading.value = false
   }
 }
 
@@ -1471,13 +1679,99 @@ a {
 .pricing-section,
 .form-section,
 .cart-section,
-.account-section {
+.account-section,
+.monitoring-section {
   padding: 64px 0;
 }
 
 .cart-section {
   border-top: 1px solid var(--line);
   background: #fff;
+}
+
+.monitoring-section {
+  background: #fff;
+  border-bottom: 1px solid var(--line);
+}
+
+.monitoring-layout {
+  display: grid;
+  grid-template-columns: 330px minmax(0, 1fr);
+  gap: 28px;
+  align-items: start;
+}
+
+.monitoring-copy h2 {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 400;
+}
+
+.monitoring-panel {
+  display: grid;
+  gap: 18px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 24px;
+}
+
+.monitoring-form {
+  display: grid;
+  gap: 16px;
+}
+
+.monitoring-form label {
+  display: grid;
+  gap: 8px;
+  color: #2d2924;
+  font-family: Arial, sans-serif;
+  font-weight: 700;
+}
+
+.monitoring-form input,
+.monitoring-form select {
+  width: 100%;
+  border: 1px solid #cfc7bc;
+  background: #fff;
+  color: var(--ink);
+  padding: 13px 14px;
+  font-weight: 400;
+}
+
+.monitoring-form select[multiple] {
+  min-height: 124px;
+}
+
+.monitoring-results {
+  display: grid;
+  gap: 12px;
+}
+
+.monitoring-results__head,
+.monitoring-item {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+}
+
+.monitoring-results__head {
+  align-items: center;
+}
+
+.monitoring-results__head span,
+.monitoring-item span,
+.monitoring-item small {
+  display: block;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.monitoring-item small {
+  margin-top: 4px;
 }
 
 .cart-layout {
@@ -2185,6 +2479,7 @@ a {
   .form-layout,
   .cart-layout,
   .account-layout,
+  .monitoring-layout,
   .hero__grid {
     grid-template-columns: 1fr;
   }
@@ -2242,7 +2537,8 @@ a {
   .pricing-section,
   .form-section,
   .cart-section,
-  .account-section {
+  .account-section,
+  .monitoring-section {
     padding: 42px 0;
   }
 
@@ -2250,6 +2546,7 @@ a {
   .registration-form,
   .cart-panel,
   .account-panel,
+  .monitoring-panel,
   .price-card {
     padding: 20px;
   }
@@ -2268,7 +2565,9 @@ a {
   .account-total,
   .cart-item,
   .checkout-box,
-  .purchase-item {
+  .purchase-item,
+  .monitoring-results__head,
+  .monitoring-item {
     grid-template-columns: 1fr;
     flex-direction: column;
     align-items: stretch;
