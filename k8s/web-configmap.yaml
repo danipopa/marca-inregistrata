@@ -5,3 +5,4 @@ metadata:
   namespace: inregistrare-marca
 data:
   NUXT_PUBLIC_API_BASE_URL: ""
+  NUXT_PUBLIC_GOOGLE_CLIENT_ID: ""
