@@ -22,12 +22,13 @@
         <a
           class="brand"
           href="#"
-          aria-label="Sandu si asociatii"
+          :aria-label="brandName"
         >
           <img
             class="brand__logo"
-            :src="logoUrl"
-            alt="Sandu si Asociatii"
+            :src="transparentPixel"
+            :style="{ '--fallback-logo-image': `url(${logoUrl})` }"
+            :alt="brandName"
           >
         </a>
         <nav
@@ -57,7 +58,10 @@
     </header>
 
     <main>
-      <section class="hero">
+      <section
+        class="hero"
+        :style="{ '--fallback-hero-image': `url(${heroHomeUrl})` }"
+      >
         <div class="wrap hero__grid">
           <div class="hero__copy">
             <p class="eyebrow">
@@ -638,9 +642,14 @@
     >
       <div class="wrap footer-grid">
         <div class="footer-brand">
-          <strong>SANDU SI ASOCIATII</strong>
+          <img
+            class="footer-brand__logo"
+            :src="transparentPixel"
+            :style="{ '--fallback-logo-image': `url(${logoUrl})` }"
+            :alt="brandName"
+          >
           <p>
-            {{ t.footerCopy }}
+            {{ footerCopy }}
           </p>
         </div>
 
@@ -690,8 +699,15 @@
       </div>
 
       <div class="wrap footer-bottom">
-        <span>{{ t.copyright }}</span>
-        <span>{{ t.legalLinks }}</span>
+        <span>{{ copyrightText }}</span>
+        <span class="legal-links">
+          <NuxtLink to="/politica-de-confidentialitate">
+            {{ t.privacyPolicy }}
+          </NuxtLink>
+          <NuxtLink to="/termeni-si-conditii">
+            {{ t.termsOfUse }}
+          </NuxtLink>
+        </span>
       </div>
     </footer>
   </div>
@@ -703,12 +719,14 @@ import { niceClasses2024 } from '~/data/niceClasses2024'
 import logoUrl from '../assets/images/LOGO_SANDU-removebg-preview.png'
 import blackWhiteTrademarkUrl from '../assets/images/MARCA_TA_ALB_NEGRU-removebg-preview.png'
 import colorTrademarkUrl from '../assets/images/MARCA_TA_COLOR-removebg-preview.png'
+import heroHomeUrl from '../assets/images/img_home.png'
 import verbalTrademarkUrl from '../assets/images/MARCA_TA_VERBALA-removebg-preview.png'
 
 const currencies = [
   { code: 'RON', label: 'OSIM' },
   { code: 'EUR', label: 'EUIPO' },
 ]
+const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
 const languages = [
   { code: 'ro', label: 'RO' },
   { code: 'en', label: 'EN' },
@@ -717,6 +735,7 @@ const selectedLanguage = ref('ro')
 const selectedCurrency = ref('RON')
 const selectedProductCode = ref('ro-word')
 const productCatalog = ref([])
+const siteTheme = ref({})
 const currentStep = ref(0)
 const submitting = ref(false)
 const submitError = ref('')
@@ -744,9 +763,9 @@ const translations = {
     navPractice: 'Arii de practica',
     navAccount: 'Contul meu',
     navContact: 'Contact',
-    heroEyebrow: 'Proprietate intelectuala',
-    heroTitle: 'Inregistrare marca Romania UE',
-    heroLead: 'Procedura asistata pentru OSIM si Uniunea Europeana, cu onorarii clare, taxe oficiale incluse si documentatie pregatita pe baza datelor completate online.',
+    heroEyebrow: 'Proprietate industriala',
+    heroTitle: 'Inregistrare marca in Romania/UE',
+    heroLead: 'Procedura asistata pentru OSIM si EUIPO, cu onorarii clare, taxe oficiale incluse si documentatie pregatita pe baza datelor completate online.',
     heroPackages: 'Vezi pachetele',
     heroAccount: 'Contul meu',
     heroForm: 'Completeaza formularul',
@@ -872,8 +891,9 @@ const translations = {
     businessHours: 'Luni - Vineri, 09:00 - 19:00',
     odr: 'Solutionarea online a litigiilor',
     sal: 'Solutionarea alternativa a litigiilor',
-    copyright: '© 2026 Sandu si Asociatii. Toate drepturile rezervate.',
-    legalLinks: 'Politica de confidentialitate · Termeni de utilizare',
+    privacyPolicy: 'Politica de confidentialitate',
+    termsOfUse: 'Termeni si conditii',
+    rightsReserved: 'Toate drepturile rezervate.',
     steps: ['Marca', 'Clase NISA', 'Cos'],
     products: {
       'ro-word': {
@@ -1053,8 +1073,9 @@ const translations = {
     businessHours: 'Monday - Friday, 09:00 - 19:00',
     odr: 'Online dispute resolution',
     sal: 'Alternative dispute resolution',
-    copyright: '© 2026 Dan Sandu and Associates. All rights reserved.',
-    legalLinks: 'Privacy policy · Terms of use',
+    privacyPolicy: 'Privacy policy',
+    termsOfUse: 'Terms and conditions',
+    rightsReserved: 'All rights reserved.',
     steps: ['Trademark', 'NICE classes', 'Cart'],
     products: {
       'ro-word': {
@@ -1098,6 +1119,9 @@ const translations = {
 }
 
 const t = computed(() => translations[selectedLanguage.value])
+const brandName = computed(() => siteTheme.value.brand_name || 'SANDU și Asociații IP Attorney')
+const footerCopy = computed(() => siteTheme.value.footer_text || t.value.footerCopy)
+const copyrightText = computed(() => `© 2026 ${brandName.value}. ${t.value.rightsReserved}`)
 const locale = computed(() => selectedLanguage.value === 'ro' ? 'ro-RO' : 'en-US')
 const steps = computed(() => t.value.steps)
 
@@ -1173,6 +1197,18 @@ async function loadProducts() {
   }
   catch {
     productCatalog.value = []
+  }
+}
+
+async function loadSiteTheme() {
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/site_theme`)
+    const payload = await response.json().catch(() => ({}))
+
+    if (response.ok) siteTheme.value = payload.theme || {}
+  }
+  catch {
+    siteTheme.value = {}
   }
 }
 
@@ -1386,6 +1422,7 @@ onMounted(() => {
   hydrateSession()
   loadCart()
   loadProducts()
+  loadSiteTheme()
 })
 
 watch(selectedLanguage, (language) => {
@@ -1403,6 +1440,8 @@ watch(selectedLanguage, (language) => {
   --cream: #fff;
   --gold: #00add9;
   --gold-dark: #00add9;
+  --brand: #013ebe;
+  --font-family: 'Montserrat', sans-serif;
   --green: #52695a;
 }
 
@@ -1418,7 +1457,7 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 button,
@@ -1438,9 +1477,9 @@ a {
 }
 
 .top-strip {
-  background: #013ebe;
+  background: var(--brand);
   color: #f8f3ea;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 12px;
   letter-spacing: 0.02em;
 }
@@ -1484,7 +1523,7 @@ a {
   background: #fff;
   color: var(--ink);
   cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 11px;
   font-weight: 700;
 }
@@ -1520,13 +1559,16 @@ a {
 
 .brand__logo {
   display: block;
+  object-fit: contain;
+  background: var(--logo-image, var(--fallback-logo-image)) center / contain no-repeat;
   width: clamp(180px, 22vw, 257px);
-  height: auto;
+  height: clamp(58px, 7vw, 83px);
+  aspect-ratio: 257 / 83;
 }
 
 .main-nav {
   color: #38332d;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 13px;
   font-weight: 700;
   gap: 10px;
@@ -1548,8 +1590,9 @@ a {
 
 .hero {
   background:
-    linear-gradient(90deg, rgba(43, 41, 38, 0.9), rgba(43, 41, 38, 0.66)),
-    linear-gradient(135deg, #3a342d, #9a855d);
+    linear-gradient(90deg, rgba(8, 22, 50, 0.86), rgba(8, 22, 50, 0.56), rgba(8, 22, 50, 0.28)),
+    var(--hero-image, var(--fallback-hero-image)) center / cover no-repeat,
+    var(--brand);
   color: #fffaf2;
 }
 
@@ -1565,7 +1608,7 @@ a {
 .eyebrow {
   margin: 0 0 10px;
   color: var(--gold);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -1588,7 +1631,7 @@ a {
   max-width: 680px;
   margin: 24px 0 0;
   color: #eee3d1;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 18px;
   line-height: 1.7;
 }
@@ -1613,7 +1656,7 @@ a {
   border: 0;
   border-radius: 2px;
   cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-decoration: none;
@@ -1629,7 +1672,7 @@ a {
 
 .text-link {
   color: #fff;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   text-underline-offset: 4px;
 }
 
@@ -1656,7 +1699,7 @@ a {
   height: 72px;
   border: 1px solid rgba(255, 255, 255, 0.55);
   color: #f6dfad;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
 }
 
@@ -1673,7 +1716,7 @@ a {
 .secure-panel span {
   margin-top: 8px;
   color: #eadfcd;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 14px;
   line-height: 1.5;
 }
@@ -1726,7 +1769,7 @@ a {
   display: grid;
   gap: 8px;
   color: #2d2924;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
 }
 
@@ -1757,7 +1800,7 @@ a {
   border: 1px solid var(--line);
   background: #fff;
   padding: 16px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .monitoring-results__head {
@@ -1810,7 +1853,7 @@ a {
   border: 1px solid var(--line);
   background: #fff;
   padding: 16px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .cart-item span,
@@ -1866,7 +1909,7 @@ a {
 .checkout-box strong {
   display: block;
   margin-top: 4px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 30px;
   font-weight: 400;
 }
@@ -1876,7 +1919,7 @@ a {
   background: transparent;
   color: #8f3d22;
   cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
   margin-top: 8px;
   padding: 0;
@@ -1952,7 +1995,7 @@ a {
   height: 28px;
   border: 1px solid var(--gold);
   color: var(--gold-dark);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 12px;
   font-weight: 700;
 }
@@ -1974,7 +2017,7 @@ a {
 .price-card p,
 .muted {
   color: var(--muted);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   line-height: 1.6;
 }
 
@@ -1992,7 +2035,7 @@ a {
 
 .price small {
   color: var(--muted);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .price-card ul {
@@ -2001,7 +2044,7 @@ a {
   margin: 0 0 22px;
   padding: 0;
   list-style: none;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   line-height: 1.45;
 }
 
@@ -2026,7 +2069,7 @@ a {
 .empty-products {
   border: 1px solid var(--line);
   color: var(--muted);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   margin: 18px 0 0;
   padding: 18px;
   text-align: center;
@@ -2052,7 +2095,7 @@ a {
 .start-band p {
   margin: 0;
   color: var(--muted);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   line-height: 1.6;
 }
 
@@ -2096,7 +2139,7 @@ a {
   border: 1px solid var(--line);
   background: var(--paper);
   padding: 18px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .summary-box span,
@@ -2105,7 +2148,7 @@ a {
 }
 
 .summary-box strong {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 30px;
   font-weight: 400;
 }
@@ -2116,7 +2159,7 @@ a {
   margin: 0;
   padding: 0;
   list-style: none;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .steps li {
@@ -2159,7 +2202,7 @@ a {
   display: grid;
   gap: 8px;
   color: #2d2924;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
 }
 
@@ -2187,7 +2230,7 @@ a {
   border-left: 4px solid var(--gold);
   background: var(--paper);
   padding: 16px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .nice-class-details {
@@ -2207,14 +2250,14 @@ a {
 }
 
 .nice-class-details strong {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .nice-class-details p,
 .nice-class-details small {
   margin: 0;
   color: var(--muted);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   line-height: 1.6;
 }
 
@@ -2237,7 +2280,7 @@ a {
 }
 
 .payment-card strong {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 34px;
   font-weight: 400;
 }
@@ -2266,7 +2309,7 @@ a {
   background: #edf4ef;
   color: var(--green);
   padding: 14px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
 }
 
@@ -2276,7 +2319,7 @@ a {
   background: #fff1eb;
   color: #8f3d22;
   padding: 14px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
 }
 
@@ -2300,7 +2343,7 @@ a {
 
 .account-copy p:not(.eyebrow) {
   color: var(--muted);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 16px;
   line-height: 1.7;
 }
@@ -2322,7 +2365,7 @@ a {
   display: grid;
   gap: 8px;
   color: #2d2924;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
 }
 
@@ -2346,7 +2389,7 @@ a {
   background: #fff;
   color: var(--ink);
   cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
   padding: 0 16px;
 }
@@ -2368,7 +2411,7 @@ a {
   border: 1px solid var(--line);
   background: #fff;
   padding: 16px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .signed-in-bar span {
@@ -2395,7 +2438,7 @@ a {
   border: 1px solid var(--line);
   background: #fff;
   padding: 16px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .account-total {
@@ -2420,31 +2463,41 @@ a {
 }
 
 .site-footer {
-  background: #013ebe;
+  background: var(--brand);
   color: #f8f3ea;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   padding: 42px 0 22px;
 }
 
 .footer-grid {
   display: grid;
-  grid-template-columns: 1.4fr repeat(4, minmax(0, 1fr));
-  gap: 28px;
+  grid-template-columns: minmax(360px, 1.55fr) repeat(3, minmax(0, 1fr));
+  gap: clamp(28px, 4vw, 64px);
+  align-items: start;
 }
 
-.footer-brand strong {
+.footer-brand {
+  display: grid;
+  grid-template-columns: minmax(160px, 0.9fr) minmax(0, 1fr);
+  gap: clamp(22px, 3vw, 42px);
+  align-items: center;
+}
+
+.footer-brand__logo {
   display: block;
-  font-family: 'Montserrat', sans-serif;
-  font-size: 22px;
-  font-weight: 400;
-  letter-spacing: 0.08em;
+  width: min(100%, 220px);
+  height: clamp(58px, 7vw, 83px);
+  aspect-ratio: 257 / 83;
+  background: var(--logo-image, var(--fallback-logo-image)) center / contain no-repeat;
+  filter: brightness(0) invert(1);
 }
 
 .footer-brand p {
-  max-width: 320px;
-  margin: 14px 0 0;
-  color: #cfc6b7;
-  line-height: 1.7;
+  max-width: 360px;
+  margin: 0;
+  color: #f8f3ea;
+  font-size: 16px;
+  line-height: 1.18;
 }
 
 .footer-column {
@@ -2463,9 +2516,9 @@ a {
 
 .footer-column a,
 .footer-column span {
-  color: #e8dfd1;
-  font-size: 14px;
-  line-height: 1.45;
+  color: #f8f3ea;
+  font-size: 16px;
+  line-height: 1.35;
   text-decoration: none;
 }
 
@@ -2488,6 +2541,23 @@ a {
   padding-top: 18px;
   color: #b8afa2;
   font-size: 13px;
+}
+
+.legal-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+}
+
+.legal-links a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.legal-links a:hover {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 @media (max-width: 980px) {
@@ -2612,6 +2682,14 @@ a {
   .footer-bottom {
     grid-template-columns: 1fr;
     flex-direction: column;
+  }
+
+  .footer-brand {
+    grid-template-columns: 1fr;
+  }
+
+  .footer-brand__logo {
+    width: min(100%, 190px);
   }
 }
 </style>

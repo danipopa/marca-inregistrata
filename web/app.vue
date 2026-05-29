@@ -48,6 +48,24 @@ import { onMounted, ref } from 'vue'
 
 const COOKIE_POLICY_VERSION = '2026-05-28'
 const COOKIE_CONSENT_KEY = 'cookie-consent-proof'
+const DEFAULT_THEME = {
+  primary_color: '#00add9',
+  primary_dark_color: '#00add9',
+  brand_color: '#013ebe',
+  text_color: '#1f1d1a',
+  muted_color: '#68635c',
+  line_color: '#ded8cf',
+  background_color: '#ffffff',
+  font_family: 'Montserrat',
+  brand_name: 'SANDU și Asociații IP Attorney',
+  hero_image_key: '',
+  hero_image: '',
+  logo_image_key: '',
+  logo_image: '',
+  footer_text: '',
+  terms_content: '',
+  privacy_policy_content: '',
+}
 
 const config = useRuntimeConfig()
 const showCookieBanner = ref(false)
@@ -66,6 +84,69 @@ function storedConsent() {
   }
   catch {
     return {}
+  }
+}
+
+function fontStack(fontFamily) {
+  return `'${fontFamily || DEFAULT_THEME.font_family}', sans-serif`
+}
+
+function ensureThemeFont(fontFamily) {
+  const family = (fontFamily || DEFAULT_THEME.font_family).trim()
+  if (!family) return
+
+  const id = `theme-font-${family.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`
+  if (document.getElementById(id)) return
+
+  const link = document.createElement('link')
+  link.id = id
+  link.rel = 'stylesheet'
+  link.href = `https://fonts.googleapis.com/css2?family=${encodeURIComponent(family).replace(/%20/g, '+')}:wght@400;500;600;700&display=swap`
+  document.head.appendChild(link)
+}
+
+function applyTheme(theme) {
+  const selectedTheme = { ...DEFAULT_THEME, ...theme }
+  const root = document.documentElement.style
+
+  root.setProperty('--ink', selectedTheme.text_color)
+  root.setProperty('--muted', selectedTheme.muted_color)
+  root.setProperty('--line', selectedTheme.line_color)
+  root.setProperty('--paper', selectedTheme.background_color)
+  root.setProperty('--cream', selectedTheme.background_color)
+  root.setProperty('--gold', selectedTheme.primary_color)
+  root.setProperty('--gold-dark', selectedTheme.primary_dark_color)
+  root.setProperty('--brand', selectedTheme.brand_color)
+  root.setProperty('--font-family', fontStack(selectedTheme.font_family))
+
+  if (selectedTheme.hero_image) {
+    root.setProperty('--hero-image', `url(${selectedTheme.hero_image})`)
+  }
+  else {
+    root.removeProperty('--hero-image')
+  }
+
+  if (selectedTheme.logo_image) {
+    root.setProperty('--logo-image', `url(${selectedTheme.logo_image})`)
+  }
+  else {
+    root.removeProperty('--logo-image')
+  }
+
+  ensureThemeFont(selectedTheme.font_family)
+}
+
+async function loadTheme() {
+  applyTheme(DEFAULT_THEME)
+
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/site_theme`)
+    const payload = await response.json().catch(() => ({}))
+
+    if (response.ok) applyTheme(payload.theme)
+  }
+  catch {
+    applyTheme(DEFAULT_THEME)
   }
 }
 
@@ -113,6 +194,7 @@ async function saveCookiePolicy(accepted) {
 }
 
 onMounted(() => {
+  loadTheme()
   const consent = storedConsent()
   showCookieBanner.value = !(typeof consent.accepted === 'boolean' && consent.version === COOKIE_POLICY_VERSION)
 })
@@ -137,7 +219,7 @@ onMounted(() => {
   color: #1f1d1a;
   padding: 14px 18px;
   box-shadow: 0 8px 28px rgba(31, 29, 26, 0.2);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .cookie-copy {
@@ -157,7 +239,7 @@ onMounted(() => {
 }
 
 .cookie-banner summary {
-  color: #013ebe;
+  color: var(--brand);
   cursor: pointer;
   font-weight: 700;
 }
@@ -179,7 +261,7 @@ onMounted(() => {
   min-height: 44px;
   border: 1px solid #00add9;
   background: #fff;
-  color: #013ebe;
+  color: var(--brand);
   cursor: pointer;
   padding: 0 22px;
   font: inherit;

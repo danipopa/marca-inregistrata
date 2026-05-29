@@ -5,12 +5,13 @@
         <NuxtLink
           class="brand"
           to="/"
-          aria-label="Sandu si asociatii"
+          :aria-label="themeForm.brand_name || 'SANDU și Asociații IP Attorney'"
         >
           <img
             class="brand__logo"
-            :src="logoUrl"
-            alt="Sandu si Asociatii"
+            :src="transparentPixel"
+            :style="{ '--fallback-logo-image': `url(${logoUrl})` }"
+            :alt="themeForm.brand_name || 'SANDU și Asociații IP Attorney'"
           >
           <small>ADMIN</small>
         </NuxtLink>
@@ -192,8 +193,36 @@
                             <option value="verbal">Marca verbala OSIM</option>
                             <option value="black_white">Marca alb-negru</option>
                             <option value="color">Marca color</option>
+                            <option
+                              v-for="image in uploadedProductImages"
+                              :key="image.key"
+                              :value="image.key"
+                            >
+                              {{ image.name }}
+                            </option>
                           </select>
                         </div>
+                      </label>
+                      <label>
+                        Upload image
+                        <input
+                          v-model="uploadImageName"
+                          type="text"
+                          placeholder="Display name"
+                        >
+                        <input
+                          type="file"
+                          accept="image/*"
+                          @change="selectUploadImage"
+                        >
+                        <button
+                          class="ghost-btn"
+                          type="button"
+                          :disabled="imageUploading || !uploadImageFile"
+                          @click="uploadProductImage"
+                        >
+                          {{ imageUploading ? 'Uploading...' : 'Upload image' }}
+                        </button>
                       </label>
                       <label class="checkbox-field">
                         <input
@@ -454,6 +483,155 @@
                     </article>
                   </div>
 
+                  <form
+                    class="theme-form"
+                    @submit.prevent="saveTheme"
+                  >
+                    <div class="section-title">
+                      <h2>Website theme</h2>
+                      <button
+                        class="ghost-btn"
+                        type="button"
+                        :disabled="themeSaving"
+                        @click="loadTheme"
+                      >
+                        Reload
+                      </button>
+                    </div>
+
+                    <div class="theme-grid">
+                      <label class="theme-grid__wide">
+                        Brand name
+                        <input
+                          v-model="themeForm.brand_name"
+                          type="text"
+                          placeholder="SANDU și Asociații IP Attorney"
+                        >
+                      </label>
+                      <label class="theme-grid__wide">
+                        Homepage hero image
+                        <select v-model="themeForm.hero_image_key">
+                          <option value="">Built-in default image</option>
+                          <option
+                            v-for="image in uploadedThemeImages"
+                            :key="image.key"
+                            :value="image.key"
+                          >
+                            {{ image.name }}
+                          </option>
+                        </select>
+                      </label>
+                      <label class="theme-grid__wide">
+                        Website logo image
+                        <select v-model="themeForm.logo_image_key">
+                          <option value="">Built-in default logo</option>
+                          <option
+                            v-for="image in uploadedThemeImages"
+                            :key="image.key"
+                            :value="image.key"
+                          >
+                            {{ image.name }}
+                          </option>
+                        </select>
+                      </label>
+                      <label class="theme-grid__wide">
+                        Upload theme image
+                        <input
+                          v-model="uploadThemeImageName"
+                          type="text"
+                          placeholder="Display name"
+                        >
+                        <input
+                          type="file"
+                          accept="image/*"
+                          @change="selectUploadThemeImage"
+                        >
+                        <button
+                          class="ghost-btn"
+                          type="button"
+                          :disabled="themeImageUploading || !uploadThemeImageFile"
+                          @click="uploadThemeImage"
+                        >
+                          {{ themeImageUploading ? 'Uploading...' : 'Upload theme image' }}
+                        </button>
+                      </label>
+                      <label class="theme-grid__wide">
+                        Footer logo text
+                        <textarea
+                          v-model="themeForm.footer_text"
+                          rows="5"
+                          placeholder="Text shown next to the footer logo"
+                        />
+                      </label>
+                      <label class="theme-grid__wide">
+                        Terms and conditions
+                        <textarea
+                          v-model="themeForm.terms_content"
+                          rows="12"
+                          placeholder="# Termeni si conditii"
+                        />
+                      </label>
+                      <label class="theme-grid__wide">
+                        Privacy policy
+                        <textarea
+                          v-model="themeForm.privacy_policy_content"
+                          rows="16"
+                          placeholder="# Politica de confidentialitate"
+                        />
+                      </label>
+                      <label
+                        v-for="field in themeFields"
+                        :key="field.key"
+                      >
+                        {{ field.label }}
+                        <span
+                          v-if="field.type === 'color'"
+                          class="theme-color-control"
+                        >
+                          <input
+                            v-model="themeForm[field.key]"
+                            type="color"
+                          >
+                          <input
+                            v-model="themeForm[field.key]"
+                            type="text"
+                            placeholder="#00add9"
+                            pattern="^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
+                          >
+                        </span>
+                        <input
+                          v-else
+                          v-model="themeForm[field.key]"
+                          :placeholder="field.placeholder"
+                        >
+                      </label>
+                    </div>
+
+                    <div class="theme-preview">
+                      <span :style="{ background: themeForm.brand_color }" />
+                      <span :style="{ background: themeForm.primary_color }" />
+                      <span :style="{ background: themeForm.primary_dark_color }" />
+                      <strong :style="{ fontFamily: themeFontStack }">Theme preview</strong>
+                    </div>
+
+                    <div class="form-actions">
+                      <button
+                        class="primary-btn"
+                        type="submit"
+                        :disabled="themeSaving"
+                      >
+                        {{ themeSaving ? 'Saving theme...' : 'Save theme' }}
+                      </button>
+                    </div>
+
+                    <p
+                      v-if="themeMessage"
+                      class="success-message"
+                    >
+                      {{ themeMessage }}
+                    </p>
+                  </form>
+
                   <h2>Recent users</h2>
                   <div class="user-list">
                     <article
@@ -496,11 +674,21 @@ const authToken = ref('')
 const currentUser = ref(null)
 const dashboard = ref(null)
 const products = ref([])
+const uploadedProductImages = ref([])
+const uploadedThemeImages = ref([])
 const loading = ref(false)
 const productSaving = ref(false)
+const imageUploading = ref(false)
+const themeImageUploading = ref(false)
+const themeSaving = ref(false)
 const savingOrderId = ref(null)
 const errorMessage = ref('')
 const productError = ref('')
+const themeMessage = ref('')
+const uploadImageName = ref('')
+const uploadImageFile = ref(null)
+const uploadThemeImageName = ref('')
+const uploadThemeImageFile = ref(null)
 const editingProductId = ref(null)
 const showProductForm = ref(false)
 const activeAdminTask = ref('products')
@@ -510,6 +698,7 @@ const adminTasks = [
   { id: 'orders', label: 'Orders' },
   { id: 'settings', label: 'Settings' },
 ]
+const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
 const productImages = {
   verbal: verbalTrademarkUrl,
   black_white: blackWhiteTrademarkUrl,
@@ -520,13 +709,28 @@ const imageDescriptions = {
   black_white: 'Monochrome logo, symbol, or special lettering.',
   color: 'Color logo, design, or colored lettering.',
 }
-const selectedImageDescription = computed(() => imageDescriptions[productForm.image_key] || '')
+const themeFields = [
+  { key: 'brand_color', label: 'Header/footer color', type: 'color' },
+  { key: 'primary_color', label: 'Primary button color', type: 'color' },
+  { key: 'primary_dark_color', label: 'Primary text color', type: 'color' },
+  { key: 'text_color', label: 'Text color', type: 'color' },
+  { key: 'muted_color', label: 'Muted text color', type: 'color' },
+  { key: 'line_color', label: 'Border color', type: 'color' },
+  { key: 'background_color', label: 'Background color', type: 'color' },
+  { key: 'font_family', label: 'Font family', type: 'text', placeholder: 'Montserrat' },
+]
+const selectedImageDescription = computed(() => {
+  const uploadedImage = uploadedProductImages.value.find(image => image.key === productForm.image_key)
+  return uploadedImage?.name || imageDescriptions[productForm.image_key] || ''
+})
+const themeFontStack = computed(() => `'${themeForm.font_family || 'Montserrat'}', sans-serif`)
 
 const loginForm = reactive({
   email: '',
   password: '',
 })
 const productForm = reactive(defaultProductForm())
+const themeForm = reactive(defaultThemeForm())
 
 function defaultProductForm() {
   return {
@@ -546,6 +750,56 @@ function defaultProductForm() {
     image_key: '',
     position: 0,
     active: true,
+  }
+}
+
+function defaultThemeForm() {
+  return {
+    primary_color: '#00add9',
+    primary_dark_color: '#00add9',
+    brand_color: '#013ebe',
+    text_color: '#1f1d1a',
+    muted_color: '#68635c',
+    line_color: '#ded8cf',
+    background_color: '#ffffff',
+    font_family: 'Montserrat',
+    brand_name: 'SANDU și Asociații IP Attorney',
+    hero_image_key: '',
+    hero_image: '',
+    logo_image_key: '',
+    logo_image: '',
+    footer_text: '',
+    terms_content: '',
+    privacy_policy_content: '',
+  }
+}
+
+function applyTheme(theme) {
+  const selectedTheme = { ...defaultThemeForm(), ...theme }
+  const root = document.documentElement.style
+
+  root.setProperty('--ink', selectedTheme.text_color)
+  root.setProperty('--muted', selectedTheme.muted_color)
+  root.setProperty('--line', selectedTheme.line_color)
+  root.setProperty('--paper', selectedTheme.background_color)
+  root.setProperty('--cream', selectedTheme.background_color)
+  root.setProperty('--gold', selectedTheme.primary_color)
+  root.setProperty('--gold-dark', selectedTheme.primary_dark_color)
+  root.setProperty('--brand', selectedTheme.brand_color)
+  root.setProperty('--font-family', `'${selectedTheme.font_family || 'Montserrat'}', sans-serif`)
+
+  if (selectedTheme.hero_image) {
+    root.setProperty('--hero-image', `url(${selectedTheme.hero_image})`)
+  }
+  else {
+    root.removeProperty('--hero-image')
+  }
+
+  if (selectedTheme.logo_image) {
+    root.setProperty('--logo-image', `url(${selectedTheme.logo_image})`)
+  }
+  else {
+    root.removeProperty('--logo-image')
   }
 }
 
@@ -663,6 +917,9 @@ async function login() {
     persistSession(payload.token, payload.user)
     await loadDashboard()
     await loadProducts()
+    await loadProductImages()
+    await loadThemeImages()
+    await loadTheme()
   }
   catch (error) {
     clearSession()
@@ -689,6 +946,9 @@ async function hydrateSession() {
 
   await loadDashboard()
   await loadProducts()
+  await loadProductImages()
+  await loadThemeImages()
+  await loadTheme()
 }
 
 async function loadDashboard() {
@@ -732,6 +992,182 @@ async function loadProducts() {
   }
   catch (error) {
     productError.value = error instanceof Error ? error.message : 'Could not load products.'
+  }
+}
+
+async function loadTheme() {
+  themeMessage.value = ''
+
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/admin/site_theme`, {
+      headers: authHeaders(),
+    })
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error('Could not load theme.')
+    }
+
+    Object.assign(themeForm, defaultThemeForm(), payload.theme || {})
+    applyTheme(themeForm)
+  }
+  catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Could not load theme.'
+  }
+}
+
+async function saveTheme() {
+  errorMessage.value = ''
+  themeMessage.value = ''
+  themeSaving.value = true
+
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/admin/site_theme`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders(),
+      },
+      body: JSON.stringify({ theme: themeForm }),
+    })
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(payload.message || 'Could not save theme.')
+    }
+
+    Object.assign(themeForm, defaultThemeForm(), payload.theme || {})
+    applyTheme(themeForm)
+    themeMessage.value = 'Theme saved.'
+  }
+  catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Could not save theme.'
+  }
+  finally {
+    themeSaving.value = false
+  }
+}
+
+async function loadProductImages() {
+  productError.value = ''
+
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/admin/product_images`, {
+      headers: authHeaders(),
+    })
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error('Could not load images.')
+    }
+
+    uploadedProductImages.value = payload.images || []
+  }
+  catch (error) {
+    productError.value = error instanceof Error ? error.message : 'Could not load images.'
+  }
+}
+
+async function loadThemeImages() {
+  errorMessage.value = ''
+
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/admin/theme_images`, {
+      headers: authHeaders(),
+    })
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error('Could not load theme images.')
+    }
+
+    uploadedThemeImages.value = payload.images || []
+  }
+  catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Could not load theme images.'
+  }
+}
+
+function selectUploadImage(event) {
+  uploadImageFile.value = event.target.files?.[0] || null
+  if (!uploadImageName.value && uploadImageFile.value) {
+    uploadImageName.value = uploadImageFile.value.name.replace(/\.[^.]+$/, '')
+  }
+}
+
+async function uploadProductImage() {
+  if (!uploadImageFile.value) return
+
+  productError.value = ''
+  imageUploading.value = true
+
+  try {
+    const formData = new FormData()
+    formData.append('product_image[name]', uploadImageName.value)
+    formData.append('product_image[file]', uploadImageFile.value)
+
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/admin/product_images`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: formData,
+    })
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(payload.message || 'Could not upload image.')
+    }
+
+    uploadedProductImages.value = [...uploadedProductImages.value, payload.image]
+    productForm.image_key = payload.image.key
+    uploadImageName.value = ''
+    uploadImageFile.value = null
+  }
+  catch (error) {
+    productError.value = error instanceof Error ? error.message : 'Could not upload image.'
+  }
+  finally {
+    imageUploading.value = false
+  }
+}
+
+function selectUploadThemeImage(event) {
+  uploadThemeImageFile.value = event.target.files?.[0] || null
+  if (!uploadThemeImageName.value && uploadThemeImageFile.value) {
+    uploadThemeImageName.value = uploadThemeImageFile.value.name.replace(/\.[^.]+$/, '')
+  }
+}
+
+async function uploadThemeImage() {
+  if (!uploadThemeImageFile.value) return
+
+  errorMessage.value = ''
+  themeImageUploading.value = true
+
+  try {
+    const formData = new FormData()
+    formData.append('theme_image[name]', uploadThemeImageName.value)
+    formData.append('theme_image[file]', uploadThemeImageFile.value)
+
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/admin/theme_images`, {
+      method: 'POST',
+      headers: authHeaders(),
+      body: formData,
+    })
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(payload.message || 'Could not upload theme image.')
+    }
+
+    uploadedThemeImages.value = [...uploadedThemeImages.value, payload.image]
+    uploadThemeImageName.value = ''
+    uploadThemeImageFile.value = null
+  }
+  catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Could not upload theme image.'
+  }
+  finally {
+    themeImageUploading.value = false
   }
 }
 
@@ -924,6 +1360,8 @@ onMounted(() => {
   --paper: #fff;
   --gold: #00add9;
   --gold-dark: #00add9;
+  --brand: #013ebe;
+  --font-family: 'Montserrat', sans-serif;
 }
 
 * {
@@ -934,7 +1372,7 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 button,
@@ -987,13 +1425,16 @@ a {
 .admin-product-price small,
 .admin-product-code {
   color: var(--muted);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .brand__logo {
   display: block;
+  object-fit: contain;
+  background: var(--logo-image, var(--fallback-logo-image)) center / contain no-repeat;
   width: clamp(180px, 22vw, 257px);
-  height: auto;
+  height: clamp(58px, 7vw, 83px);
+  aspect-ratio: 257 / 83;
 }
 
 .brand small {
@@ -1063,7 +1504,7 @@ a {
   color: var(--ink);
   padding: 0 14px;
   cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
   text-align: left;
 }
@@ -1140,7 +1581,7 @@ a {
   display: grid;
   gap: 8px;
   color: #2d2924;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
 }
 
@@ -1183,7 +1624,7 @@ a {
   min-height: 44px;
   border-radius: 2px;
   cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1224,7 +1665,7 @@ a {
   border: 1px solid var(--line);
   background: var(--paper);
   padding: 16px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .signed-in-card {
@@ -1250,7 +1691,7 @@ a {
 .stats-grid span {
   display: block;
   color: var(--muted);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   margin-bottom: 8px;
 }
 
@@ -1266,8 +1707,79 @@ a {
   margin-bottom: 8px;
 }
 
+.theme-form {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  padding: 16px;
+}
+
+.theme-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.theme-grid label {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.theme-grid input,
+.theme-grid select,
+.theme-grid textarea {
+  width: 100%;
+}
+
+.theme-grid textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.theme-grid__wide {
+  grid-column: 1 / -1;
+}
+
+.theme-color-control {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.theme-grid .theme-color-control input[type='color'] {
+  height: 44px;
+  padding: 4px;
+}
+
+.theme-grid .theme-color-control input[type='text'] {
+  height: 44px;
+  text-transform: uppercase;
+}
+
+.theme-preview {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  padding: 10px 12px;
+}
+
+.theme-preview span {
+  display: block;
+  width: 26px;
+  height: 26px;
+  border: 1px solid var(--line);
+}
+
 .stats-grid strong {
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 30px;
   font-weight: 400;
 }
@@ -1324,7 +1836,7 @@ a {
   height: 28px;
   border: 1px solid var(--gold);
   color: var(--gold-dark);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 12px;
   font-weight: 700;
 }
@@ -1386,7 +1898,7 @@ a {
   margin: 0 0 22px;
   padding: 0;
   list-style: none;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   line-height: 1.45;
 }
 
@@ -1426,7 +1938,7 @@ a {
   align-items: start;
   border: 1px solid var(--line);
   padding: 14px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .orders-row--head {
@@ -1468,7 +1980,7 @@ a {
   color: var(--ink);
   padding: 10px 12px;
   resize: vertical;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .error-message {
@@ -1477,7 +1989,7 @@ a {
   background: #fff1eb;
   color: #8f3d22;
   padding: 14px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
 }
 
@@ -1486,6 +1998,7 @@ a {
   .admin-shell,
   .stats-grid,
   .settings-grid,
+  .theme-grid,
   .orders-row,
   .field-grid {
     grid-template-columns: 1fr;
