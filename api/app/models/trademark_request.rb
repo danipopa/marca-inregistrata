@@ -28,6 +28,7 @@ class TrademarkRequest < ApplicationRecord
     self.product_name = product.title_ro if product
     self.currency = product&.currency || "RON"
     self.status = "pending_payment" if status.blank? || status == "new"
+    self.admin_comments = "" if has_attribute?(:admin_comments) && admin_comments.blank?
     self.email = email.to_s.strip.downcase
     self.total_cents = ((product&.base_price_lei || 0) + (classes_count.to_i - 1) * CLASS_PRICE_LEI) * 100
   end
