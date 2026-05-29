@@ -49,7 +49,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_150000) do
 
   create_table "trademark_requests", force: :cascade do |t|
     t.text "address"
-    t.text "admin_comments", default: "", null: false
+    t.text "admin_comments", null: false
     t.integer "classes_count", default: 1, null: false
     t.datetime "created_at", null: false
     t.string "currency", default: "RON", null: false
