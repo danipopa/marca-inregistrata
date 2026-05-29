@@ -31,8 +31,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_150000) do
     t.datetime "created_at", null: false
     t.string "currency", default: "RON", null: false
     t.string "image_key"
-    t.text "items_en", default: "[]", null: false
-    t.text "items_ro", default: "[]", null: false
+    t.text "items_en", null: false
+    t.text "items_ro", null: false
     t.string "note_en", default: "", null: false
     t.string "note_ro", default: "", null: false
     t.integer "position", default: 0, null: false

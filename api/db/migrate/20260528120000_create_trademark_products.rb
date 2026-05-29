@@ -12,8 +12,8 @@ class CreateTrademarkProducts < ActiveRecord::Migration[8.1]
       t.string :note_en, null: false, default: ""
       t.string :tax_ro, null: false, default: "include TVA"
       t.string :tax_en, null: false, default: "includes VAT"
-      t.text :items_ro, null: false, default: "[]"
-      t.text :items_en, null: false, default: "[]"
+      t.text :items_ro, null: false
+      t.text :items_en, null: false
       t.string :image_key
       t.integer :position, null: false, default: 0
       t.boolean :active, null: false, default: true
