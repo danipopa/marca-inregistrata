@@ -3,17 +3,16 @@
     <div class="top-strip">
       <div class="wrap top-strip__inner">
         <div class="contact-line">
-          <span>021 313 5799</span>
-          <span>office@dansandu.ro</span>
+          <a href="tel:0770898767">0770 898 767</a>
+          <a href="mailto:contact@inregistrare-marca.com">contact@inregistrare-marca.com</a>
         </div>
         <nav
-          aria-label="Servicii rapide"
+          aria-label="Navigatie principala"
           class="quick-links"
         >
-          <a href="#reinnoire">{{ t.quickRenewal }}</a>
-          <a href="#monitorizare">{{ t.quickMonitoring }}</a>
-          <a href="#preturi">{{ t.quickRegistration }}</a>
-          <a href="#verificare">{{ t.quickCheck }}</a>
+          <a href="#despre">{{ t.navAbout }}</a>
+          <NuxtLink to="/account">{{ t.navAccount }}</NuxtLink>
+          <a href="#contact">{{ t.navContact }}</a>
         </nav>
       </div>
     </div>
@@ -25,22 +24,20 @@
           href="#"
           aria-label="Sandu si asociatii"
         >
-          <span class="brand__mark">DS</span>
-          <span>
-            <strong>SANDU</strong>
-            <small>SI ASOCIATII</small>
-          </span>
+          <img
+            class="brand__logo"
+            :src="logoUrl"
+            alt="Sandu si Asociatii"
+          >
         </a>
         <nav
-          aria-label="Navigatie principala"
+          aria-label="Servicii rapide"
           class="main-nav"
         >
-          <a href="#despre">{{ t.navAbout }}</a>
-          <a href="#cariere">{{ t.navCareers }}</a>
-          <a href="#arii">{{ t.navPractice }}</a>
-          <a href="#blog">Blog</a>
-          <NuxtLink to="/account">{{ t.navAccount }}</NuxtLink>
-          <a href="#contact">{{ t.navContact }}</a>
+          <a href="#reinnoire">{{ t.quickRenewal }}</a>
+          <a href="#monitorizare">{{ t.quickMonitoring }}</a>
+          <a href="#preturi">{{ t.quickRegistration }}</a>
+          <a href="#verificare">{{ t.quickCheck }}</a>
           <div
             class="language-switcher"
             :aria-label="t.languageLabel"
@@ -108,7 +105,7 @@
         <div class="wrap">
           <div class="section-head">
             <p class="eyebrow">
-              RON / EUR
+              OSIM / EUIPO
             </p>
             <h2>{{ t.pricingTitle }}</h2>
           </div>
@@ -120,12 +117,12 @@
           >
             <button
               v-for="currency in currencies"
-              :key="currency"
+              :key="currency.code"
               type="button"
-              :class="{ active: selectedCurrency === currency }"
-              @click="selectedCurrency = currency"
+              :class="{ active: selectedCurrency === currency.code }"
+              @click="selectedCurrency = currency.code"
             >
-              {{ currency }}
+              {{ currency.label }}
             </button>
           </div>
 
@@ -139,7 +136,15 @@
               <div class="price-card__top">
                 <span class="country-pill">{{ plan.region }}</span>
                 <h3>{{ plan.title }}</h3>
-                <p>{{ plan.note }}</p>
+                <img
+                  v-if="plan.image"
+                  class="price-card__image"
+                  :src="plan.image"
+                  :alt="plan.title"
+                >
+                <p v-if="plan.note">
+                  {{ plan.note }}
+                </p>
               </div>
               <div class="price">
                 <span>{{ plan.price }}</span>
@@ -163,6 +168,13 @@
               </p>
             </article>
           </div>
+
+          <p
+            v-if="!visiblePlans.length"
+            class="empty-products"
+          >
+            {{ t.emptyProducts }}
+          </p>
         </div>
       </section>
 
@@ -319,8 +331,11 @@
         <div class="wrap form-layout">
           <aside class="form-summary">
             <span class="country-pill">RO</span>
-            <h2>{{ selectedProduct.title }}</h2>
-            <p class="muted">
+            <h2>{{ selectedProduct?.title || t.emptyProducts }}</h2>
+            <p
+              v-if="selectedProduct"
+              class="muted"
+            >
               {{ selectedProduct.note }}.
             </p>
 
@@ -458,7 +473,7 @@
               </p>
               <div class="payment-card">
                 <strong>{{ formattedTotal }}</strong>
-                <span>{{ selectedProduct.title }}</span>
+                <span v-if="selectedProduct">{{ selectedProduct.title }}</span>
                 <span>{{ form.mark }}</span>
                 <small>{{ t.addToCartPaymentNote }}</small>
               </div>
@@ -630,18 +645,7 @@
         </div>
 
         <nav
-          aria-label="Despre noi"
-          class="footer-column"
-        >
-          <h2>{{ t.footerAbout }}</h2>
-          <a href="#despre">{{ t.footerTeam }}</a>
-          <a href="#arii">{{ t.navPractice }}</a>
-          <a href="#preturi">{{ t.footerFees }}</a>
-          <a href="#contact">Contact</a>
-        </nav>
-
-        <nav
-          aria-label="Resurse"
+          aria-label="Servicii"
           class="footer-column"
         >
           <h2>{{ t.footerResources }}</h2>
@@ -653,8 +657,8 @@
 
         <div class="footer-column">
           <h2>Contact</h2>
-          <a href="tel:0213135799">021 313 5799</a>
-          <a href="mailto:office@dansandu.ro">office@dansandu.ro</a>
+          <a href="tel:0770898767">0770 898 767</a>
+          <a href="mailto:contact@inregistrare-marca.com">contact@inregistrare-marca.com</a>
           <span>{{ t.businessHours }}</span>
         </div>
 
@@ -696,8 +700,15 @@
 <script setup>
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { niceClasses2024 } from '~/data/niceClasses2024'
+import logoUrl from '../assets/images/LOGO_SANDU-removebg-preview.png'
+import blackWhiteTrademarkUrl from '../assets/images/MARCA_TA_ALB_NEGRU-removebg-preview.png'
+import colorTrademarkUrl from '../assets/images/MARCA_TA_COLOR-removebg-preview.png'
+import verbalTrademarkUrl from '../assets/images/MARCA_TA_VERBALA-removebg-preview.png'
 
-const currencies = ['RON', 'EUR']
+const currencies = [
+  { code: 'RON', label: 'OSIM' },
+  { code: 'EUR', label: 'EUIPO' },
+]
 const languages = [
   { code: 'ro', label: 'RO' },
   { code: 'en', label: 'EN' },
@@ -705,6 +716,7 @@ const languages = [
 const selectedLanguage = ref('ro')
 const selectedCurrency = ref('RON')
 const selectedProductCode = ref('ro-word')
+const productCatalog = ref([])
 const currentStep = ref(0)
 const submitting = ref(false)
 const submitError = ref('')
@@ -727,7 +739,7 @@ const translations = {
     quickMonitoring: 'Monitorizare marca',
     quickRegistration: 'Inregistrare marca',
     quickCheck: 'Verificare marca',
-    navAbout: 'Despre',
+    navAbout: 'Despre noi',
     navCareers: 'Cariere',
     navPractice: 'Arii de practica',
     navAccount: 'Contul meu',
@@ -741,20 +753,21 @@ const translations = {
     secureTitle: 'Conexiune securizata',
     secureCopy: 'Plata online si datele de contact sunt gestionate in pasi separati.',
     pricingTitle: 'Alege tipul de marca',
-    currencyLabel: 'Moneda',
-    buy: 'Cumpara',
+    emptyProducts: 'Nu exista produse configurate inca.',
+    currencyLabel: 'Oficiu',
+    buy: 'Adauga in cos',
     startEyebrow: 'Nu stiti de unde sa incepeti?',
     startTitle: 'Incepeti cu o verificare de marca',
     startCopy: 'O analiza prealabila ajuta la identificarea riscurilor inainte de depunere. Pentru comenzi complexe, echipa poate clarifica produsele si serviciile potrivite.',
     startCta: 'Solicita verificare',
     monitoringEyebrow: 'Monitorizare marca',
-    monitoringTitle: 'Cautare rapida TMview',
-    monitoringCopy: 'Verificati denumiri similare in registrele TMview pentru Romania, Uniunea Europeana si WIPO.',
+    monitoringTitle: 'Cautare rapida marci',
+    monitoringCopy: 'Verificati denumiri similare in registrele publice pentru Romania, Uniunea Europeana si WIPO.',
     monitoringMarkLabel: 'Denumire marca',
     monitoringMarkPlaceholder: 'Ex: NUMELE BRANDULUI',
     monitoringOfficeLabel: 'Oficii',
     monitoringClassLabel: 'Clase NISA',
-    monitoringSubmit: 'Cauta in TMview',
+    monitoringSubmit: 'Cauta marca',
     monitoringLoading: 'Se cauta...',
     monitoringResults: 'Rezultate',
     monitoringOpen: 'Deschide',
@@ -763,10 +776,10 @@ const translations = {
     monitoringUnknownOffice: 'Oficiu necunoscut',
     monitoringUnknownStatus: 'Status necunoscut',
     monitoringNoResults: 'Nu am gasit rezultate pentru cautarea curenta.',
-    monitoringError: 'Nu am putut interoga TMview. Incercati din nou.',
+    monitoringError: 'Nu am putut interoga registrele publice. Incercati din nou.',
     summaryTotal: 'Cost total estimat',
     summaryNote: 'include TVA, onorariu si taxe oficiale pentru selectia curenta',
-    stepOneTitle: 'Inregistrare marca verbala',
+    stepOneTitle: 'Inregistrare marca verbala OSIM',
     stepOneCopy: 'Completati atent. Documentatia pentru OSIM se pregateste pe baza acestor informatii.',
     productLabel: 'Produs',
     markLabel: 'Marca pe care doriti sa o inregistrati',
@@ -855,10 +868,7 @@ const translations = {
     niceClassesShort: 'clase NISA',
     noPurchases: 'Nu exista comenzi pentru acest email.',
     footerCopy: 'Consultanta pentru inregistrare marca OSIM si UE, verificari preliminare si asistenta pe parcursul procedurii.',
-    footerAbout: 'Despre noi',
-    footerTeam: 'Echipa',
-    footerFees: 'Onorarii',
-    footerResources: 'Resurse',
+    footerResources: 'Servicii',
     businessHours: 'Luni - Vineri, 09:00 - 19:00',
     odr: 'Solutionarea online a litigiilor',
     sal: 'Solutionarea alternativa a litigiilor',
@@ -867,7 +877,7 @@ const translations = {
     steps: ['Marca', 'Clase NISA', 'Cos'],
     products: {
       'ro-word': {
-        title: 'Marca verbala',
+        title: 'Marca verbala OSIM',
         note: 'doar litere si cifre, fara logo',
         tax: 'include TVA',
         items: ['onorariu inclus: 1.210 Lei', 'taxe OSIM incluse: 1.016 Lei', 'o clasa NISA inclusa', 'plata online securizata'],
@@ -910,7 +920,7 @@ const translations = {
     quickMonitoring: 'Trademark monitoring',
     quickRegistration: 'Trademark registration',
     quickCheck: 'Trademark check',
-    navAbout: 'About',
+    navAbout: 'About us',
     navCareers: 'Careers',
     navPractice: 'Practice areas',
     navAccount: 'My account',
@@ -924,20 +934,21 @@ const translations = {
     secureTitle: 'Secure connection',
     secureCopy: 'Online payment and contact details are handled in separate steps.',
     pricingTitle: 'Choose trademark type',
-    currencyLabel: 'Currency',
+    emptyProducts: 'No products have been configured yet.',
+    currencyLabel: 'Office',
     buy: 'Buy',
     startEyebrow: 'Not sure where to start?',
     startTitle: 'Start with a trademark check',
     startCopy: 'A preliminary analysis helps identify risks before filing. For complex orders, the team can clarify the right goods and services.',
     startCta: 'Request check',
     monitoringEyebrow: 'Trademark monitoring',
-    monitoringTitle: 'Quick TMview search',
-    monitoringCopy: 'Check similar names across TMview registers for Romania, the European Union and WIPO.',
+    monitoringTitle: 'Quick trademark search',
+    monitoringCopy: 'Check similar names across public registers for Romania, the European Union and WIPO.',
     monitoringMarkLabel: 'Trademark name',
     monitoringMarkPlaceholder: 'Example: BRAND NAME',
     monitoringOfficeLabel: 'Offices',
     monitoringClassLabel: 'NICE classes',
-    monitoringSubmit: 'Search TMview',
+    monitoringSubmit: 'Search trademark',
     monitoringLoading: 'Searching...',
     monitoringResults: 'Results',
     monitoringOpen: 'Open',
@@ -946,7 +957,7 @@ const translations = {
     monitoringUnknownOffice: 'Unknown office',
     monitoringUnknownStatus: 'Unknown status',
     monitoringNoResults: 'No results were found for this search.',
-    monitoringError: 'We could not query TMview. Please try again.',
+    monitoringError: 'We could not query the public registers. Please try again.',
     summaryTotal: 'Estimated total',
     summaryNote: 'includes VAT, legal fee and official taxes for the current selection',
     stepOneTitle: 'Word trademark registration',
@@ -1038,10 +1049,7 @@ const translations = {
     niceClassesShort: 'NICE classes',
     noPurchases: 'There are no orders for this email.',
     footerCopy: 'Consulting for OSIM and EU trademark registration, preliminary checks and support throughout the procedure.',
-    footerAbout: 'About us',
-    footerTeam: 'Team',
-    footerFees: 'Fees',
-    footerResources: 'Resources',
+    footerResources: 'Services',
     businessHours: 'Monday - Friday, 09:00 - 19:00',
     odr: 'Online dispute resolution',
     sal: 'Alternative dispute resolution',
@@ -1106,48 +1114,22 @@ const monitoringForm = reactive({
   classes: [],
 })
 
-const baseProducts = [
-  {
-    code: 'ro-word',
-    currency: 'RON',
-    region: 'RO',
-    price: '2.226 Lei',
-    baseLei: 2226,
-  },
-  {
-    code: 'ro-monochrome',
-    currency: 'RON',
-    region: 'RO',
-    price: '2.378 Lei',
-    baseLei: 2378,
-  },
-  {
-    code: 'ro-color',
-    currency: 'RON',
-    region: 'RO',
-    price: '3.140 Lei',
-    baseLei: 3140,
-  },
-  {
-    code: 'eu-word',
-    currency: 'EUR',
-    region: 'UE',
-    price: '1.090 EUR',
-    baseLei: 5423,
-  },
-  {
-    code: 'eu-logo',
-    currency: 'EUR',
-    region: 'UE',
-    price: '620 EUR',
-    baseLei: 3085,
-  },
-]
+const productImages = {
+  verbal: verbalTrademarkUrl,
+  black_white: blackWhiteTrademarkUrl,
+  color: colorTrademarkUrl,
+}
 
-const plans = computed(() => baseProducts.map(product => ({
-  ...product,
-  ...t.value.products[product.code],
-})))
+const plans = computed(() => productCatalog.value.map((product) => {
+  const translatedProduct = product.translations?.[selectedLanguage.value] || t.value.products[product.code]
+
+  return {
+    ...product,
+    ...translatedProduct,
+    image: product.image || productImages[product.image_key],
+    baseLei: product.baseLei ?? product.base_lei,
+  }
+}))
 const niceClasses = computed(() => niceClasses2024.map(niceClass => ({
   ...niceClass,
   label: selectedLanguage.value === 'ro'
@@ -1159,12 +1141,12 @@ const niceClasses = computed(() => niceClasses2024.map(niceClass => ({
 })))
 const selectedNiceClass = computed(() => niceClasses.value.find(niceClass => niceClass.value === form.primaryClass))
 const visiblePlans = computed(() => plans.value.filter(plan => plan.currency === selectedCurrency.value))
-const selectedProduct = computed(() => plans.value.find(plan => plan.code === selectedProductCode.value) || plans.value[0])
-const total = computed(() => selectedProduct.value.baseLei + (form.classes - 1) * 449)
+const selectedProduct = computed(() => plans.value.find(plan => plan.code === selectedProductCode.value) || plans.value[0] || null)
+const total = computed(() => selectedProduct.value ? selectedProduct.value.baseLei + (form.classes - 1) * 449 : 0)
 const formattedTotal = computed(() => `${total.value.toLocaleString(locale.value)} Lei`)
 const cartTotal = computed(() => cartItems.value.reduce((sum, item) => sum + item.total, 0))
 const formattedCartTotal = computed(() => `${cartTotal.value.toLocaleString(locale.value)} Lei`)
-const canAddToCart = computed(() => form.mark && form.primaryClass && form.terms)
+const canAddToCart = computed(() => selectedProduct.value && form.mark && form.primaryClass && form.terms)
 const accountCheckoutStatus = computed(() => {
   if (!authToken.value) return t.value.checkoutNeedsAccount
   return currentUser.value?.billing_complete ? t.value.checkoutReady : t.value.checkoutBillingRequired
@@ -1175,6 +1157,24 @@ const selectedPaymentDescription = computed(() => ({
   transfer: t.value.bankPaymentDescription,
 })[checkoutPayment.value])
 const monitoringTotalLabel = computed(() => monitoringTotal.value.toLocaleString(locale.value))
+
+async function loadProducts() {
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/trademark_products`)
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok || !Array.isArray(payload.products)) return
+
+    productCatalog.value = payload.products
+
+    if (!productCatalog.value.some(product => product.code === selectedProductCode.value)) {
+      selectedProductCode.value = productCatalog.value[0]?.code || ''
+    }
+  }
+  catch {
+    productCatalog.value = []
+  }
+}
 
 function classLabel(count) {
   if (count === 1) return t.value.oneClass
@@ -1210,6 +1210,8 @@ function loadCart() {
 }
 
 function buildCartItem() {
+  if (!selectedProduct.value) return null
+
   return {
     id: crypto.randomUUID(),
     productCode: selectedProductCode.value,
@@ -1233,7 +1235,10 @@ function addToCart() {
     return
   }
 
-  cartItems.value = [...cartItems.value, buildCartItem()]
+  const cartItem = buildCartItem()
+  if (!cartItem) return
+
+  cartItems.value = [...cartItems.value, cartItem]
   persistCart()
   cartMessage.value = t.value.cartAdded
 }
@@ -1380,6 +1385,7 @@ onMounted(() => {
 
   hydrateSession()
   loadCart()
+  loadProducts()
 })
 
 watch(selectedLanguage, (language) => {
@@ -1393,10 +1399,10 @@ watch(selectedLanguage, (language) => {
   --ink: #1f1d1a;
   --muted: #68635c;
   --line: #ded8cf;
-  --paper: #fbfaf7;
-  --cream: #f2eee6;
-  --gold: #b79254;
-  --gold-dark: #8a6837;
+  --paper: #fff;
+  --cream: #fff;
+  --gold: #00add9;
+  --gold-dark: #00add9;
   --green: #52695a;
 }
 
@@ -1412,7 +1418,7 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 button,
@@ -1432,9 +1438,9 @@ a {
 }
 
 .top-strip {
-  background: #2b2926;
+  background: #013ebe;
   color: #f8f3ea;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 12px;
   letter-spacing: 0.02em;
 }
@@ -1464,7 +1470,6 @@ a {
 .quick-links a,
 .main-nav a {
   text-decoration: none;
-  text-transform: uppercase;
 }
 
 .language-switcher {
@@ -1479,7 +1484,7 @@ a {
   background: #fff;
   color: var(--ink);
   cursor: pointer;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 11px;
   font-weight: 700;
 }
@@ -1494,7 +1499,7 @@ a {
 }
 
 .main-header {
-  background: rgba(251, 250, 247, 0.96);
+  background: #fff;
   border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
@@ -1513,39 +1518,32 @@ a {
   min-width: max-content;
 }
 
-.brand__mark {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--gold);
-  color: var(--gold-dark);
-  font-size: 26px;
-  line-height: 1;
-}
-
-.brand strong,
-.brand small {
+.brand__logo {
   display: block;
-  letter-spacing: 0.12em;
-}
-
-.brand strong {
-  font-size: 18px;
-}
-
-.brand small {
-  color: var(--muted);
-  font-family: Arial, sans-serif;
-  font-size: 10px;
-  margin-top: 2px;
+  width: clamp(180px, 22vw, 257px);
+  height: auto;
 }
 
 .main-nav {
   color: #38332d;
-  font-family: Arial, sans-serif;
-  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  gap: 10px;
   justify-content: flex-end;
+}
+
+.main-nav a {
+  border-bottom: 2px solid rgba(0, 173, 217, 0.28);
+  color: var(--gold-dark);
+  padding: 10px 2px 8px;
+}
+
+.main-nav a:hover,
+.main-nav a:focus-visible {
+  border-bottom-color: var(--gold);
+  background: rgba(0, 173, 217, 0.06);
+  color: var(--gold-dark);
 }
 
 .hero {
@@ -1567,11 +1565,15 @@ a {
 .eyebrow {
   margin: 0 0 10px;
   color: var(--gold);
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
+}
+
+.hero .eyebrow {
+  color: #fffaf2;
 }
 
 .hero h1 {
@@ -1586,7 +1588,7 @@ a {
   max-width: 680px;
   margin: 24px 0 0;
   color: #eee3d1;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 18px;
   line-height: 1.7;
 }
@@ -1611,7 +1613,7 @@ a {
   border: 0;
   border-radius: 2px;
   cursor: pointer;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-decoration: none;
@@ -1621,13 +1623,13 @@ a {
 .primary-btn,
 .register-btn {
   background: var(--gold);
-  color: #191713;
+  color: #fff;
   padding: 0 22px;
 }
 
 .text-link {
   color: #fff;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   text-underline-offset: 4px;
 }
 
@@ -1654,7 +1656,7 @@ a {
   height: 72px;
   border: 1px solid rgba(255, 255, 255, 0.55);
   color: #f6dfad;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
 }
 
@@ -1671,7 +1673,7 @@ a {
 .secure-panel span {
   margin-top: 8px;
   color: #eadfcd;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 14px;
   line-height: 1.5;
 }
@@ -1724,7 +1726,7 @@ a {
   display: grid;
   gap: 8px;
   color: #2d2924;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
 }
 
@@ -1755,7 +1757,7 @@ a {
   border: 1px solid var(--line);
   background: #fff;
   padding: 16px;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .monitoring-results__head {
@@ -1808,7 +1810,7 @@ a {
   border: 1px solid var(--line);
   background: #fff;
   padding: 16px;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .cart-item span,
@@ -1864,7 +1866,7 @@ a {
 .checkout-box strong {
   display: block;
   margin-top: 4px;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 30px;
   font-weight: 400;
 }
@@ -1874,7 +1876,7 @@ a {
   background: transparent;
   color: #8f3d22;
   cursor: pointer;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   margin-top: 8px;
   padding: 0;
@@ -1935,7 +1937,7 @@ a {
 
 .price-card.selected {
   border-color: var(--gold);
-  box-shadow: inset 0 0 0 2px rgba(183, 146, 84, 0.25);
+  box-shadow: inset 0 0 0 2px rgba(0, 173, 217, 0.25);
 }
 
 .price-card__top {
@@ -1950,7 +1952,7 @@ a {
   height: 28px;
   border: 1px solid var(--gold);
   color: var(--gold-dark);
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 12px;
   font-weight: 700;
 }
@@ -1962,10 +1964,17 @@ a {
   text-transform: uppercase;
 }
 
+.price-card__image {
+  display: block;
+  max-width: 170px;
+  height: 42px;
+  object-fit: contain;
+}
+
 .price-card p,
 .muted {
   color: var(--muted);
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   line-height: 1.6;
 }
 
@@ -1983,7 +1992,7 @@ a {
 
 .price small {
   color: var(--muted);
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .price-card ul {
@@ -1992,7 +2001,7 @@ a {
   margin: 0 0 22px;
   padding: 0;
   list-style: none;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   line-height: 1.45;
 }
 
@@ -2012,6 +2021,15 @@ a {
   margin: 12px 0 0;
   text-align: center;
   font-size: 12px;
+}
+
+.empty-products {
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-family: 'Montserrat', sans-serif;
+  margin: 18px 0 0;
+  padding: 18px;
+  text-align: center;
 }
 
 .start-band {
@@ -2034,7 +2052,7 @@ a {
 .start-band p {
   margin: 0;
   color: var(--muted);
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   line-height: 1.6;
 }
 
@@ -2078,7 +2096,7 @@ a {
   border: 1px solid var(--line);
   background: var(--paper);
   padding: 18px;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .summary-box span,
@@ -2087,7 +2105,7 @@ a {
 }
 
 .summary-box strong {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 30px;
   font-weight: 400;
 }
@@ -2098,7 +2116,7 @@ a {
   margin: 0;
   padding: 0;
   list-style: none;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .steps li {
@@ -2141,7 +2159,7 @@ a {
   display: grid;
   gap: 8px;
   color: #2d2924;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
 }
 
@@ -2169,7 +2187,7 @@ a {
   border-left: 4px solid var(--gold);
   background: var(--paper);
   padding: 16px;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .nice-class-details {
@@ -2189,14 +2207,14 @@ a {
 }
 
 .nice-class-details strong {
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .nice-class-details p,
 .nice-class-details small {
   margin: 0;
   color: var(--muted);
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   line-height: 1.6;
 }
 
@@ -2219,7 +2237,7 @@ a {
 }
 
 .payment-card strong {
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 34px;
   font-weight: 400;
 }
@@ -2248,7 +2266,7 @@ a {
   background: #edf4ef;
   color: var(--green);
   padding: 14px;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
 }
 
@@ -2258,7 +2276,7 @@ a {
   background: #fff1eb;
   color: #8f3d22;
   padding: 14px;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
 }
 
@@ -2282,7 +2300,7 @@ a {
 
 .account-copy p:not(.eyebrow) {
   color: var(--muted);
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 16px;
   line-height: 1.7;
 }
@@ -2304,7 +2322,7 @@ a {
   display: grid;
   gap: 8px;
   color: #2d2924;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
 }
 
@@ -2328,7 +2346,7 @@ a {
   background: #fff;
   color: var(--ink);
   cursor: pointer;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   padding: 0 16px;
 }
@@ -2350,7 +2368,7 @@ a {
   border: 1px solid var(--line);
   background: #fff;
   padding: 16px;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .signed-in-bar span {
@@ -2377,7 +2395,7 @@ a {
   border: 1px solid var(--line);
   background: #fff;
   padding: 16px;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .account-total {
@@ -2402,9 +2420,9 @@ a {
 }
 
 .site-footer {
-  background: #2b2926;
+  background: #013ebe;
   color: #f8f3ea;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   padding: 42px 0 22px;
 }
 
@@ -2416,7 +2434,7 @@ a {
 
 .footer-brand strong {
   display: block;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 22px;
   font-weight: 400;
   letter-spacing: 0.08em;

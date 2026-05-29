@@ -26,7 +26,7 @@ class Api::V1::AccountsControllerTest < ActionDispatch::IntegrationTest
     assert_equal "client@example.com", response.parsed_body.dig("account", "email")
     assert_equal true, response.parsed_body.dig("account", "billing_profile", "complete")
     assert_equal 1, response.parsed_body.dig("account", "purchases_count")
-    assert_equal "Marca verbala", response.parsed_body.dig("account", "purchases", 0, "product_name")
+    assert_equal "Marca verbala OSIM", response.parsed_body.dig("account", "purchases", 0, "product_name")
   end
 
   test "updates billing profile" do

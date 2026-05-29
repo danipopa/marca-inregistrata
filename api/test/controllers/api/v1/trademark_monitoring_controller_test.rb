@@ -1,7 +1,7 @@
 require "test_helper"
 
 class Api::V1::TrademarkMonitoringControllerTest < ActionDispatch::IntegrationTest
-  test "searches trademarks through TMview client" do
+  test "searches trademarks through public register client" do
     with_tmview_search(tmview_payload) do
       post api_v1_trademark_monitoring_search_url,
         params: {
@@ -15,7 +15,7 @@ class Api::V1::TrademarkMonitoringControllerTest < ActionDispatch::IntegrationTe
     end
 
     assert_response :success
-    assert_equal "TMview", response.parsed_body["source"]
+    assert_equal "Public trademark registers", response.parsed_body["source"]
     assert_equal 1, response.parsed_body["total"]
     assert_equal "BRAND", response.parsed_body.dig("results", 0, "name")
   end
@@ -29,15 +29,15 @@ class Api::V1::TrademarkMonitoringControllerTest < ActionDispatch::IntegrationTe
     assert_equal ["must be at least 2 characters"], response.parsed_body.dig("errors", "mark")
   end
 
-  test "returns bad gateway when TMview fails" do
-    with_tmview_search(->(**) { raise TrademarkMonitoring::TmviewClient::Error.new("TMview search failed.", status: "503") }) do
+  test "returns bad gateway when trademark search fails" do
+    with_tmview_search(->(**) { raise TrademarkMonitoring::TmviewClient::Error.new("Trademark search failed.", status: "503") }) do
       post api_v1_trademark_monitoring_search_url,
         params: { monitoring: { mark: "BRAND" } },
         as: :json
     end
 
     assert_response :bad_gateway
-    assert_equal "TMview search failed.", response.parsed_body["message"]
+    assert_equal "Trademark search failed.", response.parsed_body["message"]
   end
 
   private
@@ -54,7 +54,7 @@ class Api::V1::TrademarkMonitoringControllerTest < ActionDispatch::IntegrationTe
 
   def tmview_payload
     {
-      source: "TMview",
+      source: "Public trademark registers",
       query: { basicSearch: "BRAND" },
       total: 1,
       results: [

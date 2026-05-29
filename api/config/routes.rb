@@ -2,6 +2,8 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :trademark_requests, only: :create
+      resources :trademark_products, only: :index
+      resources :cookie_consents, only: :create
       post "trademark_monitoring/search", to: "trademark_monitoring#search"
       resources :users, only: :create
       resource :session, only: %i[create show destroy]
@@ -11,6 +13,8 @@ Rails.application.routes.draw do
 
       namespace :admin do
         get "dashboard", to: "dashboard#show"
+        resources :trademark_requests, only: :update
+        resources :trademark_products, only: %i[index create update destroy]
       end
     end
   end

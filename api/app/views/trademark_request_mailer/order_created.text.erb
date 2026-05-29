@@ -1,0 +1,25 @@
+Comanda noua #<%= @trademark_request.id %>
+
+Marca: <%= @trademark_request.mark %>
+Produs: <%= @trademark_request.product_name %> (<%= @trademark_request.product_code %>)
+Total: <%= @trademark_request.formatted_total %>
+Status: <%= @trademark_request.status %>
+Metoda plata: <%= @trademark_request.payment_method.presence || "Nespecificata" %>
+Data comenzii: <%= l(@trademark_request.created_at, format: :long) %>
+IP comanda: <%= @trademark_request.ip_address.presence || "-" %>
+
+Client
+Nume titular: <%= @trademark_request.owner_name.presence || "-" %>
+Tip titular: <%= @trademark_request.owner_type.presence || "-" %>
+CUI/CNP: <%= @trademark_request.tax_id.presence || "-" %>
+Email: <%= @trademark_request.email %>
+Telefon: <%= @trademark_request.phone %>
+Adresa: <%= @trademark_request.address.presence || "-" %>
+
+Detalii marca
+Clasa principala: <%= @trademark_request.primary_class.presence || "-" %>
+Numar clase: <%= @trademark_request.classes_count %>
+Produse/servicii:
+<%= @trademark_request.goods.presence || "-" %>
+
+Checkout: <%= @trademark_request.payment_checkout_url.presence || "-" %>
