@@ -21,6 +21,7 @@ module Api
 
         if trademark_request.save
           attach_checkout!(trademark_request)
+          TrademarkRequestMailer.order_created(trademark_request).deliver_now
           render json: serialize(trademark_request), status: :created
         else
           render json: { errors: trademark_request.errors.to_hash }, status: :unprocessable_entity
@@ -71,7 +72,8 @@ module Api
           owner_type: current_user.owner_type,
           tax_id: current_user.tax_id,
           owner_name: current_user.owner_name,
-          address: current_user.address
+          address: current_user.address,
+          ip_address: request.remote_ip
         )
       end
 

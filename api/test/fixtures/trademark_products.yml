@@ -1,0 +1,87 @@
+ro_word:
+  code: ro-word
+  currency: RON
+  region: OSIM
+  price_label: 2.226 Lei
+  base_price_lei: 2226
+  title_ro: Marca verbala OSIM
+  title_en: Word trademark
+  note_ro: doar litere si cifre, fara logo
+  note_en: letters and numbers only, without logo
+  tax_ro: include TVA
+  tax_en: includes VAT
+  items_ro: '["onorariu inclus: 1.210 Lei","taxe OSIM incluse: 1.016 Lei","o clasa NISA inclusa","plata online securizata"]'
+  items_en: '["legal fee included: 1,210 Lei","OSIM taxes included: 1,016 Lei","one NICE class included","secure online payment"]'
+  image_key: verbal
+  position: 1
+  active: true
+
+ro_monochrome:
+  code: ro-monochrome
+  currency: RON
+  region: OSIM
+  price_label: 2.378 Lei
+  base_price_lei: 2378
+  title_ro: Marca alb-negru
+  title_en: Black-and-white trademark
+  note_ro: scriere speciala sau logo monocrom
+  note_en: special lettering or monochrome logo
+  tax_ro: include TVA
+  tax_en: includes VAT
+  items_ro: '["onorariu inclus: 1.210 Lei","taxe OSIM incluse: 1.168 Lei","detaliere produse si servicii","o clasa NISA inclusa"]'
+  items_en: '["legal fee included: 1,210 Lei","OSIM taxes included: 1,168 Lei","goods and services details","one NICE class included"]'
+  image_key: black_white
+  position: 2
+  active: true
+
+ro_color:
+  code: ro-color
+  currency: RON
+  region: OSIM
+  price_label: 3.140 Lei
+  base_price_lei: 3140
+  title_ro: Marca color
+  title_en: Color trademark
+  note_ro: logo, design sau scriere color
+  note_en: logo, design or colored lettering
+  tax_ro: include TVA
+  tax_en: includes VAT
+  items_ro: '["onorariu inclus: 1.210 Lei","taxe OSIM incluse: 1.930 Lei","upload fisier logo","o clasa NISA inclusa"]'
+  items_en: '["legal fee included: 1,210 Lei","OSIM taxes included: 1,930 Lei","logo file upload","one NICE class included"]'
+  image_key: color
+  position: 3
+  active: true
+
+eu_word:
+  code: eu-word
+  currency: EUR
+  region: EUIPO
+  price_label: 1.090 EUR
+  base_price_lei: 5423
+  title_ro: Marca Uniunea Europeana
+  title_en: European Union trademark
+  note_ro: protectie in statele membre UE
+  note_en: protection in EU member states
+  tax_ro: include TVA
+  tax_en: includes VAT
+  items_ro: '["onorariu inclus: 240 EUR","taxe EUIPO incluse: 850 EUR","o clasa NISA inclusa","depunere asistata online"]'
+  items_en: '["legal fee included: 240 EUR","EUIPO taxes included: 850 EUR","one NICE class included","assisted online filing"]'
+  position: 4
+  active: true
+
+eu_logo:
+  code: eu-logo
+  currency: EUR
+  region: EUIPO
+  price_label: 620 EUR
+  base_price_lei: 3085
+  title_ro: Logo UE
+  title_en: EU logo
+  note_ro: semn figurativ sau mixt
+  note_en: figurative or mixed sign
+  tax_ro: include TVA
+  tax_en: includes VAT
+  items_ro: '["onorariu inclus: 240 EUR","taxe oficiale incluse: 380 EUR","detaliere clase NISA","procesare securizata"]'
+  items_en: '["legal fee included: 240 EUR","official taxes included: 380 EUR","NICE class details","secure processing"]'
+  position: 5
+  active: true

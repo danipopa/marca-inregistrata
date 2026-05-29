@@ -33,6 +33,8 @@ module Api
             email: order.email,
             owner_name: order.owner_name,
             phone: order.phone,
+            ip_address: order.ip_address,
+            admin_comments: order.admin_comments.to_s,
             total: {
               amount: order.total_lei,
               currency: order.currency,

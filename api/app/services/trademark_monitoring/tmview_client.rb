@@ -32,7 +32,7 @@ module TrademarkMonitoring
 
       normalize(parsed, payload)
     rescue JSON::ParserError
-      raise Error.new("TMview returned an invalid response.", status: response&.code, body: response&.body)
+      raise Error.new("Trademark search returned an invalid response.", status: response&.code, body: response&.body)
     end
 
     private
@@ -68,9 +68,9 @@ module TrademarkMonitoring
 
       return response if response.is_a?(Net::HTTPSuccess)
 
-      raise Error.new("TMview search failed.", status: response.code, body: response.body)
+      raise Error.new("Trademark search failed.", status: response.code, body: response.body)
     rescue Net::OpenTimeout, Net::ReadTimeout, SocketError, SystemCallError => error
-      raise Error.new("TMview search is unavailable: #{error.message}")
+      raise Error.new("Trademark search is unavailable: #{error.message}")
     end
 
     def api_token
@@ -100,7 +100,7 @@ module TrademarkMonitoring
       results = extract_results(body)
 
       {
-        source: "TMview",
+        source: "Public trademark registers",
         query: payload,
         total: extract_total(body, results),
         results: results.map { |record| normalize_record(record) }

@@ -3,24 +3,21 @@
     <div class="top-strip">
       <div class="wrap top-strip__inner">
         <div class="contact-line">
-          <span>021 313 5799</span>
-          <span>office@dansandu.ro</span>
+          <a href="tel:0770898767">0770 898 767</a>
+          <a href="mailto:contact@inregistrare-marca.com">contact@inregistrare-marca.com</a>
         </div>
         <nav
-          aria-label="Servicii rapide"
+          aria-label="Navigatie principala"
           class="quick-links"
         >
-          <NuxtLink to="/#reinnoire">
-            {{ t.quickRenewal }}
+          <NuxtLink to="/#despre">
+            {{ t.navAbout }}
           </NuxtLink>
-          <NuxtLink to="/#monitorizare">
-            {{ t.quickMonitoring }}
+          <NuxtLink to="/account">
+            {{ t.navAccount }}
           </NuxtLink>
-          <NuxtLink to="/#preturi">
-            {{ t.quickRegistration }}
-          </NuxtLink>
-          <NuxtLink to="/#verificare">
-            {{ t.quickCheck }}
+          <NuxtLink to="/#contact">
+            {{ t.navContact }}
           </NuxtLink>
         </nav>
       </div>
@@ -33,34 +30,28 @@
           to="/"
           aria-label="Sandu si asociatii"
         >
-          <span class="brand__mark">DS</span>
-          <span>
-            <strong>SANDU</strong>
-            <small>SI ASOCIATII</small>
-          </span>
+          <img
+            class="brand__logo"
+            :src="logoUrl"
+            alt="Sandu si Asociatii"
+          >
         </NuxtLink>
 
         <nav
-          aria-label="Navigatie principala"
+          aria-label="Servicii rapide"
           class="main-nav"
         >
-          <NuxtLink to="/#despre">
-            {{ t.navAbout }}
+          <NuxtLink to="/#reinnoire">
+            {{ t.quickRenewal }}
           </NuxtLink>
-          <NuxtLink to="/#cariere">
-            {{ t.navCareers }}
+          <NuxtLink to="/#monitorizare">
+            {{ t.quickMonitoring }}
           </NuxtLink>
-          <NuxtLink to="/#arii">
-            {{ t.navPractice }}
+          <NuxtLink to="/#preturi">
+            {{ t.quickRegistration }}
           </NuxtLink>
-          <NuxtLink to="/#blog">
-            Blog
-          </NuxtLink>
-          <NuxtLink to="/account">
-            {{ t.navAccount }}
-          </NuxtLink>
-          <NuxtLink to="/#contact">
-            {{ t.navContact }}
+          <NuxtLink to="/#verificare">
+            {{ t.quickCheck }}
           </NuxtLink>
           <div
             class="language-switcher"
@@ -288,7 +279,7 @@
                 class="purchase-item"
               >
                 <div>
-                  <strong>{{ productTitle(purchase.product_code) }}</strong>
+                  <strong>{{ purchase.product_name || productTitle(purchase.product_code) }}</strong>
                   <span>{{ purchase.mark }} · {{ purchase.classes }} {{ t.niceClasses }}</span>
                 </div>
                 <div>
@@ -320,6 +311,7 @@
 
 <script setup>
 import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
+import logoUrl from '../assets/images/LOGO_SANDU-removebg-preview.png'
 
 const config = useRuntimeConfig()
 const languages = [
@@ -359,7 +351,7 @@ const translations = {
     quickMonitoring: 'Monitorizare marca',
     quickRegistration: 'Inregistrare marca',
     quickCheck: 'Verificare marca',
-    navAbout: 'Despre',
+    navAbout: 'Despre noi',
     navCareers: 'Cariere',
     navPractice: 'Arii de practica',
     navAccount: 'Contul meu',
@@ -403,7 +395,7 @@ const translations = {
     authError: 'Nu am putut autentifica acest cont.',
     accountError: 'Nu am putut incarca acest cont.',
     products: {
-      'ro-word': 'Marca verbala',
+      'ro-word': 'Marca verbala OSIM',
       'ro-monochrome': 'Marca alb-negru',
       'ro-color': 'Marca color',
       'eu-word': 'Marca Uniunea Europeana',
@@ -422,7 +414,7 @@ const translations = {
     quickMonitoring: 'Trademark monitoring',
     quickRegistration: 'Trademark registration',
     quickCheck: 'Trademark check',
-    navAbout: 'About',
+    navAbout: 'About us',
     navCareers: 'Careers',
     navPractice: 'Practice areas',
     navAccount: 'My account',
@@ -763,9 +755,9 @@ watch([authMode, authToken], () => {
   --ink: #1f1d1a;
   --muted: #68635c;
   --line: #ded8cf;
-  --paper: #fbfaf7;
-  --gold: #b79254;
-  --gold-dark: #8a6837;
+  --paper: #fff;
+  --gold: #00add9;
+  --gold-dark: #00add9;
 }
 
 * {
@@ -776,7 +768,7 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 button,
@@ -796,9 +788,9 @@ a {
 }
 
 .top-strip {
-  background: #2b2926;
+  background: #013ebe;
   color: #f8f3ea;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 12px;
   letter-spacing: 0.02em;
 }
@@ -827,11 +819,10 @@ a {
 .quick-links a,
 .main-nav a {
   text-decoration: none;
-  text-transform: uppercase;
 }
 
 .main-header {
-  background: rgba(251, 250, 247, 0.96);
+  background: #fff;
   border-bottom: 1px solid var(--line);
   position: sticky;
   top: 0;
@@ -850,44 +841,37 @@ a {
   min-width: max-content;
 }
 
-.brand__mark {
-  display: grid;
-  place-items: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--gold);
-  color: var(--gold-dark);
-  font-size: 26px;
-  line-height: 1;
-}
-
-.brand strong,
-.brand small {
+.brand__logo {
   display: block;
-  letter-spacing: 0.12em;
+  width: clamp(180px, 22vw, 257px);
+  height: auto;
 }
 
-.brand strong {
-  font-size: 18px;
-}
-
-.brand small,
 .muted {
   color: var(--muted);
-  font-family: Arial, sans-serif;
-}
-
-.brand small {
-  font-size: 10px;
-  margin-top: 2px;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .main-nav {
   color: #38332d;
-  font-family: Arial, sans-serif;
-  font-size: 12px;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 13px;
   font-weight: 700;
+  gap: 10px;
   justify-content: flex-end;
+}
+
+.main-nav a {
+  border-bottom: 2px solid rgba(0, 173, 217, 0.28);
+  color: var(--gold-dark);
+  padding: 10px 2px 8px;
+}
+
+.main-nav a:hover,
+.main-nav a:focus-visible {
+  border-bottom-color: var(--gold);
+  background: rgba(0, 173, 217, 0.06);
+  color: var(--gold-dark);
 }
 
 .language-switcher,
@@ -902,7 +886,7 @@ a {
   background: #fff;
   color: var(--ink);
   cursor: pointer;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
 }
 
@@ -942,7 +926,7 @@ a {
 .eyebrow {
   margin: 0 0 10px;
   color: var(--gold);
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -958,7 +942,7 @@ a {
 
 .account-copy p:not(.eyebrow) {
   color: var(--muted);
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 17px;
   line-height: 1.7;
 }
@@ -981,7 +965,7 @@ a {
   display: grid;
   gap: 8px;
   color: #2d2924;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
 }
 
@@ -1012,7 +996,7 @@ a {
 .billing-form p {
   margin: 8px 0 0;
   color: var(--muted);
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   line-height: 1.6;
 }
 
@@ -1042,14 +1026,14 @@ a {
   background: #fff;
   color: #2d2924;
   cursor: pointer;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
 }
 
 .google-setup {
   max-width: 420px;
   color: var(--muted);
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   line-height: 1.5;
   text-align: center;
 }
@@ -1061,7 +1045,7 @@ a {
   gap: 12px;
   width: 100%;
   color: var(--muted);
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 13px;
   text-transform: uppercase;
 }
@@ -1080,7 +1064,7 @@ a {
   min-height: 44px;
   border-radius: 2px;
   cursor: pointer;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1089,7 +1073,7 @@ a {
 .primary-btn {
   border: 0;
   background: var(--gold);
-  color: #191713;
+  color: #fff;
   padding: 0 22px;
 }
 
@@ -1106,7 +1090,7 @@ a {
   border: 1px solid var(--line);
   background: var(--paper);
   padding: 16px;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
 }
 
 .signed-in-bar,
@@ -1132,7 +1116,7 @@ a {
 .account-summary strong {
   display: block;
   margin-top: 6px;
-  font-family: Georgia, 'Times New Roman', serif;
+  font-family: 'Montserrat', sans-serif;
   font-size: 28px;
   font-weight: 400;
 }
@@ -1152,7 +1136,7 @@ a {
   background: #fff1eb;
   color: #8f3d22;
   padding: 14px;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
 }
 
@@ -1162,7 +1146,7 @@ a {
   background: #f2f8ef;
   color: #3b6d2b;
   padding: 14px;
-  font-family: Arial, sans-serif;
+  font-family: 'Montserrat', sans-serif;
   font-weight: 700;
 }
 

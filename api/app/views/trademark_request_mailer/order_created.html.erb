@@ -1,0 +1,26 @@
+<h1>Comanda noua #<%= @trademark_request.id %></h1>
+
+<h2>Comanda</h2>
+<p><strong>Marca:</strong> <%= @trademark_request.mark %></p>
+<p><strong>Produs:</strong> <%= @trademark_request.product_name %> (<%= @trademark_request.product_code %>)</p>
+<p><strong>Total:</strong> <%= @trademark_request.formatted_total %></p>
+<p><strong>Status:</strong> <%= @trademark_request.status %></p>
+<p><strong>Metoda plata:</strong> <%= @trademark_request.payment_method.presence || "Nespecificata" %></p>
+<p><strong>Data comenzii:</strong> <%= l(@trademark_request.created_at, format: :long) %></p>
+<p><strong>IP comanda:</strong> <%= @trademark_request.ip_address.presence || "-" %></p>
+
+<h2>Client</h2>
+<p><strong>Nume titular:</strong> <%= @trademark_request.owner_name.presence || "-" %></p>
+<p><strong>Tip titular:</strong> <%= @trademark_request.owner_type.presence || "-" %></p>
+<p><strong>CUI/CNP:</strong> <%= @trademark_request.tax_id.presence || "-" %></p>
+<p><strong>Email:</strong> <%= mail_to @trademark_request.email %></p>
+<p><strong>Telefon:</strong> <%= @trademark_request.phone %></p>
+<p><strong>Adresa:</strong> <%= @trademark_request.address.presence || "-" %></p>
+
+<h2>Detalii marca</h2>
+<p><strong>Clasa principala:</strong> <%= @trademark_request.primary_class.presence || "-" %></p>
+<p><strong>Numar clase:</strong> <%= @trademark_request.classes_count %></p>
+<p><strong>Produse/servicii:</strong></p>
+<p><%= simple_format(@trademark_request.goods.presence || "-") %></p>
+
+<p><strong>Checkout:</strong> <%= @trademark_request.payment_checkout_url.presence || "-" %></p>
