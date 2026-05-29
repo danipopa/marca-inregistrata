@@ -184,14 +184,21 @@
                       <label style="position:relative;">
                         Image
                         <div style="position:relative;">
-                          <select v-model="productForm.image_key" @mouseover="showImageTooltip = true" @mouseleave="showImageTooltip = false" @mousemove="updateTooltipPosition($event)">
+                          <select
+                            v-model="productForm.image_key"
+                            @mouseover="showImageTooltip = true"
+                            @mouseleave="showImageTooltip = false"
+                            @mousemove="updateTooltipPosition($event)"
+                          >
                             <option value="">None</option>
                             <option value="verbal">Marca verbala OSIM</option>
                             <option value="black_white">Marca alb-negru</option>
                             <option value="color">Marca color</option>
                           </select>
-                          <span v-if="showImageTooltip && productForm.image_key && imageDescriptions[productForm.image_key]"
-                                :style="{position: 'absolute', left: tooltipX + 'px', top: tooltipY + 'px', background: '#222', color: '#fff', padding: '8px 12px', borderRadius: '6px', zIndex: 10, fontSize: '13px', pointerEvents: 'none', maxWidth: '260px', whiteSpace: 'normal'}">
+                          <span
+                            v-if="showImageTooltip && productForm.image_key && imageDescriptions[productForm.image_key]"
+                            :style="{ position: 'absolute', left: tooltipX + 'px', top: tooltipY + 'px', background: '#222', color: '#fff', padding: '8px 12px', borderRadius: '6px', zIndex: 10, fontSize: '13px', pointerEvents: 'none', maxWidth: '260px', whiteSpace: 'normal' }"
+                          >
                             {{ imageDescriptions[productForm.image_key] }}
                           </span>
                         </div>
