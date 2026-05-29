@@ -1,4 +1,6 @@
 class TrademarkProduct < ApplicationRecord
+  before_validation :set_default_items
+
   validates :code, :currency, :region, :price_label, :title_ro, :title_en, presence: true
   validates :code, uniqueness: true
   validates :base_price_lei, :position, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
@@ -51,6 +53,11 @@ class TrademarkProduct < ApplicationRecord
   end
 
   private
+
+  def set_default_items
+    self.items_ro = "[]" if items_ro.blank?
+    self.items_en = "[]" if items_en.blank?
+  end
 
   def parse_items(value)
     JSON.parse(value.presence || "[]")
