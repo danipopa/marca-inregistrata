@@ -28,12 +28,13 @@
         <NuxtLink
           class="brand"
           to="/"
-          aria-label="Sandu si asociatii"
+          aria-label="SANDU și Asociații IP Attorney"
         >
           <img
             class="brand__logo"
-            :src="logoUrl"
-            alt="Sandu si Asociatii"
+            :src="transparentPixel"
+            :style="{ '--fallback-logo-image': `url(${logoUrl})` }"
+            alt="SANDU și Asociații IP Attorney"
           >
         </NuxtLink>
 
@@ -318,6 +319,7 @@ const languages = [
   { code: 'ro', label: 'RO' },
   { code: 'en', label: 'EN' },
 ]
+const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
 
 const selectedLanguage = ref('ro')
 const authMode = ref('login')
@@ -758,6 +760,8 @@ watch([authMode, authToken], () => {
   --paper: #fff;
   --gold: #00add9;
   --gold-dark: #00add9;
+  --brand: #013ebe;
+  --font-family: 'Montserrat', sans-serif;
 }
 
 * {
@@ -768,7 +772,7 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 button,
@@ -788,9 +792,9 @@ a {
 }
 
 .top-strip {
-  background: #013ebe;
+  background: var(--brand);
   color: #f8f3ea;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 12px;
   letter-spacing: 0.02em;
 }
@@ -843,18 +847,21 @@ a {
 
 .brand__logo {
   display: block;
+  object-fit: contain;
+  background: var(--logo-image, var(--fallback-logo-image)) center / contain no-repeat;
   width: clamp(180px, 22vw, 257px);
-  height: auto;
+  height: clamp(58px, 7vw, 83px);
+  aspect-ratio: 257 / 83;
 }
 
 .muted {
   color: var(--muted);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .main-nav {
   color: #38332d;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 13px;
   font-weight: 700;
   gap: 10px;
@@ -886,7 +893,7 @@ a {
   background: #fff;
   color: var(--ink);
   cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
 }
 
@@ -926,7 +933,7 @@ a {
 .eyebrow {
   margin: 0 0 10px;
   color: var(--gold);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.14em;
@@ -942,7 +949,7 @@ a {
 
 .account-copy p:not(.eyebrow) {
   color: var(--muted);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 17px;
   line-height: 1.7;
 }
@@ -965,7 +972,7 @@ a {
   display: grid;
   gap: 8px;
   color: #2d2924;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
 }
 
@@ -996,7 +1003,7 @@ a {
 .billing-form p {
   margin: 8px 0 0;
   color: var(--muted);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   line-height: 1.6;
 }
 
@@ -1026,14 +1033,14 @@ a {
   background: #fff;
   color: #2d2924;
   cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
 }
 
 .google-setup {
   max-width: 420px;
   color: var(--muted);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   line-height: 1.5;
   text-align: center;
 }
@@ -1045,7 +1052,7 @@ a {
   gap: 12px;
   width: 100%;
   color: var(--muted);
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 13px;
   text-transform: uppercase;
 }
@@ -1064,7 +1071,7 @@ a {
   min-height: 44px;
   border-radius: 2px;
   cursor: pointer;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -1090,7 +1097,7 @@ a {
   border: 1px solid var(--line);
   background: var(--paper);
   padding: 16px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
 .signed-in-bar,
@@ -1116,7 +1123,7 @@ a {
 .account-summary strong {
   display: block;
   margin-top: 6px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 28px;
   font-weight: 400;
 }
@@ -1136,7 +1143,7 @@ a {
   background: #fff1eb;
   color: #8f3d22;
   padding: 14px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
 }
 
@@ -1146,7 +1153,7 @@ a {
   background: #f2f8ef;
   color: #3b6d2b;
   padding: 14px;
-  font-family: 'Montserrat', sans-serif;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
   font-weight: 700;
 }
 
