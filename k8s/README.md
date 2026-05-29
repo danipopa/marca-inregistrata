@@ -78,5 +78,6 @@ The default ingress host is `inregistrare-marca.local`. Change it in `ingress.ya
 - MySQL runs as a single-replica StatefulSet named `marca-mysql`.
 - MySQL stores data in the StatefulSet `data` PVC, bound to the static `marca-mysql-data` PersistentVolume.
 - The PersistentVolume uses host storage at `/home/storage/ns/inregistrare-marca`.
+- Product image uploads are stored by the API in `/rails/storage`, mounted from `/home/storage/ns/inregistrare-marca/storage`.
 - The Rails API uses MySQL for primary, cache, queue, and cable production databases.
 - The web app talks to the API through the same ingress host with `NUXT_PUBLIC_API_BASE_URL=""`.

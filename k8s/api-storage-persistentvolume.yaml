@@ -1,0 +1,28 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: marca-api-storage
+  namespace: inregistrare-marca
+spec:
+  capacity:
+    storage: 2Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: marca-local
+  hostPath:
+    path: /home/storage/ns/inregistrare-marca/storage
+    type: DirectoryOrCreate
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: marca-api-storage
+  namespace: inregistrare-marca
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: marca-local
+  resources:
+    requests:
+      storage: 2Gi

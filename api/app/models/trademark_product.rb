@@ -24,8 +24,8 @@ class TrademarkProduct < ApplicationRecord
     self.items_en = normalize_items(items).to_json
   end
 
-  def as_catalog_json
-    {
+  def as_catalog_json(image_url: nil)
+    payload = {
       id: id,
       code: code,
       currency: currency,
@@ -50,6 +50,9 @@ class TrademarkProduct < ApplicationRecord
         }
       }
     }
+
+    payload[:image] = image_url if image_url.present?
+    payload
   end
 
   private

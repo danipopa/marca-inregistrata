@@ -27,4 +27,26 @@ class Api::V1::Admin::TrademarkProductsControllerTest < ActionDispatch::Integrat
     assert_equal ["onorariu actualizat", "taxe OSIM actualizate"], product.reload.items_ro_list
     assert_equal ["onorariu actualizat", "taxe OSIM actualizate"], response.parsed_body.dig("product", "translations", "ro", "items")
   end
+
+  test "serializes uploaded product image url" do
+    admin = User.create_with_password!(email: "admin@example.com", password: "password123")
+    admin.update!(admin: true)
+    product_image = ProductImage.new(name: "Custom logo")
+    product_image.file.attach(
+      io: StringIO.new("image-bytes"),
+      filename: "custom-logo.png",
+      content_type: "image/png"
+    )
+    product_image.save!
+    product = trademark_products(:ro_word)
+    product.update!(image_key: product_image.image_key)
+
+    get api_v1_admin_trademark_products_url,
+      headers: { "Authorization" => "Bearer #{admin.issue_auth_token!}" },
+      as: :json
+
+    assert_response :success
+    serialized_product = response.parsed_body["products"].find { |item| item["id"] == product.id }
+    assert_match(%r{/api/v1/product_images/#{product_image.id}}, serialized_product["image"])
+  end
 end

@@ -9,6 +9,7 @@ resources:
   - mysql-persistentvolume.yaml
   - mysql-service.yaml
   - mysql-statefulset.yaml
+  - api-storage-persistentvolume.yaml
   - api-configmap.yaml
   - api-deployment.yaml
   - api-service.yaml

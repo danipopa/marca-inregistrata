@@ -29,6 +29,9 @@ spec:
                 name: marca-api-config
             - secretRef:
                 name: marca-api-secrets
+          volumeMounts:
+            - name: storage
+              mountPath: /rails/storage
           readinessProbe:
             httpGet:
               path: /up
@@ -48,3 +51,7 @@ spec:
             limits:
               cpu: 500m
               memory: 512Mi
+      volumes:
+        - name: storage
+          persistentVolumeClaim:
+            claimName: marca-api-storage

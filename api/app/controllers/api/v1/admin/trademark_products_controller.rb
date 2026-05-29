@@ -7,7 +7,7 @@ module Api
 
         def index
           render json: {
-            products: TrademarkProduct.ordered.map(&:as_catalog_json)
+            products: TrademarkProduct.ordered.map { |product| serialize_product(product) }
           }
         end
 
@@ -15,7 +15,7 @@ module Api
           product = TrademarkProduct.new(product_attributes)
 
           if product.save
-            render json: { product: product.as_catalog_json }, status: :created
+            render json: { product: serialize_product(product) }, status: :created
           else
             render json: { errors: product.errors.to_hash }, status: :unprocessable_entity
           end
@@ -23,7 +23,7 @@ module Api
 
         def update
           if @product.update(product_attributes)
-            render json: { product: @product.as_catalog_json }
+            render json: { product: serialize_product(@product) }
           else
             render json: { errors: @product.errors.to_hash }, status: :unprocessable_entity
           end
@@ -68,6 +68,16 @@ module Api
           end
         end
 
+        def serialize_product(product)
+          product.as_catalog_json(image_url: image_url_for(product))
+        end
+
+        def image_url_for(product)
+          product_image_id = ProductImage.id_from_image_key(product.image_key)
+          return unless product_image_id
+
+          api_v1_product_image_url(product_image_id)
+        end
       end
     end
   end
