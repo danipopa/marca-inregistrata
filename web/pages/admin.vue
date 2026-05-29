@@ -186,21 +186,13 @@
                         <div style="position:relative;">
                           <select
                             v-model="productForm.image_key"
-                            @mouseover="showImageTooltip = true"
-                            @mouseleave="showImageTooltip = false"
-                            @mousemove="updateTooltipPosition($event)"
+                            :title="selectedImageDescription"
                           >
                             <option value="">None</option>
                             <option value="verbal">Marca verbala OSIM</option>
                             <option value="black_white">Marca alb-negru</option>
                             <option value="color">Marca color</option>
                           </select>
-                          <span
-                            v-if="showImageTooltip && productForm.image_key && imageDescriptions[productForm.image_key]"
-                            :style="{ position: 'absolute', left: tooltipX + 'px', top: tooltipY + 'px', background: '#222', color: '#fff', padding: '8px 12px', borderRadius: '6px', zIndex: 10, fontSize: '13px', pointerEvents: 'none', maxWidth: '260px', whiteSpace: 'normal' }"
-                          >
-                            {{ imageDescriptions[productForm.image_key] }}
-                          </span>
                         </div>
                       </label>
                       <label class="checkbox-field">
@@ -493,7 +485,7 @@
 </template>
 
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import logoUrl from '../assets/images/LOGO_SANDU-removebg-preview.png'
 import blackWhiteTrademarkUrl from '../assets/images/MARCA_TA_ALB_NEGRU-removebg-preview.png'
 import colorTrademarkUrl from '../assets/images/MARCA_TA_COLOR-removebg-preview.png'
@@ -523,6 +515,12 @@ const productImages = {
   black_white: blackWhiteTrademarkUrl,
   color: colorTrademarkUrl,
 }
+const imageDescriptions = {
+  verbal: 'Word mark without logo or special styling.',
+  black_white: 'Monochrome logo, symbol, or special lettering.',
+  color: 'Color logo, design, or colored lettering.',
+}
+const selectedImageDescription = computed(() => imageDescriptions[productForm.image_key] || '')
 
 const loginForm = reactive({
   email: '',
