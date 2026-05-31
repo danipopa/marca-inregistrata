@@ -30,12 +30,12 @@
           to="/"
           aria-label="SANDU și Asociații IP Attorney"
         >
-          <img
+          <span
             class="brand__logo"
-            :src="transparentPixel"
             :style="{ '--fallback-logo-image': `url(${logoUrl})` }"
-            alt="SANDU și Asociații IP Attorney"
-          >
+            role="img"
+            aria-label="SANDU și Asociații IP Attorney"
+          />
         </NuxtLink>
 
         <nav
@@ -319,8 +319,6 @@ const languages = [
   { code: 'ro', label: 'RO' },
   { code: 'en', label: 'EN' },
 ]
-const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
-
 const selectedLanguage = ref('ro')
 const authMode = ref('login')
 const authToken = ref('')
@@ -847,7 +845,6 @@ a {
 
 .brand__logo {
   display: block;
-  object-fit: contain;
   background: var(--logo-image, var(--fallback-logo-image)) center / contain no-repeat;
   width: clamp(180px, 22vw, 257px);
   height: clamp(58px, 7vw, 83px);

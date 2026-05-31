@@ -24,12 +24,12 @@
           href="#"
           :aria-label="brandName"
         >
-          <img
+          <span
             class="brand__logo"
-            :src="transparentPixel"
             :style="{ '--fallback-logo-image': `url(${logoUrl})` }"
-            :alt="brandName"
-          >
+            role="img"
+            :aria-label="brandName"
+          />
         </a>
         <nav
           aria-label="Servicii rapide"
@@ -642,12 +642,12 @@
     >
       <div class="wrap footer-grid">
         <div class="footer-brand">
-          <img
+          <span
             class="footer-brand__logo"
-            :src="transparentPixel"
-            :style="{ '--fallback-logo-image': `url(${logoUrl})` }"
-            :alt="brandName"
-          >
+            :style="{ '--footer-fallback-logo-image': `url(${footerLogoUrl})` }"
+            role="img"
+            :aria-label="brandName"
+          />
           <p>
             {{ footerCopy }}
           </p>
@@ -717,6 +717,7 @@
 import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { niceClasses2024 } from '~/data/niceClasses2024'
 import logoUrl from '../assets/images/LOGO_SANDU-removebg-preview.png'
+import footerLogoUrl from '../assets/images/logo_footbar-removebg-preview.png'
 import blackWhiteTrademarkUrl from '../assets/images/MARCA_TA_ALB_NEGRU-removebg-preview.png'
 import colorTrademarkUrl from '../assets/images/MARCA_TA_COLOR-removebg-preview.png'
 import heroHomeUrl from '../assets/images/img_home.png'
@@ -726,7 +727,6 @@ const currencies = [
   { code: 'RON', label: 'OSIM' },
   { code: 'EUR', label: 'EUIPO' },
 ]
-const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
 const languages = [
   { code: 'ro', label: 'RO' },
   { code: 'en', label: 'EN' },
@@ -1559,7 +1559,6 @@ a {
 
 .brand__logo {
   display: block;
-  object-fit: contain;
   background: var(--logo-image, var(--fallback-logo-image)) center / contain no-repeat;
   width: clamp(180px, 22vw, 257px);
   height: clamp(58px, 7vw, 83px);
@@ -2011,7 +2010,6 @@ a {
   display: block;
   max-width: 170px;
   height: 42px;
-  object-fit: contain;
 }
 
 .price-card p,
@@ -2471,33 +2469,33 @@ a {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: minmax(360px, 1.55fr) repeat(3, minmax(0, 1fr));
-  gap: clamp(28px, 4vw, 64px);
+  grid-template-columns: minmax(560px, 1.9fr) repeat(3, minmax(110px, 0.7fr));
+  gap: clamp(24px, 3vw, 48px);
   align-items: start;
 }
 
 .footer-brand {
   display: grid;
-  grid-template-columns: minmax(160px, 0.9fr) minmax(0, 1fr);
-  gap: clamp(22px, 3vw, 42px);
-  align-items: center;
+  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+  gap: clamp(18px, 2.4vw, 32px);
+  align-items: start;
+  min-width: 0;
 }
 
 .footer-brand__logo {
   display: block;
-  width: min(100%, 220px);
-  height: clamp(58px, 7vw, 83px);
-  aspect-ratio: 257 / 83;
-  background: var(--logo-image, var(--fallback-logo-image)) center / contain no-repeat;
-  filter: brightness(0) invert(1);
+  width: clamp(220px, 24vw, 320px);
+  aspect-ratio: 7 / 5;
+  background: var(--footer-fallback-logo-image) center / contain no-repeat;
 }
 
 .footer-brand p {
   max-width: 360px;
+  min-width: 0;
   margin: 0;
   color: #f8f3ea;
-  font-size: 16px;
-  line-height: 1.18;
+  font-size: 14px;
+  line-height: 1.3;
 }
 
 .footer-column {
@@ -2689,7 +2687,7 @@ a {
   }
 
   .footer-brand__logo {
-    width: min(100%, 190px);
+    width: clamp(220px, 76vw, 320px);
   }
 }
 </style>

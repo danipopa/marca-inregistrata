@@ -114,6 +114,7 @@ class SiteTheme < ApplicationRecord
       brand_name: brand_name.presence || DEFAULT_BRAND_NAME,
       hero_image_key: hero_image_key,
       logo_image_key: logo_image_key,
+      footer_logo_image_key: footer_logo_image_key,
       footer_text: footer_text.presence || DEFAULT_FOOTER_TEXT,
       terms_content: terms_content.presence || DEFAULT_TERMS_CONTENT,
       privacy_policy_content: privacy_policy_content.presence || DEFAULT_PRIVACY_POLICY_CONTENT
