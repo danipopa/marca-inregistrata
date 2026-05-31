@@ -18,6 +18,13 @@ class Api::V1::Admin::SiteThemeControllerTest < ActionDispatch::IntegrationTest
       content_type: "image/png"
     )
     logo_image.save!
+    footer_logo_image = ThemeImage.new(name: "Footer Logo")
+    footer_logo_image.file.attach(
+      io: StringIO.new("footer-logo-bytes"),
+      filename: "footer-logo.png",
+      content_type: "image/png"
+    )
+    footer_logo_image.save!
 
     patch api_v1_admin_site_theme_url,
       params: {
@@ -33,6 +40,7 @@ class Api::V1::Admin::SiteThemeControllerTest < ActionDispatch::IntegrationTest
           brand_name: "Custom Brand",
           hero_image_key: theme_image.image_key,
           logo_image_key: logo_image.image_key,
+          footer_logo_image_key: footer_logo_image.image_key,
           footer_text: "Footer custom text",
           terms_content: "# Terms\n\nCustom terms",
           privacy_policy_content: "# Privacy\n\nCustom privacy"
@@ -48,6 +56,8 @@ class Api::V1::Admin::SiteThemeControllerTest < ActionDispatch::IntegrationTest
     assert_match(%r{/api/v1/theme_images/#{theme_image.id}}, response.parsed_body.dig("theme", "hero_image"))
     assert_equal logo_image.image_key, response.parsed_body.dig("theme", "logo_image_key")
     assert_match(%r{/api/v1/theme_images/#{logo_image.id}}, response.parsed_body.dig("theme", "logo_image"))
+    assert_equal footer_logo_image.image_key, response.parsed_body.dig("theme", "footer_logo_image_key")
+    assert_match(%r{/api/v1/theme_images/#{footer_logo_image.id}}, response.parsed_body.dig("theme", "footer_logo_image"))
     assert_equal "Footer custom text", response.parsed_body.dig("theme", "footer_text")
     assert_equal "# Terms\n\nCustom terms", response.parsed_body.dig("theme", "terms_content")
     assert_equal "# Privacy\n\nCustom privacy", response.parsed_body.dig("theme", "privacy_policy_content")

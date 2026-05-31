@@ -62,6 +62,8 @@ const DEFAULT_THEME = {
   hero_image: '',
   logo_image_key: '',
   logo_image: '',
+  footer_logo_image_key: '',
+  footer_logo_image: '',
   footer_text: '',
   terms_content: '',
   privacy_policy_content: '',
@@ -131,6 +133,13 @@ function applyTheme(theme) {
   }
   else {
     root.removeProperty('--logo-image')
+  }
+
+  if (selectedTheme.footer_logo_image) {
+    root.setProperty('--footer-logo-image', `url(${selectedTheme.footer_logo_image})`)
+  }
+  else {
+    root.removeProperty('--footer-logo-image')
   }
 
   ensureThemeFont(selectedTheme.font_family)

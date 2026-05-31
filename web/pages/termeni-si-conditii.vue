@@ -7,12 +7,12 @@
           to="/"
           :aria-label="brandName"
         >
-          <img
+          <span
             class="brand__logo"
-            :src="transparentPixel"
             :style="{ '--fallback-logo-image': `url(${logoUrl})` }"
-            :alt="brandName"
-          >
+            role="img"
+            :aria-label="brandName"
+          />
         </NuxtLink>
         <NuxtLink
           class="back-link"
@@ -69,7 +69,6 @@ import { legalBlocks } from '../utils/legalContent'
 import logoUrl from '../assets/images/LOGO_SANDU-removebg-preview.png'
 
 const config = useRuntimeConfig()
-const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
 const content = ref('# Termeni si conditii\n\nTextul termenilor si conditiilor se incarca.')
 const brandName = ref('SANDU și Asociații IP Attorney')
 const blocks = computed(() => legalBlocks(content.value))

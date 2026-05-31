@@ -10,7 +10,8 @@ module Api
       def serialize_theme(theme)
         theme.as_json.merge(
           hero_image: theme_image_url_for(theme.hero_image_key),
-          logo_image: theme_image_url_for(theme.logo_image_key)
+          logo_image: theme_image_url_for(theme.logo_image_key),
+          footer_logo_image: theme_image_url_for(theme.footer_logo_image_key)
         )
       end
 

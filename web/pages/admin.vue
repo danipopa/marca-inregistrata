@@ -7,12 +7,12 @@
           to="/"
           :aria-label="themeForm.brand_name || 'SANDU și Asociații IP Attorney'"
         >
-          <img
+          <span
             class="brand__logo"
-            :src="transparentPixel"
             :style="{ '--fallback-logo-image': `url(${logoUrl})` }"
-            :alt="themeForm.brand_name || 'SANDU și Asociații IP Attorney'"
-          >
+            role="img"
+            :aria-label="themeForm.brand_name || 'SANDU și Asociații IP Attorney'"
+          />
           <small>ADMIN</small>
         </NuxtLink>
 
@@ -698,7 +698,6 @@ const adminTasks = [
   { id: 'orders', label: 'Orders' },
   { id: 'settings', label: 'Settings' },
 ]
-const transparentPixel = 'data:image/gif;base64,R0lGODlhAQABAAAAACw='
 const productImages = {
   verbal: verbalTrademarkUrl,
   black_white: blackWhiteTrademarkUrl,
@@ -768,6 +767,8 @@ function defaultThemeForm() {
     hero_image: '',
     logo_image_key: '',
     logo_image: '',
+    footer_logo_image_key: '',
+    footer_logo_image: '',
     footer_text: '',
     terms_content: '',
     privacy_policy_content: '',
@@ -1430,7 +1431,6 @@ a {
 
 .brand__logo {
   display: block;
-  object-fit: contain;
   background: var(--logo-image, var(--fallback-logo-image)) center / contain no-repeat;
   width: clamp(180px, 22vw, 257px);
   height: clamp(58px, 7vw, 83px);
@@ -1873,7 +1873,6 @@ a {
   display: block;
   max-width: 170px;
   height: 42px;
-  object-fit: contain;
 }
 
 .admin-product-card p {
