@@ -1,0 +1,9 @@
+<h1>Mesaj nou de pe inregistrare-marca.com</h1>
+
+<p><strong>Nume:</strong> <%= @contact_message["name"] %></p>
+<p><strong>Email:</strong> <%= mail_to @contact_message["email"] %></p>
+<p><strong>Telefon:</strong> <%= @contact_message["phone"].presence || "-" %></p>
+<p><strong>IP:</strong> <%= @contact_message["ip_address"].presence || "-" %></p>
+
+<h2>Mesaj</h2>
+<p><%= simple_format(@contact_message["message"]) %></p>

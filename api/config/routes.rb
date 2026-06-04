@@ -2,6 +2,7 @@ Rails.application.routes.draw do
   namespace :api do
     namespace :v1 do
       resources :trademark_requests, only: :create
+      resources :contact_messages, only: :create
       resources :trademark_products, only: :index
       resources :product_images, only: :show
       resources :theme_images, only: :show

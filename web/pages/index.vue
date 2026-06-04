@@ -5,6 +5,7 @@
         <div class="contact-line">
           <a href="tel:0770898767">0770 898 767</a>
           <a href="mailto:contact@inregistrare-marca.com">contact@inregistrare-marca.com</a>
+          <a href="mailto:office@sandusiasociatii.ro">office@sandusiasociatii.ro</a>
         </div>
         <nav
           aria-label="Navigatie principala"
@@ -35,9 +36,9 @@
           aria-label="Servicii rapide"
           class="main-nav"
         >
+          <a href="#preturi">{{ t.quickRegistration }}</a>
           <a href="#reinnoire">{{ t.quickRenewal }}</a>
           <a href="#monitorizare">{{ t.quickMonitoring }}</a>
-          <a href="#preturi">{{ t.quickRegistration }}</a>
           <a href="#verificare">{{ t.quickCheck }}</a>
           <div
             class="language-switcher"
@@ -634,12 +635,110 @@
           </div>
         </div>
       </section>
+
+      <section
+        id="contact"
+        class="contact-section"
+      >
+        <div class="wrap contact-layout">
+          <div class="contact-copy">
+            <p class="eyebrow">
+              {{ t.contactEyebrow }}
+            </p>
+            <h2>{{ t.contactTitle }}</h2>
+            <p class="muted">
+              {{ t.contactCopy }}
+            </p>
+
+            <div class="contact-details">
+              <div>
+                <span>{{ t.contactAddressLabel }}</span>
+                <strong>Str. C. Libertății, Nr. 42, Sector 3, București</strong>
+              </div>
+              <div>
+                <span>Email</span>
+                <a href="mailto:office@sandusiasociatii.ro">office@sandusiasociatii.ro</a>
+                <a href="mailto:contact@inregistrare-marca.com">contact@inregistrare-marca.com</a>
+              </div>
+              <div>
+                <span>{{ t.contactPhoneLabel }}</span>
+                <a href="tel:0770898767">0770 898 767</a>
+              </div>
+            </div>
+          </div>
+
+          <form
+            class="contact-form"
+            @submit.prevent="submitContactMessage"
+          >
+            <div class="field-grid">
+              <label>
+                {{ t.contactNameLabel }} *
+                <input
+                  v-model="contactForm.name"
+                  type="text"
+                  autocomplete="name"
+                  required
+                >
+              </label>
+              <label>
+                Email *
+                <input
+                  v-model="contactForm.email"
+                  type="email"
+                  autocomplete="email"
+                  required
+                >
+              </label>
+            </div>
+
+            <label>
+              {{ t.contactPhoneLabel }}
+              <input
+                v-model="contactForm.phone"
+                type="tel"
+                autocomplete="tel"
+                placeholder="0770 898 767"
+              >
+            </label>
+
+            <label>
+              {{ t.contactMessageLabel }} *
+              <textarea
+                v-model="contactForm.message"
+                rows="6"
+                :placeholder="t.contactMessagePlaceholder"
+                required
+              />
+            </label>
+
+            <button
+              type="submit"
+              class="primary-btn"
+              :disabled="contactSubmitting"
+            >
+              {{ contactSubmitting ? t.submitting : t.contactSubmit }}
+            </button>
+
+            <p
+              v-if="contactSuccess"
+              class="success-message"
+            >
+              {{ contactSuccess }}
+            </p>
+
+            <p
+              v-if="contactError"
+              class="error-message"
+            >
+              {{ contactError }}
+            </p>
+          </form>
+        </div>
+      </section>
     </main>
 
-    <footer
-      id="contact"
-      class="site-footer"
-    >
+    <footer class="site-footer">
       <div class="wrap footer-grid">
         <div class="footer-brand">
           <span
@@ -658,16 +757,18 @@
           class="footer-column"
         >
           <h2>{{ t.footerResources }}</h2>
-          <a href="#verificare">{{ t.quickCheck }}</a>
           <a href="#formular">{{ t.quickRegistration }}</a>
-          <a href="#monitorizare">{{ t.quickMonitoring }}</a>
           <a href="#reinnoire">{{ t.quickRenewal }}</a>
+          <a href="#monitorizare">{{ t.quickMonitoring }}</a>
+          <a href="#verificare">{{ t.quickCheck }}</a>
         </nav>
 
         <div class="footer-column">
           <h2>Contact</h2>
           <a href="tel:0770898767">0770 898 767</a>
+          <a href="mailto:office@sandusiasociatii.ro">office@sandusiasociatii.ro</a>
           <a href="mailto:contact@inregistrare-marca.com">contact@inregistrare-marca.com</a>
+          <span>Str. C. Libertății, Nr. 42, Sector 3, București</span>
           <span>{{ t.businessHours }}</span>
         </div>
 
@@ -749,6 +850,9 @@ const monitoringError = ref('')
 const monitoringSearched = ref(false)
 const monitoringResults = ref([])
 const monitoringTotal = ref(0)
+const contactSubmitting = ref(false)
+const contactError = ref('')
+const contactSuccess = ref('')
 const config = useRuntimeConfig()
 
 const translations = {
@@ -886,9 +990,20 @@ const translations = {
     total: 'Total',
     niceClassesShort: 'clase NISA',
     noPurchases: 'Nu exista comenzi pentru acest email.',
+    contactEyebrow: 'Contact',
+    contactTitle: 'Scrieti-ne pentru detalii',
+    contactCopy: 'Pentru intrebari despre verificari, inregistrari OSIM/EUIPO sau comenzi existente, trimiteti un mesaj si revenim cu un raspuns.',
+    contactAddressLabel: 'Adresa',
+    contactPhoneLabel: 'Telefon / WhatsApp',
+    contactNameLabel: 'Nume',
+    contactMessageLabel: 'Mesaj',
+    contactMessagePlaceholder: 'Spuneti-ne pe scurt ce marca doriti sa verificati sau sa inregistrati.',
+    contactSubmit: 'Trimite mesajul',
+    contactSuccess: 'Mesajul a fost trimis. Va multumim.',
+    contactError: 'Nu am putut trimite mesajul. Verificati datele si incercati din nou.',
     footerCopy: 'Consultanta pentru inregistrare marca OSIM si UE, verificari preliminare si asistenta pe parcursul procedurii.',
     footerResources: 'Servicii',
-    businessHours: 'Luni - Vineri, 09:00 - 19:00',
+    businessHours: 'Luni - Vineri, 09:00 - 18:00',
     odr: 'Solutionarea online a litigiilor',
     sal: 'Solutionarea alternativa a litigiilor',
     privacyPolicy: 'Politica de confidentialitate',
@@ -1068,9 +1183,20 @@ const translations = {
     total: 'Total',
     niceClassesShort: 'NICE classes',
     noPurchases: 'There are no orders for this email.',
+    contactEyebrow: 'Contact',
+    contactTitle: 'Write to us for details',
+    contactCopy: 'For questions about checks, OSIM/EUIPO filings or existing orders, send a message and we will get back to you.',
+    contactAddressLabel: 'Address',
+    contactPhoneLabel: 'Phone / WhatsApp',
+    contactNameLabel: 'Name',
+    contactMessageLabel: 'Message',
+    contactMessagePlaceholder: 'Tell us briefly which trademark you want to check or register.',
+    contactSubmit: 'Send message',
+    contactSuccess: 'Your message was sent. Thank you.',
+    contactError: 'We could not send the message. Please check the details and try again.',
     footerCopy: 'Consulting for OSIM and EU trademark registration, preliminary checks and support throughout the procedure.',
     footerResources: 'Services',
-    businessHours: 'Monday - Friday, 09:00 - 19:00',
+    businessHours: 'Monday - Friday, 09:00 - 18:00',
     odr: 'Online dispute resolution',
     sal: 'Alternative dispute resolution',
     privacyPolicy: 'Privacy policy',
@@ -1136,6 +1262,12 @@ const monitoringForm = reactive({
   mark: '',
   offices: ['RO', 'EM'],
   classes: [],
+})
+const contactForm = reactive({
+  name: '',
+  email: '',
+  phone: '',
+  message: '',
 })
 
 const productImages = {
@@ -1412,6 +1544,46 @@ async function searchMonitoring() {
   }
 }
 
+async function submitContactMessage() {
+  contactError.value = ''
+  contactSuccess.value = ''
+  contactSubmitting.value = true
+
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/contact_messages`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        contact_message: {
+          name: contactForm.name,
+          email: contactForm.email,
+          phone: contactForm.phone,
+          message: contactForm.message,
+        },
+      }),
+    })
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(payload.message || t.value.contactError)
+    }
+
+    contactForm.name = ''
+    contactForm.email = ''
+    contactForm.phone = ''
+    contactForm.message = ''
+    contactSuccess.value = payload.message || t.value.contactSuccess
+  }
+  catch (error) {
+    contactError.value = error instanceof Error ? error.message : t.value.contactError
+  }
+  finally {
+    contactSubmitting.value = false
+  }
+}
+
 onMounted(() => {
   const storedLanguage = window.localStorage.getItem('preferred-language')
 
@@ -1572,6 +1744,7 @@ a {
   font-weight: 700;
   gap: 10px;
   justify-content: flex-end;
+  text-transform: uppercase;
 }
 
 .main-nav a {
@@ -1724,6 +1897,7 @@ a {
 .form-section,
 .cart-section,
 .account-section,
+.contact-section,
 .monitoring-section {
   padding: 64px 0;
 }
@@ -2460,6 +2634,89 @@ a {
   text-align: right;
 }
 
+.contact-section {
+  border-top: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.contact-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+  gap: 32px;
+  align-items: start;
+}
+
+.contact-copy h2 {
+  margin: 0;
+  font-size: 42px;
+  font-weight: 400;
+}
+
+.contact-details {
+  display: grid;
+  gap: 14px;
+  margin-top: 24px;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+}
+
+.contact-details div {
+  display: grid;
+  gap: 5px;
+  border-left: 4px solid var(--gold);
+  background: #fff;
+  padding: 14px 16px;
+}
+
+.contact-details span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.contact-details strong,
+.contact-details a {
+  color: var(--ink);
+  line-height: 1.45;
+  text-decoration: none;
+}
+
+.contact-details a:hover {
+  color: var(--gold-dark);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.contact-form {
+  display: grid;
+  gap: 16px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 28px;
+}
+
+.contact-form label {
+  display: grid;
+  gap: 8px;
+  color: #2d2924;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+  font-weight: 700;
+}
+
+.contact-form input,
+.contact-form textarea {
+  width: 100%;
+  border: 1px solid #cfc7bc;
+  background: #fff;
+  color: var(--ink);
+  padding: 13px 14px;
+  font-weight: 400;
+}
+
+.contact-form .primary-btn {
+  justify-self: start;
+}
+
 .site-footer {
   background: var(--brand);
   color: #f8f3ea;
@@ -2469,17 +2726,13 @@ a {
 
 .footer-grid {
   display: grid;
-  grid-template-columns: minmax(560px, 1.9fr) repeat(3, minmax(110px, 0.7fr));
+  grid-template-columns: minmax(220px, 320px) minmax(220px, 320px) repeat(3, minmax(110px, 0.7fr));
   gap: clamp(24px, 3vw, 48px);
   align-items: start;
 }
 
 .footer-brand {
-  display: grid;
-  grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
-  gap: clamp(18px, 2.4vw, 32px);
-  align-items: start;
-  min-width: 0;
+  display: contents;
 }
 
 .footer-brand__logo {
@@ -2506,7 +2759,7 @@ a {
 
 .footer-column h2 {
   margin: 0 0 8px;
-  color: #f6dfad;
+  color: #fff;
   font-size: 13px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -2514,7 +2767,7 @@ a {
 
 .footer-column a,
 .footer-column span {
-  color: #f8f3ea;
+  color: #fff;
   font-size: 16px;
   line-height: 1.35;
   text-decoration: none;
@@ -2524,10 +2777,6 @@ a {
   color: #fff;
   text-decoration: underline;
   text-underline-offset: 4px;
-}
-
-.anpc-links a {
-  color: #f6dfad;
 }
 
 .footer-bottom {
@@ -2565,6 +2814,7 @@ a {
   .form-layout,
   .cart-layout,
   .account-layout,
+  .contact-layout,
   .monitoring-layout,
   .hero__grid {
     grid-template-columns: 1fr;
@@ -2597,7 +2847,12 @@ a {
   }
 
   .footer-brand {
+    display: grid;
+    grid-template-columns: minmax(220px, 320px) minmax(0, 1fr);
+    gap: clamp(18px, 2.4vw, 32px);
+    align-items: start;
     grid-column: 1 / -1;
+    min-width: 0;
   }
 }
 
@@ -2624,6 +2879,7 @@ a {
   .form-section,
   .cart-section,
   .account-section,
+  .contact-section,
   .monitoring-section {
     padding: 42px 0;
   }
@@ -2632,6 +2888,7 @@ a {
   .registration-form,
   .cart-panel,
   .account-panel,
+  .contact-form,
   .monitoring-panel,
   .price-card {
     padding: 20px;
@@ -2652,6 +2909,7 @@ a {
   .cart-item,
   .checkout-box,
   .purchase-item,
+  .contact-form .field-grid,
   .monitoring-results__head,
   .monitoring-item {
     grid-template-columns: 1fr;
