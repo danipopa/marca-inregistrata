@@ -1,0 +1,9 @@
+Mesaj nou de pe inregistrare-marca.com
+
+Nume: <%= @contact_message["name"] %>
+Email: <%= @contact_message["email"] %>
+Telefon: <%= @contact_message["phone"].presence || "-" %>
+IP: <%= @contact_message["ip_address"].presence || "-" %>
+
+Mesaj:
+<%= @contact_message["message"] %>
