@@ -8,6 +8,10 @@ module Payments
       new(trademark_request).create!
     end
 
+    def self.paid?(trademark_request)
+      new(trademark_request).paid?
+    end
+
     def initialize(trademark_request)
       @trademark_request = trademark_request
     end
@@ -27,6 +31,22 @@ module Payments
       }
     end
 
+    def paid?
+      raise MissingCredentials, "STRIPE_SECRET_KEY is missing" if secret_key.blank?
+      raise ProviderError, "Stripe checkout session is missing" if trademark_request.payment_provider_id.blank?
+
+      response = Net::HTTP.start(session_uri.hostname, session_uri.port, use_ssl: true) do |http|
+        request = Net::HTTP::Get.new(session_uri)
+        request["Authorization"] = "Bearer #{secret_key}"
+        http.request(request)
+      end
+      payload = JSON.parse(response.body)
+
+      raise ProviderError, payload.dig("error", "message") || "Stripe payment verification failed" unless response.is_a?(Net::HTTPSuccess)
+
+      payload["payment_status"] == "paid"
+    end
+
     private
 
     attr_reader :trademark_request
@@ -39,6 +59,10 @@ module Payments
         api_uri.user = secret_key
         api_uri.password = ""
       end
+    end
+
+    def session_uri
+      URI("#{API_URL}/#{trademark_request.payment_provider_id}")
     end
 
     def form_payload

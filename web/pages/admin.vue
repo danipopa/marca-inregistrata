@@ -30,8 +30,17 @@
     <main class="admin-main">
       <section class="wrap admin-layout">
         <div class="admin-panel">
+          <div
+            v-if="authHydrating"
+            class="admin-login"
+          >
+            <p class="muted">
+              Verifying session...
+            </p>
+          </div>
+
           <form
-            v-if="!authToken"
+            v-else-if="!authToken"
             class="admin-login"
             @submit.prevent="login"
           >
@@ -305,67 +314,109 @@
                     {{ productError }}
                   </p>
 
-                  <div class="admin-product-grid">
-                    <article
-                      v-for="product in products"
-                      :key="product.id"
-                      class="admin-product-card"
+                  <div class="admin-product-categories">
+                    <section
+                      v-for="category in productCategories"
+                      :key="category.id"
+                      class="admin-product-category"
                     >
-                      <div class="admin-product-card__top">
-                        <div class="admin-product-card__meta">
-                          <span class="country-pill">{{ product.region }}</span>
-                          <span :class="['status-pill', product.active ? 'active' : 'hidden']">
-                            {{ product.active ? 'Active' : 'Hidden' }}
-                          </span>
-                        </div>
-                        <h3>{{ product.translations.ro.title }}</h3>
-                        <img
-                          v-if="productImage(product)"
-                          class="admin-product-card__image"
-                          :src="productImage(product)"
-                          :alt="product.translations.ro.title"
-                        >
-                        <p v-if="product.translations.ro.note">
-                          {{ product.translations.ro.note }}
-                        </p>
+                      <div class="product-category-heading">
+                        <h3>{{ category.label }}</h3>
+                        <span>{{ category.products.length }} produse</span>
                       </div>
 
-                      <div class="admin-product-price">
-                        <span>{{ product.price }}</span>
-                        <small>{{ product.translations.ro.tax }}</small>
-                      </div>
-
-                      <ul>
-                        <li
-                          v-for="item in product.translations.ro.items"
-                          :key="item"
+                      <div class="admin-product-grid">
+                        <article
+                          v-for="product in category.products"
+                          :key="product.id"
+                          class="admin-product-card"
                         >
-                          {{ item }}
-                        </li>
-                      </ul>
+                          <div class="admin-product-card__top">
+                            <div class="admin-product-card__meta">
+                              <span class="country-pill">{{ product.region }}</span>
+                              <span :class="['status-pill', product.active ? 'active' : 'hidden']">
+                                {{ product.active ? 'Active' : 'Hidden' }}
+                              </span>
+                            </div>
+                            <h3>{{ product.translations.ro.title }}</h3>
+                            <img
+                              v-if="productImage(product)"
+                              class="admin-product-card__image"
+                              :src="productImage(product)"
+                              :alt="product.translations.ro.title"
+                            >
+                            <p v-if="product.translations.ro.note">
+                              {{ product.translations.ro.note }}
+                            </p>
+                          </div>
 
-                      <div class="admin-product-code">
-                        <span>{{ product.code }}</span>
-                        <span>{{ product.currency }}</span>
-                      </div>
+                          <div class="admin-product-price">
+                            <span>{{ product.price }}</span>
+                            <small>{{ product.translations.ro.tax }}</small>
+                          </div>
 
-                      <div class="product-actions">
-                        <button
-                          class="ghost-btn"
-                          type="button"
-                          @click="editProduct(product)"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          class="ghost-btn danger-btn"
-                          type="button"
-                          @click="deleteProduct(product)"
-                        >
-                          Delete
-                        </button>
+                          <form
+                            class="inline-price-form"
+                            @submit.prevent="saveProductPrice(product)"
+                          >
+                            <label>
+                              Display price
+                              <input
+                                v-model="product.priceDraft.price_label"
+                                required
+                              >
+                            </label>
+                            <label>
+                              Checkout amount
+                              <input
+                                v-model.number="product.priceDraft.base_price_lei"
+                                type="number"
+                                min="0"
+                                required
+                              >
+                            </label>
+                            <button
+                              class="ghost-btn"
+                              type="submit"
+                              :disabled="savingProductPriceId === product.id"
+                            >
+                              {{ savingProductPriceId === product.id ? 'Saving...' : 'Save price' }}
+                            </button>
+                          </form>
+
+                          <ul>
+                            <li
+                              v-for="item in product.translations.ro.items"
+                              :key="item"
+                            >
+                              {{ item }}
+                            </li>
+                          </ul>
+
+                          <div class="admin-product-code">
+                            <span>{{ product.code }}</span>
+                            <span>{{ product.currency }}</span>
+                          </div>
+
+                          <div class="product-actions">
+                            <button
+                              class="ghost-btn"
+                              type="button"
+                              @click="editProduct(product)"
+                            >
+                              Edit
+                            </button>
+                            <button
+                              class="ghost-btn danger-btn"
+                              type="button"
+                              @click="deleteProduct(product)"
+                            >
+                              Delete
+                            </button>
+                          </div>
+                        </article>
                       </div>
-                    </article>
+                    </section>
                   </div>
                 </div>
 
@@ -425,6 +476,8 @@
                       <span>
                         <strong>#{{ order.id }} {{ order.mark }}</strong>
                         <small>{{ order.product_name }} · {{ order.classes }} classes</small>
+                        <small>{{ orderTypeLabel(order.order_type) }}</small>
+                        <small v-if="order.owner_change_requested">Owner address/name change requested</small>
                       </span>
                       <span>
                         <strong>{{ order.email }}</strong>
@@ -432,20 +485,30 @@
                         <small v-if="order.ip_address">IP: {{ order.ip_address }}</small>
                       </span>
                       <span class="order-payment">
-                        <strong>{{ statusLabel(order.status) }}</strong>
+                        <label class="status-select">
+                          <span>Status</span>
+                          <select
+                            v-model="order.status"
+                            :disabled="savingOrderId === order.id"
+                            @change="saveOrderStatus(order)"
+                          >
+                            <option value="pending_payment">Pending payment</option>
+                            <option value="paid">Paid</option>
+                            <option value="processing">Processing</option>
+                            <option value="completed">Completed</option>
+                          </select>
+                        </label>
                         <small>{{ paymentLabel(order.payment_method) }}</small>
-                        <button
-                          v-if="canMarkPaid(order)"
-                          class="ghost-btn"
-                          type="button"
-                          :disabled="savingOrderId === order.id"
-                          @click="markOrderPaid(order)"
-                        >
-                          {{ savingOrderId === order.id ? 'Saving...' : 'Mark paid' }}
-                        </button>
                       </span>
                       <span>{{ order.total.formatted }}</span>
                       <span class="order-comments">
+                        <button
+                          class="ghost-btn"
+                          type="button"
+                          @click="downloadOrderInvoice(order)"
+                        >
+                          {{ order.payment_method === 'transfer' ? 'Download proforma' : 'Download invoice' }}
+                        </button>
                         <textarea
                           v-model="order.admin_comments"
                           rows="3"
@@ -459,6 +522,19 @@
                         >
                           {{ savingOrderId === order.id ? 'Saving...' : 'Save' }}
                         </button>
+                        <div class="order-log">
+                          <strong>Change log</strong>
+                          <ul v-if="order.events?.length">
+                            <li
+                              v-for="event in order.events"
+                              :key="event.id"
+                            >
+                              <span>{{ eventLabel(event) }}</span>
+                              <small>{{ event.admin_email || 'system' }} · {{ eventDate(event.created_at) }}</small>
+                            </li>
+                          </ul>
+                          <small v-else>No changes logged yet.</small>
+                        </div>
                       </span>
                     </div>
                   </div>
@@ -682,8 +758,10 @@ const imageUploading = ref(false)
 const themeImageUploading = ref(false)
 const themeSaving = ref(false)
 const savingOrderId = ref(null)
+const savingProductPriceId = ref(null)
 const errorMessage = ref('')
 const productError = ref('')
+const authHydrating = ref(true)
 const themeMessage = ref('')
 const uploadImageName = ref('')
 const uploadImageFile = ref(null)
@@ -723,6 +801,16 @@ const selectedImageDescription = computed(() => {
   return uploadedImage?.name || imageDescriptions[productForm.image_key] || ''
 })
 const themeFontStack = computed(() => `'${themeForm.font_family || 'Montserrat'}', sans-serif`)
+const productCategories = computed(() => {
+  const categories = [
+    { id: 'registration', label: 'Inregistrare marca', products: products.value.filter(product => productCategory(product) === 'registration') },
+    { id: 'renewal', label: 'Reinnoire marca', products: products.value.filter(product => productCategory(product) === 'renewal') },
+    { id: 'monitoring', label: 'Monitorizare marca', products: products.value.filter(product => productCategory(product) === 'monitoring') },
+    { id: 'verification', label: 'Verificare marca', products: products.value.filter(product => productCategory(product) === 'verification') },
+  ]
+
+  return categories.filter(category => category.products.length)
+})
 
 const loginForm = reactive({
   email: '',
@@ -844,17 +932,6 @@ function clearSession() {
   window.localStorage.removeItem('account-user')
 }
 
-function statusLabel(status) {
-  const labels = {
-    pending_payment: 'Pending payment',
-    paid: 'Paid',
-    processing: 'Processing',
-    completed: 'Completed',
-  }
-
-  return labels[status] || status
-}
-
 function paymentLabel(paymentMethod) {
   const labels = {
     card: 'Card',
@@ -865,12 +942,66 @@ function paymentLabel(paymentMethod) {
   return labels[paymentMethod] || paymentMethod || 'Payment not selected'
 }
 
-function canMarkPaid(order) {
-  return order.payment_method === 'transfer' && order.status !== 'paid'
+function orderTypeLabel(orderType) {
+  const labels = {
+    monitoring: 'Monitoring',
+    renewal: 'Renewal',
+    registration: 'Registration',
+  }
+
+  return labels[orderType] || orderType || 'Registration'
+}
+
+function eventLabel(event) {
+  if (event.field_name === 'status') {
+    return `Status: ${statusText(event.old_value)} -> ${statusText(event.new_value)}`
+  }
+
+  if (event.field_name === 'admin_comments') {
+    return 'Admin comments updated'
+  }
+
+  return event.action
+}
+
+function statusText(status) {
+  const labels = {
+    pending_payment: 'Pending payment',
+    paid: 'Paid',
+    processing: 'Processing',
+    completed: 'Completed',
+  }
+
+  return labels[status] || status || '-'
+}
+
+function eventDate(date) {
+  return new Intl.DateTimeFormat('ro-RO', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(new Date(date))
 }
 
 function productImage(product) {
   return product.image || productImages[product.image_key]
+}
+
+function productCategory(product) {
+  const code = product.code || ''
+  if (code.startsWith('renew-')) return 'renewal'
+  if (code.startsWith('monitoring-')) return 'monitoring'
+  if (code.startsWith('verification-')) return 'verification'
+  return 'registration'
+}
+
+function withPriceDraft(product) {
+  return {
+    ...product,
+    priceDraft: {
+      price_label: product.price,
+      base_price_lei: product.base_lei,
+    },
+  }
 }
 
 function orderDate(value) {
@@ -933,23 +1064,33 @@ async function login() {
 
 async function hydrateSession() {
   const storedToken = window.localStorage.getItem('account-token')
-  const storedUser = window.localStorage.getItem('account-user')
 
-  if (!storedToken) return
-
-  authToken.value = storedToken
-  currentUser.value = storedUser ? JSON.parse(storedUser) : null
-
-  if (!currentUser.value?.admin) {
-    clearSession()
+  if (!storedToken) {
+    authHydrating.value = false
     return
   }
 
-  await loadDashboard()
-  await loadProducts()
-  await loadProductImages()
-  await loadThemeImages()
-  await loadTheme()
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/session`, {
+      headers: { Authorization: `Bearer ${storedToken}` },
+    })
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok || !payload.user?.admin) throw new Error()
+
+    persistSession(storedToken, payload.user)
+    await loadDashboard()
+    await loadProducts()
+    await loadProductImages()
+    await loadThemeImages()
+    await loadTheme()
+  }
+  catch {
+    clearSession()
+  }
+  finally {
+    authHydrating.value = false
+  }
 }
 
 async function loadDashboard() {
@@ -989,7 +1130,7 @@ async function loadProducts() {
       throw new Error('Could not load products.')
     }
 
-    products.value = payload.products || []
+    products.value = (payload.products || []).map(withPriceDraft)
   }
   catch (error) {
     productError.value = error instanceof Error ? error.message : 'Could not load products.'
@@ -1196,6 +1337,7 @@ async function saveOrderComments(order) {
     }
 
     order.admin_comments = payload.order?.admin_comments || ''
+    order.events = payload.order?.events || order.events || []
   }
   catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Could not save admin comments.'
@@ -1205,7 +1347,39 @@ async function saveOrderComments(order) {
   }
 }
 
-async function markOrderPaid(order) {
+function downloadBlob(blob, filename) {
+  const objectUrl = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = objectUrl
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(objectUrl)
+}
+
+async function downloadOrderInvoice(order) {
+  errorMessage.value = ''
+
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/admin/trademark_requests/${order.id}/invoice`, {
+      headers: authHeaders(),
+    })
+
+    if (!response.ok) {
+      throw new Error('Could not download invoice.')
+    }
+
+    const blob = await response.blob()
+    const prefix = order.payment_method === 'transfer' ? 'proforma' : 'invoice'
+    downloadBlob(blob, `${prefix}-${order.id}.pdf`)
+  }
+  catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Could not download invoice.'
+  }
+}
+
+async function saveOrderStatus(order) {
   errorMessage.value = ''
   savingOrderId.value = order.id
 
@@ -1218,23 +1392,60 @@ async function markOrderPaid(order) {
       },
       body: JSON.stringify({
         trademark_request: {
-          status: 'paid',
+          status: order.status,
         },
       }),
     })
     const payload = await response.json().catch(() => ({}))
 
     if (!response.ok) {
-      throw new Error(payload.message || 'Could not mark payment.')
+      throw new Error(payload.message || 'Could not update order status.')
     }
 
-    order.status = payload.order?.status || 'paid'
+    order.status = payload.order?.status || order.status
+    order.events = payload.order?.events || order.events || []
   }
   catch (error) {
-    errorMessage.value = error instanceof Error ? error.message : 'Could not mark payment.'
+    errorMessage.value = error instanceof Error ? error.message : 'Could not update order status.'
   }
   finally {
     savingOrderId.value = null
+  }
+}
+
+async function saveProductPrice(product) {
+  productError.value = ''
+  savingProductPriceId.value = product.id
+
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/admin/trademark_products/${product.id}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders(),
+      },
+      body: JSON.stringify({
+        trademark_product: {
+          price_label: product.priceDraft.price_label,
+          base_price_lei: product.priceDraft.base_price_lei,
+        },
+      }),
+    })
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(payload.message || 'Could not save price.')
+    }
+
+    const updatedProduct = withPriceDraft(payload.product)
+    const index = products.value.findIndex(item => item.id === product.id)
+    if (index >= 0) products.value.splice(index, 1, updatedProduct)
+  }
+  catch (error) {
+    productError.value = error instanceof Error ? error.message : 'Could not save price.'
+  }
+  finally {
+    savingProductPriceId.value = null
   }
 }
 
@@ -1802,6 +2013,39 @@ a {
   gap: 8px;
 }
 
+.admin-product-categories {
+  display: grid;
+  gap: 28px;
+}
+
+.admin-product-category {
+  display: grid;
+  gap: 14px;
+}
+
+.product-category-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 10px;
+}
+
+.product-category-heading h3 {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 400;
+}
+
+.product-category-heading span {
+  color: var(--muted);
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
 .admin-product-grid {
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 16px;
@@ -1891,6 +2135,37 @@ a {
   font-size: 34px;
 }
 
+.inline-price-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(110px, 0.65fr) auto;
+  gap: 10px;
+  align-items: end;
+  margin: 0 0 18px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 12px;
+}
+
+.inline-price-form label {
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.inline-price-form input {
+  width: 100%;
+  border: 1px solid #cfc7bc;
+  color: var(--ink);
+  padding: 10px 11px;
+  font-size: 14px;
+  font-weight: 500;
+  text-transform: none;
+}
+
 .admin-product-card ul {
   display: grid;
   gap: 10px;
@@ -1964,6 +2239,28 @@ a {
   gap: 8px;
 }
 
+.status-select {
+  display: grid;
+  gap: 5px;
+}
+
+.status-select span {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.status-select select {
+  width: 100%;
+  border: 1px solid #cfc7bc;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  min-height: 36px;
+  padding: 0 8px;
+}
+
 .order-payment .ghost-btn,
 .order-comments .ghost-btn {
   width: max-content;
@@ -1980,6 +2277,34 @@ a {
   padding: 10px 12px;
   resize: vertical;
   font-family: var(--font-family, 'Montserrat', sans-serif);
+}
+
+.order-log {
+  display: grid;
+  gap: 6px;
+  border-top: 1px solid var(--line);
+  padding-top: 8px;
+}
+
+.order-log ul {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.order-log li {
+  border-left: 3px solid #b7ccd6;
+  background: #f8fbfc;
+  padding: 7px 9px;
+}
+
+.order-log li span {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
 }
 
 .error-message {
@@ -1999,6 +2324,7 @@ a {
   .settings-grid,
   .theme-grid,
   .orders-row,
+  .inline-price-form,
   .field-grid {
     grid-template-columns: 1fr;
   }

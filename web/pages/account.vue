@@ -42,14 +42,14 @@
           aria-label="Servicii rapide"
           class="main-nav"
         >
+          <NuxtLink to="/#preturi">
+            {{ t.quickRegistration }}
+          </NuxtLink>
           <NuxtLink to="/#reinnoire">
             {{ t.quickRenewal }}
           </NuxtLink>
           <NuxtLink to="/#monitorizare">
             {{ t.quickMonitoring }}
-          </NuxtLink>
-          <NuxtLink to="/#preturi">
-            {{ t.quickRegistration }}
           </NuxtLink>
           <NuxtLink to="/#verificare">
             {{ t.quickCheck }}
@@ -68,13 +68,25 @@
               {{ option.label }}
             </button>
           </div>
+          <NuxtLink
+            v-if="cartItems.length"
+            class="cart-nav-link"
+            to="/checkout"
+            :aria-label="`${t.cartNavLabel}: ${cartItems.length}`"
+          >
+            <span
+              class="cart-nav-icon"
+              aria-hidden="true"
+            />
+            <span class="cart-nav-count">{{ cartItems.length }}</span>
+          </NuxtLink>
         </nav>
       </div>
     </header>
 
     <main class="account-main">
-      <section class="wrap account-layout">
-        <div class="account-copy">
+      <section class="wrap account-intro">
+        <div>
           <p class="eyebrow">
             {{ t.eyebrow }}
           </p>
@@ -83,10 +95,30 @@
             {{ t.copy }}
           </p>
         </div>
+      </section>
 
-        <div class="account-panel">
+      <section class="wrap account-panel">
+        <p
+          v-if="paymentReturnMessage"
+          :class="paymentReturnClass"
+        >
+          {{ paymentReturnMessage }}
+        </p>
+
+        <div
+          v-if="authHydrating"
+          class="auth-shell"
+        >
+          <p class="muted">
+            {{ t.loading }}
+          </p>
+        </div>
+
+        <div
+          v-else-if="!authToken"
+          class="auth-shell"
+        >
           <form
-            v-if="!authToken"
             class="account-form"
             @submit.prevent="submitAuth"
           >
@@ -135,130 +167,20 @@
               {{ authenticating ? t.loading : authSubmitLabel }}
             </button>
 
-            <div class="google-login">
-              <div class="divider">
-                <span>{{ t.or }}</span>
-              </div>
-              <div
-                v-if="googleEnabled"
-                ref="googleButton"
-                class="google-button-host"
-              />
-              <button
-                v-else
-                type="button"
-                class="google-fallback"
-                @click="showGoogleSetupError"
-              >
-                {{ t.googleLogin }}
-              </button>
-              <small
-                v-if="!googleEnabled"
-                class="google-setup"
-              >
-                {{ t.googleSetupMissing }}
-              </small>
-            </div>
-
             <p class="muted">
               {{ t.authNote }}
             </p>
           </form>
+        </div>
 
-          <div
-            v-else
-            class="account-dashboard"
-          >
-            <div class="signed-in-bar">
-              <div>
-                <span>{{ t.signedInAs }}</span>
-                <strong>{{ currentUser?.email }}</strong>
-              </div>
-              <button
-                class="ghost-btn"
-                type="button"
-                @click="logout"
-              >
-                {{ t.logout }}
-              </button>
-            </div>
-
-            <form
-              class="billing-form"
-              @submit.prevent="saveBillingProfile"
-            >
-              <div>
-                <h2>{{ t.billingTitle }}</h2>
-                <p>{{ t.billingCopy }}</p>
-              </div>
-
-              <label>
-                {{ t.phone }}
-                <input
-                  v-model="billingForm.phone"
-                  type="tel"
-                  :placeholder="t.phonePlaceholder"
-                  required
-                >
-              </label>
-
-              <label>
-                {{ t.ownerType }}
-                <select v-model="billingForm.ownerType">
-                  <option value="Societate">{{ t.company }}</option>
-                  <option value="Persoana fizica">{{ t.person }}</option>
-                </select>
-              </label>
-
-              <div class="field-grid">
-                <label>
-                  {{ t.taxId }}
-                  <input
-                    v-model="billingForm.taxId"
-                    type="text"
-                    placeholder="RO12345678"
-                  >
-                </label>
-                <label>
-                  {{ t.ownerName }}
-                  <input
-                    v-model="billingForm.ownerName"
-                    type="text"
-                    :placeholder="t.ownerNamePlaceholder"
-                    required
-                  >
-                </label>
-              </div>
-
-              <label>
-                {{ t.address }}
-                <textarea
-                  v-model="billingForm.address"
-                  rows="4"
-                  :placeholder="t.addressPlaceholder"
-                  required
-                />
-              </label>
-
-              <button
-                class="primary-btn"
-                type="submit"
-                :disabled="savingBilling"
-              >
-                {{ savingBilling ? t.saving : t.saveBilling }}
-              </button>
-
-              <p
-                v-if="billingMessage"
-                class="success-message"
-              >
-                {{ billingMessage }}
-              </p>
-            </form>
-
+        <div
+          v-else
+          class="account-workspace"
+        >
+          <div class="account-overview">
             <div
               v-if="account"
-              class="account-summary"
+              class="account-metrics"
             >
               <div>
                 <span>{{ t.orders }}</span>
@@ -270,6 +192,179 @@
               </div>
             </div>
 
+            <div class="account-menu">
+              <button
+                type="button"
+                class="account-menu__button"
+                :aria-expanded="accountMenuOpen"
+                @click="accountMenuOpen = !accountMenuOpen"
+              >
+                <span
+                  class="account-avatar"
+                  aria-hidden="true"
+                >
+                  {{ profileInitials }}
+                </span>
+                <span class="account-menu__label">
+                  <span>{{ t.accountButton }}</span>
+                  <strong>{{ profileDisplayName }}</strong>
+                  <small>{{ t.accountSettingsHint }}</small>
+                </span>
+              </button>
+              <div
+                v-if="accountMenuOpen"
+                class="account-menu__panel"
+              >
+                <div class="account-menu__user">
+                  <strong>{{ profileDisplayName }}</strong>
+                  <span>{{ currentUser?.email }}</span>
+                  <button
+                    type="button"
+                    class="account-menu__edit"
+                    @click="openBillingModal"
+                  >
+                    {{ t.editAccount }}
+                  </button>
+                </div>
+                <div class="account-menu__status">
+                  <span>{{ currentUser?.billing_complete ? t.billingCompleteTitle : t.billingIncompleteTitle }}</span>
+                  <small>{{ currentUser?.billing_complete ? t.billingCompleteCopy : t.billingIncompleteCopy }}</small>
+                </div>
+                <button
+                  type="button"
+                  @click="logout"
+                >
+                  {{ t.logout }}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <section class="orders-panel">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">
+                  {{ t.cartKicker }}
+                </p>
+                <h2>{{ t.cartTitle }}</h2>
+              </div>
+            </div>
+
+            <p>{{ t.cartCopy }}</p>
+
+            <div
+              v-if="cartItems.length"
+              class="account-cart-list"
+            >
+              <article
+                v-for="item in cartItems"
+                :key="item.id"
+                class="account-cart-item"
+              >
+                <div>
+                  <strong>{{ item.productTitle }}</strong>
+                  <span>{{ item.mark }} · {{ item.classes }} {{ t.niceClasses }}</span>
+                  <small v-if="item.ownerChangeRequested">{{ t.ownerChangeCartLabel }}</small>
+                  <small>{{ item.primaryClass }}</small>
+                </div>
+                <div class="account-cart-item__meta">
+                  <strong>{{ item.formattedTotal }}</strong>
+                  <button
+                    type="button"
+                    class="remove-order-btn"
+                    @click="removeFromCart(item.id)"
+                  >
+                    {{ t.removeFromCart }}
+                  </button>
+                </div>
+              </article>
+            </div>
+
+            <p
+              v-else
+              class="muted empty-orders"
+            >
+              {{ t.emptyCart }}
+            </p>
+
+            <div
+              v-if="cartItems.length"
+              class="account-checkout-box"
+            >
+              <div class="checkout-summary">
+                <span>{{ t.cartTotal }}</span>
+                <strong>{{ formattedCartTotal }}</strong>
+                <small>{{ selectedPaymentDescription }}</small>
+                <small>{{ accountCheckoutStatus }}</small>
+              </div>
+
+              <div class="checkout-payment">
+                <span>{{ t.checkoutPaymentLabel }}</span>
+                <div class="payment-options">
+                  <label>
+                    <input
+                      v-model="checkoutPayment"
+                      type="radio"
+                      value="card"
+                    >
+                    {{ t.cardPayment }}
+                  </label>
+                  <label>
+                    <input
+                      v-model="checkoutPayment"
+                      type="radio"
+                      value="paypal"
+                    >
+                    {{ t.paypalPayment }}
+                  </label>
+                  <label>
+                    <input
+                      v-model="checkoutPayment"
+                      type="radio"
+                      value="transfer"
+                    >
+                    {{ t.bankPayment }}
+                  </label>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                class="primary-btn"
+                :disabled="!cartItems.length || submittingCheckout"
+                @click="checkoutCart"
+              >
+                {{ submittingCheckout ? t.submitting : t.checkout }}
+              </button>
+            </div>
+
+            <p
+              v-if="checkoutMessage"
+              class="success-message"
+            >
+              {{ checkoutMessage }}
+            </p>
+
+            <p
+              v-if="checkoutError"
+              class="error-message"
+            >
+              {{ checkoutError }}
+            </p>
+          </section>
+
+          <section class="orders-panel">
+            <div class="panel-head">
+              <div>
+                <p class="panel-kicker">
+                  {{ t.ordersKicker }}
+                </p>
+                <h2>{{ t.ordersTitle }}</h2>
+              </div>
+            </div>
+
+            <p>{{ t.ordersCopy }}</p>
+
             <div
               v-if="account?.purchases?.length"
               class="purchase-list"
@@ -279,42 +374,171 @@
                 :key="purchase.id"
                 class="purchase-item"
               >
-                <div>
+                <div class="purchase-item__main">
                   <strong>{{ purchase.product_name || productTitle(purchase.product_code) }}</strong>
                   <span>{{ purchase.mark }} · {{ purchase.classes }} {{ t.niceClasses }}</span>
+                  <small v-if="purchase.owner_change_requested">{{ t.ownerChangeCartLabel }}</small>
                 </div>
-                <div>
+                <div class="purchase-item__meta">
                   <strong>{{ purchase.total.formatted }}</strong>
                   <span>{{ statusLabel(purchase.status) }}</span>
+                </div>
+                <div class="purchase-item__actions">
+                  <button
+                    type="button"
+                    class="remove-order-btn"
+                    @click="downloadInvoice(purchase)"
+                  >
+                    {{ invoiceLabel(purchase) }}
+                  </button>
+                  <button
+                    v-if="purchase.removable"
+                    type="button"
+                    class="remove-order-btn"
+                    :disabled="removingPurchaseId === purchase.id"
+                    @click="removePurchase(purchase)"
+                  >
+                    {{ removingPurchaseId === purchase.id ? t.removingPurchase : t.removePurchase }}
+                  </button>
                 </div>
               </article>
             </div>
 
             <p
               v-else-if="account"
-              class="muted"
+              class="muted empty-orders"
             >
               {{ t.noPurchases }}
             </p>
+          </section>
+        </div>
+
+        <p
+          v-if="accountError"
+          class="error-message"
+        >
+          {{ accountError }}
+        </p>
+      </section>
+
+      <div
+        v-if="billingModalOpen"
+        class="modal-backdrop"
+        @click.self="closeBillingModal"
+      >
+        <section
+          class="billing-modal"
+          role="dialog"
+          aria-modal="true"
+          :aria-label="t.billingTitle"
+        >
+          <div class="modal-head">
+            <div>
+              <p class="panel-kicker">
+                {{ t.billingKicker }}
+              </p>
+              <h2>{{ t.billingTitle }}</h2>
+            </div>
+            <button
+              type="button"
+              class="modal-close"
+              :aria-label="t.close"
+              @click="closeBillingModal"
+            >
+              x
+            </button>
           </div>
 
-          <p
-            v-if="accountError"
-            class="error-message"
+          <form
+            class="billing-form"
+            @submit.prevent="saveBillingProfile"
           >
-            {{ accountError }}
-          </p>
-        </div>
-      </section>
+            <p>{{ t.billingCopy }}</p>
+
+            <label>
+              {{ t.phone }}
+              <input
+                v-model="billingForm.phone"
+                type="tel"
+                :placeholder="t.phonePlaceholder"
+                required
+              >
+            </label>
+
+            <label>
+              {{ t.ownerType }}
+              <select v-model="billingForm.ownerType">
+                <option value="Societate">{{ t.company }}</option>
+                <option value="Persoana fizica">{{ t.person }}</option>
+              </select>
+            </label>
+
+            <div class="field-grid">
+              <label>
+                {{ billingFieldLabels.taxId }}
+                <input
+                  v-model="billingForm.taxId"
+                  type="text"
+                  :placeholder="billingFieldLabels.taxIdPlaceholder"
+                >
+              </label>
+              <label>
+                {{ billingFieldLabels.ownerName }}
+                <input
+                  v-model="billingForm.ownerName"
+                  type="text"
+                  :placeholder="billingFieldLabels.ownerNamePlaceholder"
+                  required
+                >
+              </label>
+            </div>
+
+            <label>
+              {{ billingFieldLabels.address }}
+              <textarea
+                v-model="billingForm.address"
+                rows="4"
+                :placeholder="billingFieldLabels.addressPlaceholder"
+                required
+              />
+            </label>
+
+            <div class="modal-actions">
+              <button
+                class="primary-btn"
+                type="submit"
+                :disabled="savingBilling"
+              >
+                {{ savingBilling ? t.saving : t.saveBilling }}
+              </button>
+              <button
+                type="button"
+                class="ghost-btn"
+                @click="closeBillingModal"
+              >
+                {{ t.cancel }}
+              </button>
+            </div>
+
+            <p
+              v-if="billingMessage"
+              class="success-message"
+            >
+              {{ billingMessage }}
+            </p>
+          </form>
+        </section>
+      </div>
     </main>
   </div>
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import logoUrl from '../assets/images/LOGO_SANDU-removebg-preview.png'
 
 const config = useRuntimeConfig()
+const route = useRoute()
 const languages = [
   { code: 'ro', label: 'RO' },
   { code: 'en', label: 'EN' },
@@ -325,11 +549,20 @@ const authToken = ref('')
 const currentUser = ref(null)
 const account = ref(null)
 const accountError = ref('')
+const authHydrating = ref(true)
 const authenticating = ref(false)
 const savingBilling = ref(false)
 const billingMessage = ref('')
-const googleButton = ref(null)
-const googleReady = ref(false)
+const billingModalOpen = ref(false)
+const accountMenuOpen = ref(false)
+const removingPurchaseId = ref(null)
+const cartItems = ref([])
+const checkoutPayment = ref('card')
+const submittingCheckout = ref(false)
+const checkoutMessage = ref('')
+const checkoutError = ref('')
+const paymentVerificationMessage = ref('')
+const paymentVerificationState = ref('')
 
 const authForm = reactive({
   email: '',
@@ -367,28 +600,80 @@ const translations = {
     loading: 'Se incarca...',
     loginSubmit: 'Intra in cont',
     registerSubmit: 'Creeaza cont',
-    or: 'sau',
-    googleLogin: 'Continua cu Google',
-    googleSetupMissing: 'Google login nu este configurat. Adaugati NUXT_PUBLIC_GOOGLE_CLIENT_ID in web/.env si GOOGLE_CLIENT_ID in api/.env, apoi reporniti serverele.',
     authNote: 'Comenzile plasate cand esti autentificat vor fi legate automat de acest cont.',
     signedInAs: 'Autentificat ca',
+    accountButton: 'Cont si setari',
+    accountSettingsHint: 'Profil si facturare',
+    editAccount: 'Editeaza contul',
     logout: 'Logout',
     billingTitle: 'Date contact si facturare',
+    billingKicker: 'Profil',
     billingCopy: 'Completeaza aceste date inainte de checkout. Plata nu porneste fara un profil complet.',
+    billingComplete: 'Profil complet',
+    billingIncomplete: 'Date incomplete',
+    billingCompleteTitle: 'Datele de facturare sunt completate',
+    billingCompleteCopy: 'Le poti modifica oricand daca se schimba titularul sau adresa.',
+    billingIncompleteTitle: 'Completeaza datele de facturare',
+    billingIncompleteCopy: 'Ai nevoie de aceste date doar pentru checkout si procesarea comenzilor.',
+    completeBilling: 'Completeaza datele',
+    editBilling: 'Editeaza datele',
+    close: 'Inchide',
+    cancel: 'Renunta',
     phone: 'Telefon mobil',
     phonePlaceholder: '07xx xxx xxx',
     ownerType: 'Inregistrati marca pe',
     company: 'Societate',
     person: 'Persoana fizica',
-    taxId: 'CUI / identificator fiscal',
-    ownerName: 'Denumire titular',
-    ownerNamePlaceholder: 'Compania SRL',
-    address: 'Adresa de facturare',
-    addressPlaceholder: 'Strada, numar, localitate, judet',
+    companyTaxId: 'CUI',
+    companyTaxIdPlaceholder: 'RO12345678',
+    companyOwnerName: 'Denumire societate',
+    companyOwnerNamePlaceholder: 'Compania SRL',
+    companyAddress: 'Sediu social / adresa de facturare',
+    companyAddressPlaceholder: 'Strada, numar, localitate, judet',
+    personTaxId: 'CNP',
+    personTaxIdPlaceholder: 'CNP',
+    personOwnerName: 'Nume si prenume',
+    personOwnerNamePlaceholder: 'Nume Prenume',
+    personAddress: 'Adresa domiciliu / facturare',
+    personAddressPlaceholder: 'Strada, numar, localitate, judet',
     saveBilling: 'Salveaza datele',
     saving: 'Se salveaza...',
     billingSaved: 'Datele de contact si facturare au fost salvate.',
+    removePurchase: 'Elimina din cont',
+    removingPurchase: 'Se elimina...',
+    removePurchaseConfirm: 'Elimini aceasta comanda din cont?',
+    purchaseRemoved: 'Comanda a fost eliminata din cont.',
+    downloadInvoice: 'Descarca factura',
+    downloadProforma: 'Descarca proforma',
+    ordersKicker: 'Istoric',
+    ordersTitle: 'Comenzile mele',
+    ordersCopy: 'Comenzile eliminate dispar doar din contul tau. Ele raman disponibile intern pentru procesare si suport.',
     orders: 'Comenzi',
+    cartKicker: 'Cos',
+    cartTitle: 'Cos si checkout',
+    cartCopy: 'Finalizeaza produsele salvate in cos direct din contul tau.',
+    cartTotal: 'Total cos',
+    mixedCurrencyCartTotal: 'Totaluri separate',
+    cartNavLabel: 'Cos',
+    emptyCart: 'Cosul este gol. Configureaza o marca si adaug-o in cos.',
+    removeFromCart: 'Sterge',
+    ownerChangeCartLabel: 'Include modificare adresa/nume titular',
+    checkoutPaymentLabel: 'Metoda de plata',
+    cardPayment: 'Card',
+    paypalPayment: 'PayPal',
+    bankPayment: 'Transfer bancar',
+    cardPaymentDescription: 'Stripe Checkout cu redirect securizat',
+    paypalPaymentDescription: 'PayPal Checkout cu redirect securizat',
+    bankPaymentDescription: 'Vei primi detaliile pentru transfer dupa inregistrarea comenzii.',
+    checkout: 'Checkout',
+    submitting: 'Se trimite...',
+    checkoutSuccess: 'Comanda a fost trimisa.',
+    paymentReturnSuccess: 'Verificam plata cu procesatorul...',
+    paymentVerified: 'Plata a fost confirmata. Comanda a fost marcata ca platita.',
+    paymentNotVerified: 'Nu am putut confirma inca plata. Verifica tranzactia in procesator sau incearca din nou.',
+    paymentReturnCancelled: 'Plata a fost anulata. Comanda ramane salvata in cont si poate fi reluata sau verificata.',
+    checkoutBillingRequired: 'Completeaza datele de contact si facturare inainte de plata.',
+    checkoutReady: 'Contul are datele necesare pentru checkout.',
     total: 'Total',
     niceClasses: 'clase NISA',
     noPurchases: 'Nu exista comenzi pentru acest cont.',
@@ -400,6 +685,7 @@ const translations = {
       'ro-color': 'Marca color',
       'eu-word': 'Marca Uniunea Europeana',
       'eu-logo': 'Logo UE',
+      'monitoring-brand': 'Monitorizare marca',
     },
     statuses: {
       pending_payment: 'In asteptarea platii',
@@ -430,28 +716,80 @@ const translations = {
     loading: 'Loading...',
     loginSubmit: 'Log in',
     registerSubmit: 'Create account',
-    or: 'or',
-    googleLogin: 'Continue with Google',
-    googleSetupMissing: 'Google login is not configured. Add NUXT_PUBLIC_GOOGLE_CLIENT_ID in web/.env and GOOGLE_CLIENT_ID in api/.env, then restart both servers.',
     authNote: 'Orders placed while signed in will be attached to this account automatically.',
     signedInAs: 'Signed in as',
+    accountButton: 'Account & settings',
+    accountSettingsHint: 'Profile and billing',
+    editAccount: 'Edit account',
     logout: 'Logout',
     billingTitle: 'Contact and billing details',
+    billingKicker: 'Profile',
     billingCopy: 'Complete these details before checkout. Payment cannot start without a complete profile.',
+    billingComplete: 'Complete profile',
+    billingIncomplete: 'Incomplete details',
+    billingCompleteTitle: 'Billing details are complete',
+    billingCompleteCopy: 'You can edit them any time if the owner or address changes.',
+    billingIncompleteTitle: 'Complete billing details',
+    billingIncompleteCopy: 'These details are only needed for checkout and order processing.',
+    completeBilling: 'Complete details',
+    editBilling: 'Edit details',
+    close: 'Close',
+    cancel: 'Cancel',
     phone: 'Mobile phone',
     phonePlaceholder: '+40...',
     ownerType: 'Register the trademark for',
     company: 'Company',
     person: 'Individual',
-    taxId: 'VAT / tax identifier',
-    ownerName: 'Owner name',
-    ownerNamePlaceholder: 'Company LLC',
-    address: 'Billing address',
-    addressPlaceholder: 'Street, number, city, county',
+    companyTaxId: 'VAT / tax identifier',
+    companyTaxIdPlaceholder: 'RO12345678',
+    companyOwnerName: 'Company name',
+    companyOwnerNamePlaceholder: 'Company LLC',
+    companyAddress: 'Registered office / billing address',
+    companyAddressPlaceholder: 'Street, number, city, county',
+    personTaxId: 'Personal numeric code',
+    personTaxIdPlaceholder: 'CNP',
+    personOwnerName: 'Full name',
+    personOwnerNamePlaceholder: 'First name Last name',
+    personAddress: 'Home / billing address',
+    personAddressPlaceholder: 'Street, number, city, county',
     saveBilling: 'Save details',
     saving: 'Saving...',
     billingSaved: 'Contact and billing details were saved.',
+    removePurchase: 'Remove from account',
+    removingPurchase: 'Removing...',
+    removePurchaseConfirm: 'Remove this order from your account?',
+    purchaseRemoved: 'The order was removed from your account.',
+    downloadInvoice: 'Download invoice',
+    downloadProforma: 'Download proforma',
+    ordersKicker: 'History',
+    ordersTitle: 'My orders',
+    ordersCopy: 'Removed orders disappear only from your account. They remain available internally for processing and support.',
     orders: 'Orders',
+    cartKicker: 'Cart',
+    cartTitle: 'Cart and checkout',
+    cartCopy: 'Complete your saved cart items directly from your account.',
+    cartTotal: 'Cart total',
+    mixedCurrencyCartTotal: 'Separate totals',
+    cartNavLabel: 'Cart',
+    emptyCart: 'Your cart is empty. Configure a trademark and add it to the cart.',
+    removeFromCart: 'Remove',
+    ownerChangeCartLabel: 'Includes owner address/name change',
+    checkoutPaymentLabel: 'Payment method',
+    cardPayment: 'Card',
+    paypalPayment: 'PayPal',
+    bankPayment: 'Bank transfer',
+    cardPaymentDescription: 'Stripe Checkout with secure redirect',
+    paypalPaymentDescription: 'PayPal Checkout with secure redirect',
+    bankPaymentDescription: 'You will receive transfer details after the order is registered.',
+    checkout: 'Checkout',
+    submitting: 'Submitting...',
+    checkoutSuccess: 'The order was submitted.',
+    paymentReturnSuccess: 'Checking the payment with the processor...',
+    paymentVerified: 'Payment was confirmed. The order was marked as paid.',
+    paymentNotVerified: 'We could not confirm the payment yet. Check the processor transaction or try again.',
+    paymentReturnCancelled: 'Payment was cancelled. The order remains saved in your account and can be retried or checked.',
+    checkoutBillingRequired: 'Complete contact and billing details before payment.',
+    checkoutReady: 'Your account has the details required for checkout.',
     total: 'Total',
     niceClasses: 'NICE classes',
     noPurchases: 'There are no orders for this account.',
@@ -463,6 +801,7 @@ const translations = {
       'ro-color': 'Color trademark',
       'eu-word': 'European Union trademark',
       'eu-logo': 'EU logo',
+      'monitoring-brand': 'Trademark monitoring',
     },
     statuses: {
       pending_payment: 'Pending payment',
@@ -476,7 +815,57 @@ const translations = {
 const t = computed(() => translations[selectedLanguage.value])
 const locale = computed(() => selectedLanguage.value === 'ro' ? 'ro-RO' : 'en-US')
 const authSubmitLabel = computed(() => authMode.value === 'login' ? t.value.loginSubmit : t.value.registerSubmit)
-const googleEnabled = computed(() => Boolean(config.public.googleClientId))
+const cartTotal = computed(() => cartItems.value.reduce((sum, item) => sum + Number(item.total || 0), 0))
+const cartCurrencies = computed(() => [...new Set(cartItems.value.map(item => item.currency || 'RON'))])
+const formattedCartTotal = computed(() => cartCurrencies.value.length === 1 ? formatMoney(cartTotal.value, cartCurrencies.value[0]) : t.value.mixedCurrencyCartTotal)
+const accountCheckoutStatus = computed(() => currentUser.value?.billing_complete ? t.value.checkoutReady : t.value.checkoutBillingRequired)
+const paymentReturnState = computed(() => route.query.payment?.toString() || '')
+const paymentReturnOrderId = computed(() => route.query.order?.toString() || '')
+const paymentReturnMessage = computed(() => {
+  if (paymentVerificationMessage.value) return paymentVerificationMessage.value
+  if (paymentReturnState.value === 'success') return t.value.paymentReturnSuccess
+  if (paymentReturnState.value === 'cancelled') return t.value.paymentReturnCancelled
+  return ''
+})
+const paymentReturnClass = computed(() => {
+  if (paymentVerificationState.value === 'failed') return 'error-message'
+  if (paymentReturnState.value === 'cancelled') return 'error-message'
+  return 'success-message'
+})
+const selectedPaymentDescription = computed(() => ({
+  card: t.value.cardPaymentDescription,
+  paypal: t.value.paypalPaymentDescription,
+  transfer: t.value.bankPaymentDescription,
+})[checkoutPayment.value])
+const profileDisplayName = computed(() => {
+  const user = currentUser.value || {}
+  return user.name || user.owner_name || user.email?.split('@')[0] || t.value.accountButton
+})
+const profileInitials = computed(() => {
+  const words = profileDisplayName.value
+    .split(/\s+/)
+    .filter(Boolean)
+
+  if (!words.length) return 'U'
+
+  return words
+    .slice(0, 2)
+    .map(word => word[0])
+    .join('')
+    .toUpperCase()
+})
+const billingFieldLabels = computed(() => {
+  const prefix = billingForm.ownerType === 'Persoana fizica' ? 'person' : 'company'
+
+  return {
+    taxId: t.value[`${prefix}TaxId`],
+    taxIdPlaceholder: t.value[`${prefix}TaxIdPlaceholder`],
+    ownerName: t.value[`${prefix}OwnerName`],
+    ownerNamePlaceholder: t.value[`${prefix}OwnerNamePlaceholder`],
+    address: t.value[`${prefix}Address`],
+    addressPlaceholder: t.value[`${prefix}AddressPlaceholder`],
+  }
+})
 
 function setLanguage(code) {
   selectedLanguage.value = code
@@ -488,6 +877,11 @@ function authHeaders() {
 
 function productTitle(code) {
   return t.value.products[code] || code
+}
+
+function formatMoney(amount, currency = 'RON') {
+  const suffix = currency === 'EUR' ? 'EUR' : 'Lei'
+  return `${Number(amount || 0).toLocaleString(locale.value)} ${suffix}`
 }
 
 function statusLabel(status) {
@@ -503,8 +897,16 @@ function errorMessage(payload, fallback) {
     .join('; ') || fallback
 }
 
-function showGoogleSetupError() {
-  accountError.value = t.value.googleSetupMissing
+function openBillingModal() {
+  billingMessage.value = ''
+  accountMenuOpen.value = false
+  billingModalOpen.value = true
+}
+
+function closeBillingModal() {
+  if (savingBilling.value) return
+
+  billingModalOpen.value = false
 }
 
 function persistSession(token, user) {
@@ -528,6 +930,130 @@ function populateBillingForm(profile = {}) {
   billingForm.taxId = profile.tax_id || ''
   billingForm.ownerName = profile.owner_name || ''
   billingForm.address = profile.address || ''
+}
+
+function persistCart() {
+  window.localStorage.setItem('cart-items', JSON.stringify(cartItems.value))
+}
+
+function loadCart() {
+  const storedCart = window.localStorage.getItem('cart-items')
+
+  try {
+    const parsedCart = storedCart ? JSON.parse(storedCart) : []
+    cartItems.value = Array.isArray(parsedCart) ? parsedCart : []
+  }
+  catch {
+    cartItems.value = []
+  }
+}
+
+function removeFromCart(id) {
+  cartItems.value = cartItems.value.filter(item => item.id !== id)
+  persistCart()
+}
+
+function invoiceLabel(purchase) {
+  return purchase.payment_method === 'transfer' ? t.value.downloadProforma : t.value.downloadInvoice
+}
+
+function downloadBlob(blob, filename) {
+  const objectUrl = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = objectUrl
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  URL.revokeObjectURL(objectUrl)
+}
+
+async function downloadInvoice(purchase) {
+  accountError.value = ''
+
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/account/purchases/${purchase.id}/invoice`, {
+      headers: authHeaders(),
+    })
+
+    if (!response.ok) throw new Error(t.value.accountError)
+
+    const blob = await response.blob()
+    const prefix = purchase.payment_method === 'transfer' ? 'proforma' : 'factura'
+    downloadBlob(blob, `${prefix}-${purchase.id}.pdf`)
+  }
+  catch (error) {
+    accountError.value = error instanceof Error ? error.message : t.value.accountError
+  }
+}
+
+async function submitCartItem(item) {
+  const response = await fetch(`${config.public.apiBaseUrl}/api/v1/trademark_requests`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...authHeaders(),
+    },
+    body: JSON.stringify({
+      trademark_request: {
+        mark: item.mark,
+        product_code: item.productCode,
+        classes: item.classes,
+        primary_class: item.primaryClass,
+        goods: item.goods,
+        owner_change_requested: item.ownerChangeRequested,
+        payment: checkoutPayment.value,
+        terms: item.terms,
+      },
+    }),
+  })
+  const payload = await response.json().catch(() => ({}))
+
+  if (!response.ok) {
+    throw new Error(errorMessage(payload, t.value.accountError))
+  }
+
+  return payload
+}
+
+async function checkoutCart() {
+  checkoutError.value = ''
+  checkoutMessage.value = ''
+  billingMessage.value = ''
+
+  if (!currentUser.value?.billing_complete) {
+    checkoutError.value = t.value.checkoutBillingRequired
+    openBillingModal()
+    return
+  }
+
+  submittingCheckout.value = true
+
+  try {
+    const payloads = []
+
+    for (const item of cartItems.value) {
+      payloads.push(await submitCartItem(item))
+    }
+
+    cartItems.value = []
+    persistCart()
+    checkoutMessage.value = t.value.checkoutSuccess
+    await loadAccount()
+
+    const payloadWithRedirect = payloads.find(result => result.payment?.checkout_url)
+    const checkoutUrl = payloadWithRedirect?.payment?.checkout_url
+
+    if (checkoutUrl) {
+      window.location.href = checkoutUrl
+    }
+  }
+  catch (error) {
+    checkoutError.value = error instanceof Error ? error.message : t.value.accountError
+  }
+  finally {
+    submittingCheckout.value = false
+  }
 }
 
 async function submitAuth() {
@@ -556,70 +1082,7 @@ async function submitAuth() {
 
     persistSession(payload.token, payload.user)
     await loadAccount()
-  }
-  catch (error) {
-    accountError.value = error instanceof Error ? error.message : t.value.authError
-  }
-  finally {
-    authenticating.value = false
-  }
-}
-
-function loadGoogleScript() {
-  if (!googleEnabled.value || document.querySelector('script[src="https://accounts.google.com/gsi/client"]')) {
-    googleReady.value = Boolean(window.google?.accounts?.id)
-    return
-  }
-
-  const script = document.createElement('script')
-  script.src = 'https://accounts.google.com/gsi/client'
-  script.async = true
-  script.defer = true
-  script.onload = () => {
-    googleReady.value = true
-    renderGoogleButton()
-  }
-  document.head.appendChild(script)
-}
-
-async function renderGoogleButton() {
-  await nextTick()
-
-  if (!googleEnabled.value || !googleReady.value || !googleButton.value || authToken.value) return
-
-  googleButton.value.innerHTML = ''
-  window.google.accounts.id.initialize({
-    client_id: config.public.googleClientId,
-    callback: submitGoogleCredential,
-  })
-  window.google.accounts.id.renderButton(googleButton.value, {
-    theme: 'outline',
-    size: 'large',
-    width: 320,
-    text: authMode.value === 'register' ? 'signup_with' : 'signin_with',
-  })
-}
-
-async function submitGoogleCredential(response) {
-  accountError.value = ''
-  authenticating.value = true
-
-  try {
-    const result = await fetch(`${config.public.apiBaseUrl}/api/v1/session/google`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ credential: response.credential }),
-    })
-    const payload = await result.json().catch(() => ({}))
-
-    if (!result.ok) {
-      throw new Error(errorMessage(payload, t.value.authError))
-    }
-
-    persistSession(payload.token, payload.user)
-    await loadAccount()
+    await verifyReturnedPayment()
   }
   catch (error) {
     accountError.value = error instanceof Error ? error.message : t.value.authError
@@ -631,27 +1094,29 @@ async function submitGoogleCredential(response) {
 
 async function hydrateSession() {
   const storedToken = window.localStorage.getItem('account-token')
-  const storedUser = window.localStorage.getItem('account-user')
 
-  if (!storedToken) return
-
-  authToken.value = storedToken
-  currentUser.value = storedUser ? JSON.parse(storedUser) : null
+  if (!storedToken) {
+    authHydrating.value = false
+    return
+  }
 
   try {
     const response = await fetch(`${config.public.apiBaseUrl}/api/v1/session`, {
-      headers: authHeaders(),
+      headers: { Authorization: `Bearer ${storedToken}` },
     })
     const payload = await response.json().catch(() => ({}))
 
     if (!response.ok) throw new Error()
 
-    currentUser.value = payload.user
-    window.localStorage.setItem('account-user', JSON.stringify(payload.user))
+    persistSession(storedToken, payload.user)
     await loadAccount()
+    await verifyReturnedPayment()
   }
   catch {
     clearSession()
+  }
+  finally {
+    authHydrating.value = false
   }
 }
 
@@ -673,6 +1138,32 @@ async function loadAccount() {
   }
   catch (error) {
     accountError.value = error instanceof Error ? error.message : t.value.accountError
+  }
+}
+
+async function verifyReturnedPayment() {
+  if (paymentReturnState.value !== 'success' || !paymentReturnOrderId.value || paymentVerificationMessage.value) return
+
+  paymentVerificationState.value = ''
+
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/account/purchases/${paymentReturnOrderId.value}/verify_payment`, {
+      method: 'POST',
+      headers: authHeaders(),
+    })
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(payload.message || t.value.paymentNotVerified)
+    }
+
+    paymentVerificationState.value = payload.verified ? 'verified' : 'failed'
+    paymentVerificationMessage.value = payload.verified ? t.value.paymentVerified : t.value.paymentNotVerified
+    await loadAccount()
+  }
+  catch (error) {
+    paymentVerificationState.value = 'failed'
+    paymentVerificationMessage.value = error instanceof Error ? error.message : t.value.paymentNotVerified
   }
 }
 
@@ -708,12 +1199,42 @@ async function saveBillingProfile() {
     window.localStorage.setItem('account-user', JSON.stringify(payload.user))
     billingMessage.value = payload.message || t.value.billingSaved
     await loadAccount()
+    billingModalOpen.value = false
   }
   catch (error) {
     accountError.value = error instanceof Error ? error.message : t.value.accountError
   }
   finally {
     savingBilling.value = false
+  }
+}
+
+async function removePurchase(purchase) {
+  if (!window.confirm(t.value.removePurchaseConfirm)) return
+
+  accountError.value = ''
+  billingMessage.value = ''
+  removingPurchaseId.value = purchase.id
+
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/account/purchases/${purchase.id}`, {
+      method: 'DELETE',
+      headers: authHeaders(),
+    })
+    const payload = await response.json().catch(() => ({}))
+
+    if (!response.ok) {
+      throw new Error(errorMessage(payload, t.value.accountError))
+    }
+
+    billingMessage.value = payload.message || t.value.purchaseRemoved
+    await loadAccount()
+  }
+  catch (error) {
+    accountError.value = error instanceof Error ? error.message : t.value.accountError
+  }
+  finally {
+    removingPurchaseId.value = null
   }
 }
 
@@ -736,16 +1257,11 @@ onMounted(() => {
   }
 
   hydrateSession()
-  loadGoogleScript()
-  renderGoogleButton()
+  loadCart()
 })
 
 watch(selectedLanguage, (language) => {
   window.localStorage.setItem('preferred-language', language)
-})
-
-watch([authMode, authToken], () => {
-  renderGoogleButton()
 })
 </script>
 
@@ -863,6 +1379,7 @@ a {
   font-weight: 700;
   gap: 10px;
   justify-content: flex-end;
+  text-transform: uppercase;
 }
 
 .main-nav a {
@@ -916,15 +1433,70 @@ a {
   color: #fff;
 }
 
-.account-main {
-  padding: 70px 0;
+.cart-nav-link {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 32px;
+  border: 1px solid var(--gold);
+  background: #f4fbfd;
+  color: #126175;
+  text-decoration: none;
 }
 
-.account-layout {
+.cart-nav-icon {
+  position: relative;
+  width: 18px;
+  height: 13px;
+  border: 2px solid currentColor;
+  border-top: 0;
+}
+
+.cart-nav-icon::before {
+  content: "";
+  position: absolute;
+  left: -3px;
+  top: -5px;
+  width: 8px;
+  height: 2px;
+  background: currentColor;
+  transform: rotate(-18deg);
+  transform-origin: right center;
+}
+
+.cart-nav-icon::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: -6px;
+  height: 4px;
+  border-right: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+}
+
+.cart-nav-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
   display: grid;
-  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.25fr);
-  gap: 34px;
-  align-items: start;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  border: 2px solid #fff;
+  background: #2b2926;
+  color: #fff;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0 5px;
+}
+
+.account-main {
+  background: #fff;
+  padding: 44px 0 70px;
 }
 
 .eyebrow {
@@ -937,29 +1509,42 @@ a {
   text-transform: uppercase;
 }
 
-.account-copy h1 {
-  margin: 0;
-  font-size: clamp(42px, 6vw, 68px);
-  font-weight: 400;
-  line-height: 1;
+.account-intro {
+  display: flex;
+  justify-content: space-between;
+  gap: 32px;
+  align-items: end;
+  margin-bottom: 28px;
 }
 
-.account-copy p:not(.eyebrow) {
+.account-intro h1 {
+  max-width: 760px;
+  margin: 0;
+  font-size: clamp(38px, 5vw, 58px);
+  font-weight: 400;
+  line-height: 1.04;
+}
+
+.account-intro p:not(.eyebrow) {
+  max-width: 660px;
   color: var(--muted);
   font-family: var(--font-family, 'Montserrat', sans-serif);
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.7;
 }
 
 .account-panel {
-  border: 1px solid var(--line);
-  background: #fff;
-  padding: 28px;
+  display: grid;
+  gap: 16px;
+}
+
+.auth-shell {
+  max-width: 560px;
 }
 
 .account-form,
 .billing-form,
-.account-dashboard {
+.account-workspace {
   display: grid;
   gap: 18px;
 }
@@ -985,79 +1570,240 @@ a {
   font-weight: 400;
 }
 
-.billing-form {
+.billing-form,
+.account-form {
   border: 1px solid var(--line);
   background: #fff;
-  padding: 18px;
+  padding: 24px;
 }
 
-.billing-form h2 {
+.orders-panel {
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 24px;
+}
+
+.billing-form h2,
+.orders-panel h2 {
   margin: 0;
   font-size: 28px;
   font-weight: 400;
 }
 
-.billing-form p {
+.billing-form p,
+.orders-panel p {
   margin: 8px 0 0;
   color: var(--muted);
   font-family: var(--font-family, 'Montserrat', sans-serif);
   line-height: 1.6;
 }
 
+.account-overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 14px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 18px;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+}
+
+.account-metrics span {
+  display: block;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.account-metrics {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.account-metrics div {
+  min-width: 112px;
+  padding: 9px 14px;
+}
+
+.account-metrics div + div {
+  border-left: 1px solid var(--line);
+}
+
+.account-metrics strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.account-menu {
+  position: relative;
+  min-width: min(100%, 260px);
+}
+
+.account-menu__button {
+  display: grid;
+  grid-template-columns: 36px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  min-height: 54px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+  padding: 8px 12px;
+  text-align: left;
+}
+
+.account-avatar {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid #b7ccd6;
+  background: #edf8fb;
+  color: #126175;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.account-menu__label {
+  min-width: 0;
+}
+
+.account-menu__label span {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.account-menu__label strong {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-menu__label small {
+  display: block;
+  overflow: hidden;
+  color: #426471;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-menu__panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 12;
+  display: grid;
+  width: min(320px, calc(100vw - 32px));
+  border: 1px solid var(--line);
+  background: #fff;
+  box-shadow: 0 18px 50px rgba(13, 31, 46, 0.14);
+  padding: 10px;
+}
+
+.account-menu__user {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px 12px;
+}
+
+.account-menu__user span {
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.account-menu__edit {
+  min-height: auto;
+  border: 0;
+  background: transparent;
+  color: var(--gold-dark);
+  cursor: pointer;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 4px;
+  padding: 0;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.account-menu__status {
+  border-left: 4px solid var(--gold);
+  background: #f4fbfd;
+  padding: 12px;
+}
+
+.account-menu__status span,
+.account-menu__status small {
+  display: block;
+}
+
+.account-menu__status span {
+  font-weight: 700;
+}
+
+.account-menu__status small {
+  margin-top: 4px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.account-menu__panel button {
+  min-height: 42px;
+  border: 0;
+  border-top: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+  font-weight: 700;
+  text-align: left;
+}
+
+.account-menu__panel button:hover,
+.account-menu__panel button:focus-visible {
+  color: var(--gold-dark);
+}
+
+.panel-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.panel-kicker {
+  margin: 0 0 6px;
+  color: #426471;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .field-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 14px;
-}
-
-.google-login {
-  display: grid;
-  justify-items: center;
-  gap: 14px;
-}
-
-.google-button-host {
-  min-height: 40px;
-}
-
-.google-fallback {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 44px;
-  width: min(100%, 320px);
-  border: 1px solid var(--line);
-  background: #fff;
-  color: #2d2924;
-  cursor: pointer;
-  font-family: var(--font-family, 'Montserrat', sans-serif);
-  font-weight: 700;
-}
-
-.google-setup {
-  max-width: 420px;
-  color: var(--muted);
-  font-family: var(--font-family, 'Montserrat', sans-serif);
-  line-height: 1.5;
-  text-align: center;
-}
-
-.divider {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items: center;
-  gap: 12px;
-  width: 100%;
-  color: var(--muted);
-  font-family: var(--font-family, 'Montserrat', sans-serif);
-  font-size: 13px;
-  text-transform: uppercase;
-}
-
-.divider::before,
-.divider::after {
-  content: '';
-  border-top: 1px solid var(--line);
 }
 
 .primary-btn,
@@ -1088,50 +1834,202 @@ a {
   padding: 0 20px;
 }
 
-.signed-in-bar,
-.account-summary,
 .purchase-item {
   border: 1px solid var(--line);
-  background: var(--paper);
-  padding: 16px;
+  background: #fff;
+  padding: 14px;
   font-family: var(--font-family, 'Montserrat', sans-serif);
 }
 
-.signed-in-bar,
-.account-summary,
 .purchase-item {
-  display: flex;
-  justify-content: space-between;
-  gap: 18px;
-}
-
-.signed-in-bar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 130px auto;
   align-items: center;
+  gap: 14px;
 }
 
-.signed-in-bar span,
-.account-summary span,
 .purchase-item span {
   display: block;
   color: var(--muted);
   line-height: 1.5;
 }
 
-.account-summary strong {
-  display: block;
-  margin-top: 6px;
+.purchase-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.purchase-item__meta {
+  text-align: right;
+}
+
+.remove-order-btn {
+  min-height: 34px;
+  border: 1px solid transparent;
+  background: #f5f8fa;
+  color: #5e737c;
+  cursor: pointer;
   font-family: var(--font-family, 'Montserrat', sans-serif);
-  font-size: 28px;
+  font-size: 12px;
+  font-weight: 700;
+  margin-top: 10px;
+  padding: 0 12px;
+  text-transform: uppercase;
+}
+
+.remove-order-btn:hover,
+.remove-order-btn:focus-visible {
+  border-color: #b7ccd6;
+  background: #fff;
+  color: #2c5968;
+}
+
+.remove-order-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.account-cart-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.account-cart-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 150px;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 14px;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+}
+
+.account-cart-item span,
+.account-cart-item small,
+.checkout-summary span,
+.checkout-summary small,
+.checkout-payment span {
+  display: block;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.account-cart-item small {
+  margin-top: 2px;
+}
+
+.account-cart-item__meta {
+  text-align: right;
+}
+
+.account-checkout-box {
+  display: grid;
+  grid-template-columns: minmax(180px, 0.8fr) minmax(260px, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid var(--line);
+  background: #f8fbfc;
+  margin-top: 16px;
+  padding: 14px;
+}
+
+.checkout-summary strong {
+  display: block;
+  margin-top: 2px;
+  font-size: 22px;
+  font-weight: 500;
+}
+
+.checkout-payment {
+  display: grid;
+  gap: 8px;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+}
+
+.payment-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.payment-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #cfdce1;
+  background: #fff;
+  color: #2d3f47;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  min-height: 38px;
+  padding: 0 10px;
+}
+
+.empty-orders {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  margin-top: 16px;
+  padding: 16px;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: grid;
+  place-items: center;
+  background: rgba(9, 18, 32, 0.46);
+  padding: 18px;
+}
+
+.billing-modal {
+  width: min(720px, 100%);
+  max-height: min(92vh, 860px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 24px;
+}
+
+.modal-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.modal-head h2 {
+  margin: 0;
+  font-size: 30px;
   font-weight: 400;
 }
 
-.purchase-list {
-  display: grid;
-  gap: 10px;
+.modal-close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+  font-weight: 700;
+  text-transform: uppercase;
 }
 
-.purchase-item div:last-child {
-  text-align: right;
+.billing-modal .billing-form {
+  border: 0;
+  padding: 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .error-message {
@@ -1157,11 +2055,12 @@ a {
 @media (max-width: 800px) {
   .main-header__inner,
   .top-strip__inner,
-  .account-layout,
+  .account-intro,
+  .account-overview,
   .field-grid,
-  .signed-in-bar,
-  .account-summary,
-  .purchase-item {
+  .purchase-item,
+  .account-cart-item,
+  .account-checkout-box {
     grid-template-columns: 1fr;
     flex-direction: column;
     align-items: stretch;
@@ -1176,8 +2075,25 @@ a {
     flex-wrap: wrap;
   }
 
-  .purchase-item div:last-child {
+  .account-metrics {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .account-menu,
+  .account-menu__panel {
+    position: static;
+    width: 100%;
+  }
+
+  .purchase-item__meta,
+  .account-cart-item__meta {
     text-align: left;
+  }
+
+  .modal-actions .primary-btn,
+  .modal-actions .ghost-btn {
+    width: 100%;
   }
 }
 </style>

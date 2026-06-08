@@ -28,6 +28,28 @@ class Api::V1::Admin::TrademarkProductsControllerTest < ActionDispatch::Integrat
     assert_equal ["onorariu actualizat", "taxe OSIM actualizate"], response.parsed_body.dig("product", "translations", "ro", "items")
   end
 
+  test "updates product price fields only" do
+    admin = User.create_with_password!(email: "admin-price@example.com", password: "password123")
+    admin.update!(admin: true)
+    product = trademark_products(:monitoring_brand)
+
+    patch api_v1_admin_trademark_product_url(product),
+      params: {
+        trademark_product: {
+          price_label: "800 Lei / an",
+          base_price_lei: 800
+        }
+      },
+      headers: { "Authorization" => "Bearer #{admin.issue_auth_token!}" },
+      as: :json
+
+    assert_response :success
+    assert_equal "800 Lei / an", product.reload.price_label
+    assert_equal 800, product.base_price_lei
+    assert_equal "800 Lei / an", response.parsed_body.dig("product", "price")
+    assert_equal 800, response.parsed_body.dig("product", "base_lei")
+  end
+
   test "serializes uploaded product image url" do
     admin = User.create_with_password!(email: "admin@example.com", password: "password123")
     admin.update!(admin: true)

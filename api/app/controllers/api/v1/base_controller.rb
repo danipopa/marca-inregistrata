@@ -35,6 +35,8 @@ module Api
         {
           id: user.id,
           email: user.email,
+          name: user.name,
+          owner_name: user.owner_name,
           admin: user.admin?,
           billing_complete: user.billing_complete?
         }

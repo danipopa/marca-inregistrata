@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_28_173000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_07_193000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.integer "blob_id", null: false
     t.datetime "created_at", null: false
@@ -93,8 +93,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_173000) do
     t.datetime "created_at", null: false
     t.string "currency", default: "RON", null: false
     t.string "image_key"
-    t.text "items_en", null: false
-    t.text "items_ro", null: false
+    t.text "items_en", default: "[]", null: false
+    t.text "items_ro", default: "[]", null: false
     t.string "note_en", default: "", null: false
     t.string "note_ro", default: "", null: false
     t.integer "position", default: 0, null: false
@@ -109,9 +109,24 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_173000) do
     t.index ["code"], name: "index_trademark_products_on_code", unique: true
   end
 
+  create_table "trademark_request_events", force: :cascade do |t|
+    t.string "action", null: false
+    t.integer "admin_user_id"
+    t.datetime "created_at", null: false
+    t.string "field_name"
+    t.text "new_value"
+    t.text "old_value"
+    t.integer "trademark_request_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["action"], name: "index_trademark_request_events_on_action"
+    t.index ["admin_user_id"], name: "index_trademark_request_events_on_admin_user_id"
+    t.index ["created_at"], name: "index_trademark_request_events_on_created_at"
+    t.index ["trademark_request_id"], name: "index_trademark_request_events_on_trademark_request_id"
+  end
+
   create_table "trademark_requests", force: :cascade do |t|
     t.text "address"
-    t.text "admin_comments", null: false
+    t.text "admin_comments", default: "", null: false
     t.integer "classes_count", default: 1, null: false
     t.datetime "created_at", null: false
     t.string "currency", default: "RON", null: false
@@ -119,6 +134,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_173000) do
     t.text "goods"
     t.string "ip_address"
     t.string "mark", null: false
+    t.string "order_type", default: "registration", null: false
+    t.boolean "owner_change_requested", default: false, null: false
     t.string "owner_name"
     t.string "owner_type"
     t.text "payment_checkout_url"
@@ -128,7 +145,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_173000) do
     t.string "phone", null: false
     t.string "primary_class"
     t.string "product_code", default: "ro-word", null: false
-    t.string "product_name", default: "Marca verbala OSIM", null: false
+    t.string "product_name", default: "Marca verbala", null: false
+    t.datetime "removed_from_account_at"
     t.string "status", default: "new", null: false
     t.string "tax_id"
     t.integer "total_cents", default: 0, null: false
@@ -140,6 +158,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_173000) do
     t.index ["payment_provider"], name: "index_trademark_requests_on_payment_provider"
     t.index ["payment_provider_id"], name: "index_trademark_requests_on_payment_provider_id"
     t.index ["product_code"], name: "index_trademark_requests_on_product_code"
+    t.index ["removed_from_account_at"], name: "index_trademark_requests_on_removed_from_account_at"
     t.index ["status"], name: "index_trademark_requests_on_status"
     t.index ["user_id"], name: "index_trademark_requests_on_user_id"
   end
@@ -168,5 +187,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_28_173000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "trademark_request_events", "trademark_requests"
+  add_foreign_key "trademark_request_events", "users", column: "admin_user_id"
   add_foreign_key "trademark_requests", "users"
 end

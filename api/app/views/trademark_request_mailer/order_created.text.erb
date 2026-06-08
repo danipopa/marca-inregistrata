@@ -2,6 +2,10 @@ Comanda noua #<%= @trademark_request.id %>
 
 Marca: <%= @trademark_request.mark %>
 Produs: <%= @trademark_request.product_name %> (<%= @trademark_request.product_code %>)
+Tip comanda: <%= { "monitoring" => "Monitorizare marca", "renewal" => "Reinnoire marca", "registration" => "Inregistrare marca" }.fetch(@trademark_request.order_type, @trademark_request.order_type) %>
+<% if @trademark_request.owner_change_requested? %>
+Modificare adresa/nume titular: Da
+<% end %>
 Total: <%= @trademark_request.formatted_total %>
 Status: <%= @trademark_request.status %>
 Metoda plata: <%= @trademark_request.payment_method.presence || "Nespecificata" %>

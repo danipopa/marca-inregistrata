@@ -14,10 +14,16 @@ Rails.application.routes.draw do
       post "session/google", to: "sessions#google"
       get "account", to: "accounts#show"
       patch "account", to: "accounts#update"
+      delete "account/purchases/:purchase_id", to: "accounts#destroy_purchase"
+      get "account/purchases/:purchase_id/invoice", to: "account_invoices#show"
+      post "account/purchases/:purchase_id/verify_payment", to: "payment_verifications#create"
 
       namespace :admin do
         get "dashboard", to: "dashboard#show"
         resources :trademark_requests, only: :update
+        resources :trademark_requests, only: [] do
+          resource :invoice, only: :show
+        end
         resources :trademark_products, only: %i[index create update destroy]
         resources :product_images, only: %i[index create destroy]
         resources :theme_images, only: %i[index create destroy]
