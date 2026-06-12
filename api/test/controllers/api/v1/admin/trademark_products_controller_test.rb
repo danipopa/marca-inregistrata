@@ -20,7 +20,7 @@ class Api::V1::Admin::TrademarkProductsControllerTest < ActionDispatch::Integrat
           items_en: ["updated fee", "updated OSIM taxes"]
         }
       },
-      headers: { "Authorization" => "Bearer #{admin.issue_auth_token!}" },
+      headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(admin)}" },
       as: :json
 
     assert_response :success
@@ -40,7 +40,7 @@ class Api::V1::Admin::TrademarkProductsControllerTest < ActionDispatch::Integrat
           base_price_lei: 800
         }
       },
-      headers: { "Authorization" => "Bearer #{admin.issue_auth_token!}" },
+      headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(admin)}" },
       as: :json
 
     assert_response :success
@@ -64,7 +64,7 @@ class Api::V1::Admin::TrademarkProductsControllerTest < ActionDispatch::Integrat
     product.update!(image_key: product_image.image_key)
 
     get api_v1_admin_trademark_products_url,
-      headers: { "Authorization" => "Bearer #{admin.issue_auth_token!}" },
+      headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(admin)}" },
       as: :json
 
     assert_response :success

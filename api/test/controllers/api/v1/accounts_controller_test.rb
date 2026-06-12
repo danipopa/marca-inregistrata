@@ -9,7 +9,7 @@ class Api::V1::AccountsControllerTest < ActionDispatch::IntegrationTest
       owner_name: "Client SRL",
       address: "Strada Test 1"
     )
-    token = user.issue_auth_token!
+    token = issue_mfa_auth_token(user)
 
     TrademarkRequest.create!(
       mark: "BRAND",
@@ -32,7 +32,7 @@ class Api::V1::AccountsControllerTest < ActionDispatch::IntegrationTest
 
   test "updates billing profile" do
     user = User.create_with_password!(email: "client@example.com", password: "password123")
-    token = user.issue_auth_token!
+    token = issue_mfa_auth_token(user)
 
     patch api_v1_account_url,
       params: {
@@ -55,7 +55,7 @@ class Api::V1::AccountsControllerTest < ActionDispatch::IntegrationTest
 
   test "removes a purchase from the account without deleting it" do
     user = User.create_with_password!(email: "client@example.com", password: "password123")
-    token = user.issue_auth_token!
+    token = issue_mfa_auth_token(user)
     purchase = TrademarkRequest.create!(
       mark: "BRAND",
       product_code: "ro-word",
@@ -83,7 +83,7 @@ class Api::V1::AccountsControllerTest < ActionDispatch::IntegrationTest
 
   test "does not remove another account purchase" do
     user = User.create_with_password!(email: "client@example.com", password: "password123")
-    token = user.issue_auth_token!
+    token = issue_mfa_auth_token(user)
     purchase = TrademarkRequest.create!(
       mark: "OTHER",
       product_code: "ro-word",
@@ -103,7 +103,7 @@ class Api::V1::AccountsControllerTest < ActionDispatch::IntegrationTest
 
   test "does not remove a paid purchase from the account" do
     user = User.create_with_password!(email: "client@example.com", password: "password123")
-    token = user.issue_auth_token!
+    token = issue_mfa_auth_token(user)
     purchase = TrademarkRequest.create!(
       mark: "BRAND",
       product_code: "ro-word",

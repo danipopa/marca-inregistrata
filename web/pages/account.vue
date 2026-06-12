@@ -1,101 +1,16 @@
 <template>
   <div class="account-page">
-    <div class="top-strip">
-      <div class="wrap top-strip__inner">
-        <div class="contact-line">
-          <a href="tel:0770898767">0770 898 767</a>
-          <a href="mailto:contact@inregistrare-marca.com">contact@inregistrare-marca.com</a>
-        </div>
-        <nav
-          aria-label="Navigatie principala"
-          class="quick-links"
-        >
-          <NuxtLink to="/#despre">
-            {{ t.navAbout }}
-          </NuxtLink>
-          <NuxtLink to="/account">
-            {{ t.navAccount }}
-          </NuxtLink>
-          <NuxtLink to="/#contact">
-            {{ t.navContact }}
-          </NuxtLink>
-        </nav>
-      </div>
-    </div>
-
-    <header class="main-header">
-      <div class="wrap main-header__inner">
-        <NuxtLink
-          class="brand"
-          to="/"
-          aria-label="SANDU și Asociații IP Attorney"
-        >
-          <span
-            class="brand__logo"
-            :style="{ '--fallback-logo-image': `url(${logoUrl})` }"
-            role="img"
-            aria-label="SANDU și Asociații IP Attorney"
-          />
-        </NuxtLink>
-
-        <nav
-          aria-label="Servicii rapide"
-          class="main-nav"
-        >
-          <NuxtLink to="/#preturi">
-            {{ t.quickRegistration }}
-          </NuxtLink>
-          <NuxtLink to="/#reinnoire">
-            {{ t.quickRenewal }}
-          </NuxtLink>
-          <NuxtLink to="/#monitorizare">
-            {{ t.quickMonitoring }}
-          </NuxtLink>
-          <NuxtLink to="/#verificare">
-            {{ t.quickCheck }}
-          </NuxtLink>
-          <div
-            class="language-switcher"
-            :aria-label="t.languageLabel"
-          >
-            <button
-              v-for="option in languages"
-              :key="option.code"
-              type="button"
-              :class="{ active: selectedLanguage === option.code }"
-              @click="setLanguage(option.code)"
-            >
-              {{ option.label }}
-            </button>
-          </div>
-          <NuxtLink
-            v-if="cartItems.length"
-            class="cart-nav-link"
-            to="/checkout"
-            :aria-label="`${t.cartNavLabel}: ${cartItems.length}`"
-          >
-            <span
-              class="cart-nav-icon"
-              aria-hidden="true"
-            />
-            <span class="cart-nav-count">{{ cartItems.length }}</span>
-          </NuxtLink>
-        </nav>
-      </div>
-    </header>
+    <SiteTopStrip :labels="t" />
+    <SiteHeader
+      :cart-count="cartCount"
+      :labels="t"
+      :languages="languages"
+      :selected-language="selectedLanguage"
+      @update:selected-language="setLanguage"
+    />
 
     <main class="account-main">
-      <section class="wrap account-intro">
-        <div>
-          <p class="eyebrow">
-            {{ t.eyebrow }}
-          </p>
-          <h1>{{ t.title }}</h1>
-          <p>
-            {{ t.copy }}
-          </p>
-        </div>
-      </section>
+      <AccountIntro :labels="t" />
 
       <section class="wrap account-panel">
         <p
@@ -105,312 +20,63 @@
           {{ paymentReturnMessage }}
         </p>
 
-        <div
-          v-if="authHydrating"
-          class="auth-shell"
-        >
-          <p class="muted">
-            {{ t.loading }}
-          </p>
-        </div>
-
-        <div
-          v-else-if="!authToken"
-          class="auth-shell"
-        >
-          <form
-            class="account-form"
-            @submit.prevent="submitAuth"
-          >
-            <div class="auth-mode">
-              <button
-                type="button"
-                :class="{ active: authMode === 'login' }"
-                @click="authMode = 'login'"
-              >
-                {{ t.login }}
-              </button>
-              <button
-                type="button"
-                :class="{ active: authMode === 'register' }"
-                @click="authMode = 'register'"
-              >
-                {{ t.register }}
-              </button>
-            </div>
-
-            <label>
-              {{ t.email }}
-              <input
-                v-model="authForm.email"
-                type="email"
-                placeholder="email@companie.ro"
-                required
-              >
-            </label>
-
-            <label>
-              {{ t.password }}
-              <input
-                v-model="authForm.password"
-                type="password"
-                :placeholder="t.passwordPlaceholder"
-                required
-              >
-            </label>
-
-            <button
-              class="primary-btn"
-              type="submit"
-              :disabled="authenticating"
-            >
-              {{ authenticating ? t.loading : authSubmitLabel }}
-            </button>
-
-            <p class="muted">
-              {{ t.authNote }}
-            </p>
-          </form>
-        </div>
+        <AccountAuthPanel
+          v-if="authHydrating || !authToken"
+          :authenticating="authenticating"
+          :form="authForm"
+          :hydrating="authHydrating"
+          :labels="t"
+          :mfa-challenge="mfaChallenge"
+          :mode="authMode"
+          :submit-label="authSubmitLabel"
+          @submit="submitAuth"
+          @update:form="updateAuthForm"
+          @update:mode="setAuthMode"
+        />
 
         <div
           v-else
           class="account-workspace"
         >
-          <div class="account-overview">
-            <div
-              v-if="account"
-              class="account-metrics"
-            >
-              <div>
-                <span>{{ t.orders }}</span>
-                <strong>{{ account.purchases_count }}</strong>
-              </div>
-              <div>
-                <span>{{ t.total }}</span>
-                <strong>{{ account.total_spent.toLocaleString(locale) }} Lei</strong>
-              </div>
-            </div>
+          <AccountOverview
+            :account="account"
+            :display-name="profileDisplayName"
+            :initials="profileInitials"
+            :labels="t"
+            :locale="locale"
+            :menu-open="accountMenuOpen"
+            :user="currentUser"
+            @edit-billing="openBillingModal"
+            @logout="logout"
+            @reset-mfa="openMfaResetModal"
+            @update:menu-open="accountMenuOpen = $event"
+          />
 
-            <div class="account-menu">
-              <button
-                type="button"
-                class="account-menu__button"
-                :aria-expanded="accountMenuOpen"
-                @click="accountMenuOpen = !accountMenuOpen"
-              >
-                <span
-                  class="account-avatar"
-                  aria-hidden="true"
-                >
-                  {{ profileInitials }}
-                </span>
-                <span class="account-menu__label">
-                  <span>{{ t.accountButton }}</span>
-                  <strong>{{ profileDisplayName }}</strong>
-                  <small>{{ t.accountSettingsHint }}</small>
-                </span>
-              </button>
-              <div
-                v-if="accountMenuOpen"
-                class="account-menu__panel"
-              >
-                <div class="account-menu__user">
-                  <strong>{{ profileDisplayName }}</strong>
-                  <span>{{ currentUser?.email }}</span>
-                  <button
-                    type="button"
-                    class="account-menu__edit"
-                    @click="openBillingModal"
-                  >
-                    {{ t.editAccount }}
-                  </button>
-                </div>
-                <div class="account-menu__status">
-                  <span>{{ currentUser?.billing_complete ? t.billingCompleteTitle : t.billingIncompleteTitle }}</span>
-                  <small>{{ currentUser?.billing_complete ? t.billingCompleteCopy : t.billingIncompleteCopy }}</small>
-                </div>
-                <button
-                  type="button"
-                  @click="logout"
-                >
-                  {{ t.logout }}
-                </button>
-              </div>
-            </div>
-          </div>
+          <AccountCartPanel
+            :checkout-status="accountCheckoutStatus"
+            :error="checkoutError"
+            :formatted-total="formattedCartTotal"
+            :items="cartItems"
+            :labels="t"
+            :message="checkoutMessage"
+            :payment="checkoutPayment"
+            :selected-payment-description="selectedPaymentDescription"
+            :submitting="submittingCheckout"
+            @checkout="checkoutCart"
+            @remove-item="removeFromCart"
+            @update:payment="checkoutPayment = $event"
+          />
 
-          <section class="orders-panel">
-            <div class="panel-head">
-              <div>
-                <p class="panel-kicker">
-                  {{ t.cartKicker }}
-                </p>
-                <h2>{{ t.cartTitle }}</h2>
-              </div>
-            </div>
-
-            <p>{{ t.cartCopy }}</p>
-
-            <div
-              v-if="cartItems.length"
-              class="account-cart-list"
-            >
-              <article
-                v-for="item in cartItems"
-                :key="item.id"
-                class="account-cart-item"
-              >
-                <div>
-                  <strong>{{ item.productTitle }}</strong>
-                  <span>{{ item.mark }} · {{ item.classes }} {{ t.niceClasses }}</span>
-                  <small v-if="item.ownerChangeRequested">{{ t.ownerChangeCartLabel }}</small>
-                  <small>{{ item.primaryClass }}</small>
-                </div>
-                <div class="account-cart-item__meta">
-                  <strong>{{ item.formattedTotal }}</strong>
-                  <button
-                    type="button"
-                    class="remove-order-btn"
-                    @click="removeFromCart(item.id)"
-                  >
-                    {{ t.removeFromCart }}
-                  </button>
-                </div>
-              </article>
-            </div>
-
-            <p
-              v-else
-              class="muted empty-orders"
-            >
-              {{ t.emptyCart }}
-            </p>
-
-            <div
-              v-if="cartItems.length"
-              class="account-checkout-box"
-            >
-              <div class="checkout-summary">
-                <span>{{ t.cartTotal }}</span>
-                <strong>{{ formattedCartTotal }}</strong>
-                <small>{{ selectedPaymentDescription }}</small>
-                <small>{{ accountCheckoutStatus }}</small>
-              </div>
-
-              <div class="checkout-payment">
-                <span>{{ t.checkoutPaymentLabel }}</span>
-                <div class="payment-options">
-                  <label>
-                    <input
-                      v-model="checkoutPayment"
-                      type="radio"
-                      value="card"
-                    >
-                    {{ t.cardPayment }}
-                  </label>
-                  <label>
-                    <input
-                      v-model="checkoutPayment"
-                      type="radio"
-                      value="paypal"
-                    >
-                    {{ t.paypalPayment }}
-                  </label>
-                  <label>
-                    <input
-                      v-model="checkoutPayment"
-                      type="radio"
-                      value="transfer"
-                    >
-                    {{ t.bankPayment }}
-                  </label>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                class="primary-btn"
-                :disabled="!cartItems.length || submittingCheckout"
-                @click="checkoutCart"
-              >
-                {{ submittingCheckout ? t.submitting : t.checkout }}
-              </button>
-            </div>
-
-            <p
-              v-if="checkoutMessage"
-              class="success-message"
-            >
-              {{ checkoutMessage }}
-            </p>
-
-            <p
-              v-if="checkoutError"
-              class="error-message"
-            >
-              {{ checkoutError }}
-            </p>
-          </section>
-
-          <section class="orders-panel">
-            <div class="panel-head">
-              <div>
-                <p class="panel-kicker">
-                  {{ t.ordersKicker }}
-                </p>
-                <h2>{{ t.ordersTitle }}</h2>
-              </div>
-            </div>
-
-            <p>{{ t.ordersCopy }}</p>
-
-            <div
-              v-if="account?.purchases?.length"
-              class="purchase-list"
-            >
-              <article
-                v-for="purchase in account.purchases"
-                :key="purchase.id"
-                class="purchase-item"
-              >
-                <div class="purchase-item__main">
-                  <strong>{{ purchase.product_name || productTitle(purchase.product_code) }}</strong>
-                  <span>{{ purchase.mark }} · {{ purchase.classes }} {{ t.niceClasses }}</span>
-                  <small v-if="purchase.owner_change_requested">{{ t.ownerChangeCartLabel }}</small>
-                </div>
-                <div class="purchase-item__meta">
-                  <strong>{{ purchase.total.formatted }}</strong>
-                  <span>{{ statusLabel(purchase.status) }}</span>
-                </div>
-                <div class="purchase-item__actions">
-                  <button
-                    type="button"
-                    class="remove-order-btn"
-                    @click="downloadInvoice(purchase)"
-                  >
-                    {{ invoiceLabel(purchase) }}
-                  </button>
-                  <button
-                    v-if="purchase.removable"
-                    type="button"
-                    class="remove-order-btn"
-                    :disabled="removingPurchaseId === purchase.id"
-                    @click="removePurchase(purchase)"
-                  >
-                    {{ removingPurchaseId === purchase.id ? t.removingPurchase : t.removePurchase }}
-                  </button>
-                </div>
-              </article>
-            </div>
-
-            <p
-              v-else-if="account"
-              class="muted empty-orders"
-            >
-              {{ t.noPurchases }}
-            </p>
-          </section>
+          <AccountOrdersPanel
+            :account="account"
+            :invoice-label="invoiceLabel"
+            :labels="t"
+            :product-title="productTitle"
+            :removing-purchase-id="removingPurchaseId"
+            :status-label="statusLabel"
+            @download-invoice="downloadInvoice"
+            @remove-purchase="removePurchase"
+          />
         </div>
 
         <p
@@ -421,112 +87,126 @@
         </p>
       </section>
 
+      <AccountBillingModal
+        :field-labels="billingFieldLabels"
+        :form="billingForm"
+        :labels="t"
+        :message="billingMessage"
+        :open="billingModalOpen"
+        :saving="savingBilling"
+        @close="closeBillingModal"
+        @save="saveBillingProfile"
+        @update:form="updateBillingForm"
+      />
+
       <div
-        v-if="billingModalOpen"
+        v-if="mfaResetOpen"
         class="modal-backdrop"
-        @click.self="closeBillingModal"
+        @click.self="closeMfaResetModal"
       >
         <section
-          class="billing-modal"
-          role="dialog"
-          aria-modal="true"
-          :aria-label="t.billingTitle"
+          class="modal-panel"
+          :aria-label="t.resetMfaTitle"
         >
-          <div class="modal-head">
+          <div class="modal-panel__header">
             <div>
-              <p class="panel-kicker">
-                {{ t.billingKicker }}
-              </p>
-              <h2>{{ t.billingTitle }}</h2>
+              <span>{{ t.resetMfaKicker }}</span>
+              <h2>{{ t.resetMfaTitle }}</h2>
             </div>
             <button
               type="button"
-              class="modal-close"
               :aria-label="t.close"
-              @click="closeBillingModal"
+              @click="closeMfaResetModal"
             >
-              x
+              ×
             </button>
           </div>
 
           <form
             class="billing-form"
-            @submit.prevent="saveBillingProfile"
+            @submit.prevent="resetOwnMfa"
           >
-            <p>{{ t.billingCopy }}</p>
-
+            <p class="muted">
+              {{ t.resetMfaCopy }}
+            </p>
             <label>
-              {{ t.phone }}
+              {{ t.password }}
               <input
-                v-model="billingForm.phone"
-                type="tel"
-                :placeholder="t.phonePlaceholder"
+                v-model="mfaResetForm.password"
+                type="password"
+                :placeholder="t.passwordPlaceholder"
                 required
               >
             </label>
-
             <label>
-              {{ t.ownerType }}
-              <select v-model="billingForm.ownerType">
-                <option value="Societate">{{ t.company }}</option>
-                <option value="Persoana fizica">{{ t.person }}</option>
-              </select>
-            </label>
-
-            <div class="field-grid">
-              <label>
-                {{ billingFieldLabels.taxId }}
-                <input
-                  v-model="billingForm.taxId"
-                  type="text"
-                  :placeholder="billingFieldLabels.taxIdPlaceholder"
-                >
-              </label>
-              <label>
-                {{ billingFieldLabels.ownerName }}
-                <input
-                  v-model="billingForm.ownerName"
-                  type="text"
-                  :placeholder="billingFieldLabels.ownerNamePlaceholder"
-                  required
-                >
-              </label>
-            </div>
-
-            <label>
-              {{ billingFieldLabels.address }}
-              <textarea
-                v-model="billingForm.address"
-                rows="4"
-                :placeholder="billingFieldLabels.addressPlaceholder"
+              {{ t.mfaCode }}
+              <input
+                v-model="mfaResetForm.otpCode"
+                type="text"
+                :placeholder="t.mfaCodePlaceholder"
                 required
-              />
+              >
             </label>
-
-            <div class="modal-actions">
+            <div class="form-actions">
               <button
                 class="primary-btn"
                 type="submit"
-                :disabled="savingBilling"
+                :disabled="resettingMfa"
               >
-                {{ savingBilling ? t.saving : t.saveBilling }}
+                {{ resettingMfa ? t.loading : t.resetMfaSubmit }}
               </button>
               <button
-                type="button"
                 class="ghost-btn"
-                @click="closeBillingModal"
+                type="button"
+                @click="closeMfaResetModal"
               >
                 {{ t.cancel }}
               </button>
             </div>
-
             <p
-              v-if="billingMessage"
-              class="success-message"
+              v-if="mfaResetError"
+              class="error-message"
             >
-              {{ billingMessage }}
+              {{ mfaResetError }}
             </p>
           </form>
+        </section>
+      </div>
+
+      <div
+        v-if="mfaRecoveryCodes.length"
+        class="modal-backdrop"
+      >
+        <section
+          class="modal-panel"
+          :aria-label="t.recoveryCodesTitle"
+        >
+          <div class="modal-panel__header">
+            <div>
+              <span>{{ t.resetMfaKicker }}</span>
+              <h2>{{ t.recoveryCodesTitle }}</h2>
+            </div>
+          </div>
+          <p class="muted">
+            {{ t.recoveryCodesCopy }}
+          </p>
+          <div class="recovery-code-list">
+            <code
+              v-for="code in mfaRecoveryCodes"
+              :key="code"
+            >
+              {{ code }}
+            </code>
+          </div>
+          <div class="form-actions">
+            <button
+              class="primary-btn"
+              type="button"
+              @click="mfaRecoveryCodes = []"
+            >
+              {{ t.recoveryCodesSaved }}
+            </button>
+          </div>
         </section>
       </div>
     </main>
@@ -534,39 +214,35 @@
 </template>
 
 <script setup>
-import { computed, onMounted, reactive, ref, watch } from 'vue'
-import logoUrl from '../assets/images/LOGO_SANDU-removebg-preview.png'
+import { computed, onMounted, reactive, ref } from 'vue'
 
 const config = useRuntimeConfig()
 const route = useRoute()
-const languages = [
-  { code: 'ro', label: 'RO' },
-  { code: 'en', label: 'EN' },
-]
-const selectedLanguage = ref('ro')
 const authMode = ref('login')
-const authToken = ref('')
-const currentUser = ref(null)
 const account = ref(null)
 const accountError = ref('')
-const authHydrating = ref(true)
 const authenticating = ref(false)
 const savingBilling = ref(false)
 const billingMessage = ref('')
 const billingModalOpen = ref(false)
 const accountMenuOpen = ref(false)
+const mfaResetOpen = ref(false)
+const resettingMfa = ref(false)
+const mfaResetError = ref('')
+const mfaRecoveryCodes = ref([])
 const removingPurchaseId = ref(null)
-const cartItems = ref([])
 const checkoutPayment = ref('card')
 const submittingCheckout = ref(false)
 const checkoutMessage = ref('')
 const checkoutError = ref('')
 const paymentVerificationMessage = ref('')
 const paymentVerificationState = ref('')
+const mfaChallenge = ref(null)
 
 const authForm = reactive({
   email: '',
   password: '',
+  otpCode: '',
 })
 
 const billingForm = reactive({
@@ -576,247 +252,43 @@ const billingForm = reactive({
   ownerName: '',
   address: '',
 })
+const mfaResetForm = reactive({
+  password: '',
+  otpCode: '',
+})
 
-const translations = {
-  ro: {
-    languageLabel: 'Limba',
-    quickRenewal: 'Reinnoire marca',
-    quickMonitoring: 'Monitorizare marca',
-    quickRegistration: 'Inregistrare marca',
-    quickCheck: 'Verificare marca',
-    navAbout: 'Despre noi',
-    navCareers: 'Cariere',
-    navPractice: 'Arii de practica',
-    navAccount: 'Contul meu',
-    navContact: 'Contact',
-    eyebrow: 'Cont client',
-    title: 'Contul meu',
-    copy: 'Autentifica-te pentru a vedea comenzile, statusul platii si istoricul solicitarilor tale.',
-    login: 'Login',
-    register: 'Creeaza cont',
-    email: 'Email',
-    password: 'Parola',
-    passwordPlaceholder: 'Minimum 8 caractere',
-    loading: 'Se incarca...',
-    loginSubmit: 'Intra in cont',
-    registerSubmit: 'Creeaza cont',
-    authNote: 'Comenzile plasate cand esti autentificat vor fi legate automat de acest cont.',
-    signedInAs: 'Autentificat ca',
-    accountButton: 'Cont si setari',
-    accountSettingsHint: 'Profil si facturare',
-    editAccount: 'Editeaza contul',
-    logout: 'Logout',
-    billingTitle: 'Date contact si facturare',
-    billingKicker: 'Profil',
-    billingCopy: 'Completeaza aceste date inainte de checkout. Plata nu porneste fara un profil complet.',
-    billingComplete: 'Profil complet',
-    billingIncomplete: 'Date incomplete',
-    billingCompleteTitle: 'Datele de facturare sunt completate',
-    billingCompleteCopy: 'Le poti modifica oricand daca se schimba titularul sau adresa.',
-    billingIncompleteTitle: 'Completeaza datele de facturare',
-    billingIncompleteCopy: 'Ai nevoie de aceste date doar pentru checkout si procesarea comenzilor.',
-    completeBilling: 'Completeaza datele',
-    editBilling: 'Editeaza datele',
-    close: 'Inchide',
-    cancel: 'Renunta',
-    phone: 'Telefon mobil',
-    phonePlaceholder: '07xx xxx xxx',
-    ownerType: 'Inregistrati marca pe',
-    company: 'Societate',
-    person: 'Persoana fizica',
-    companyTaxId: 'CUI',
-    companyTaxIdPlaceholder: 'RO12345678',
-    companyOwnerName: 'Denumire societate',
-    companyOwnerNamePlaceholder: 'Compania SRL',
-    companyAddress: 'Sediu social / adresa de facturare',
-    companyAddressPlaceholder: 'Strada, numar, localitate, judet',
-    personTaxId: 'CNP',
-    personTaxIdPlaceholder: 'CNP',
-    personOwnerName: 'Nume si prenume',
-    personOwnerNamePlaceholder: 'Nume Prenume',
-    personAddress: 'Adresa domiciliu / facturare',
-    personAddressPlaceholder: 'Strada, numar, localitate, judet',
-    saveBilling: 'Salveaza datele',
-    saving: 'Se salveaza...',
-    billingSaved: 'Datele de contact si facturare au fost salvate.',
-    removePurchase: 'Elimina din cont',
-    removingPurchase: 'Se elimina...',
-    removePurchaseConfirm: 'Elimini aceasta comanda din cont?',
-    purchaseRemoved: 'Comanda a fost eliminata din cont.',
-    downloadInvoice: 'Descarca factura',
-    downloadProforma: 'Descarca proforma',
-    ordersKicker: 'Istoric',
-    ordersTitle: 'Comenzile mele',
-    ordersCopy: 'Comenzile eliminate dispar doar din contul tau. Ele raman disponibile intern pentru procesare si suport.',
-    orders: 'Comenzi',
-    cartKicker: 'Cos',
-    cartTitle: 'Cos si checkout',
-    cartCopy: 'Finalizeaza produsele salvate in cos direct din contul tau.',
-    cartTotal: 'Total cos',
-    mixedCurrencyCartTotal: 'Totaluri separate',
-    cartNavLabel: 'Cos',
-    emptyCart: 'Cosul este gol. Configureaza o marca si adaug-o in cos.',
-    removeFromCart: 'Sterge',
-    ownerChangeCartLabel: 'Include modificare adresa/nume titular',
-    checkoutPaymentLabel: 'Metoda de plata',
-    cardPayment: 'Card',
-    paypalPayment: 'PayPal',
-    bankPayment: 'Transfer bancar',
-    cardPaymentDescription: 'Stripe Checkout cu redirect securizat',
-    paypalPaymentDescription: 'PayPal Checkout cu redirect securizat',
-    bankPaymentDescription: 'Vei primi detaliile pentru transfer dupa inregistrarea comenzii.',
-    checkout: 'Checkout',
-    submitting: 'Se trimite...',
-    checkoutSuccess: 'Comanda a fost trimisa.',
-    paymentReturnSuccess: 'Verificam plata cu procesatorul...',
-    paymentVerified: 'Plata a fost confirmata. Comanda a fost marcata ca platita.',
-    paymentNotVerified: 'Nu am putut confirma inca plata. Verifica tranzactia in procesator sau incearca din nou.',
-    paymentReturnCancelled: 'Plata a fost anulata. Comanda ramane salvata in cont si poate fi reluata sau verificata.',
-    checkoutBillingRequired: 'Completeaza datele de contact si facturare inainte de plata.',
-    checkoutReady: 'Contul are datele necesare pentru checkout.',
-    total: 'Total',
-    niceClasses: 'clase NISA',
-    noPurchases: 'Nu exista comenzi pentru acest cont.',
-    authError: 'Nu am putut autentifica acest cont.',
-    accountError: 'Nu am putut incarca acest cont.',
-    products: {
-      'ro-word': 'Marca verbala OSIM',
-      'ro-monochrome': 'Marca alb-negru',
-      'ro-color': 'Marca color',
-      'eu-word': 'Marca Uniunea Europeana',
-      'eu-logo': 'Logo UE',
-      'monitoring-brand': 'Monitorizare marca',
-    },
-    statuses: {
-      pending_payment: 'In asteptarea platii',
-      paid: 'Platita',
-      processing: 'In lucru',
-      completed: 'Finalizata',
-    },
-  },
-  en: {
-    languageLabel: 'Language',
-    quickRenewal: 'Trademark renewal',
-    quickMonitoring: 'Trademark monitoring',
-    quickRegistration: 'Trademark registration',
-    quickCheck: 'Trademark check',
-    navAbout: 'About us',
-    navCareers: 'Careers',
-    navPractice: 'Practice areas',
-    navAccount: 'My account',
-    navContact: 'Contact',
-    eyebrow: 'Client account',
-    title: 'My account',
-    copy: 'Log in to see your orders, payment status and request history.',
-    login: 'Login',
-    register: 'Create account',
-    email: 'Email',
-    password: 'Password',
-    passwordPlaceholder: 'Minimum 8 characters',
-    loading: 'Loading...',
-    loginSubmit: 'Log in',
-    registerSubmit: 'Create account',
-    authNote: 'Orders placed while signed in will be attached to this account automatically.',
-    signedInAs: 'Signed in as',
-    accountButton: 'Account & settings',
-    accountSettingsHint: 'Profile and billing',
-    editAccount: 'Edit account',
-    logout: 'Logout',
-    billingTitle: 'Contact and billing details',
-    billingKicker: 'Profile',
-    billingCopy: 'Complete these details before checkout. Payment cannot start without a complete profile.',
-    billingComplete: 'Complete profile',
-    billingIncomplete: 'Incomplete details',
-    billingCompleteTitle: 'Billing details are complete',
-    billingCompleteCopy: 'You can edit them any time if the owner or address changes.',
-    billingIncompleteTitle: 'Complete billing details',
-    billingIncompleteCopy: 'These details are only needed for checkout and order processing.',
-    completeBilling: 'Complete details',
-    editBilling: 'Edit details',
-    close: 'Close',
-    cancel: 'Cancel',
-    phone: 'Mobile phone',
-    phonePlaceholder: '+40...',
-    ownerType: 'Register the trademark for',
-    company: 'Company',
-    person: 'Individual',
-    companyTaxId: 'VAT / tax identifier',
-    companyTaxIdPlaceholder: 'RO12345678',
-    companyOwnerName: 'Company name',
-    companyOwnerNamePlaceholder: 'Company LLC',
-    companyAddress: 'Registered office / billing address',
-    companyAddressPlaceholder: 'Street, number, city, county',
-    personTaxId: 'Personal numeric code',
-    personTaxIdPlaceholder: 'CNP',
-    personOwnerName: 'Full name',
-    personOwnerNamePlaceholder: 'First name Last name',
-    personAddress: 'Home / billing address',
-    personAddressPlaceholder: 'Street, number, city, county',
-    saveBilling: 'Save details',
-    saving: 'Saving...',
-    billingSaved: 'Contact and billing details were saved.',
-    removePurchase: 'Remove from account',
-    removingPurchase: 'Removing...',
-    removePurchaseConfirm: 'Remove this order from your account?',
-    purchaseRemoved: 'The order was removed from your account.',
-    downloadInvoice: 'Download invoice',
-    downloadProforma: 'Download proforma',
-    ordersKicker: 'History',
-    ordersTitle: 'My orders',
-    ordersCopy: 'Removed orders disappear only from your account. They remain available internally for processing and support.',
-    orders: 'Orders',
-    cartKicker: 'Cart',
-    cartTitle: 'Cart and checkout',
-    cartCopy: 'Complete your saved cart items directly from your account.',
-    cartTotal: 'Cart total',
-    mixedCurrencyCartTotal: 'Separate totals',
-    cartNavLabel: 'Cart',
-    emptyCart: 'Your cart is empty. Configure a trademark and add it to the cart.',
-    removeFromCart: 'Remove',
-    ownerChangeCartLabel: 'Includes owner address/name change',
-    checkoutPaymentLabel: 'Payment method',
-    cardPayment: 'Card',
-    paypalPayment: 'PayPal',
-    bankPayment: 'Bank transfer',
-    cardPaymentDescription: 'Stripe Checkout with secure redirect',
-    paypalPaymentDescription: 'PayPal Checkout with secure redirect',
-    bankPaymentDescription: 'You will receive transfer details after the order is registered.',
-    checkout: 'Checkout',
-    submitting: 'Submitting...',
-    checkoutSuccess: 'The order was submitted.',
-    paymentReturnSuccess: 'Checking the payment with the processor...',
-    paymentVerified: 'Payment was confirmed. The order was marked as paid.',
-    paymentNotVerified: 'We could not confirm the payment yet. Check the processor transaction or try again.',
-    paymentReturnCancelled: 'Payment was cancelled. The order remains saved in your account and can be retried or checked.',
-    checkoutBillingRequired: 'Complete contact and billing details before payment.',
-    checkoutReady: 'Your account has the details required for checkout.',
-    total: 'Total',
-    niceClasses: 'NICE classes',
-    noPurchases: 'There are no orders for this account.',
-    authError: 'We could not authenticate this account.',
-    accountError: 'We could not load this account.',
-    products: {
-      'ro-word': 'Word trademark',
-      'ro-monochrome': 'Black-and-white trademark',
-      'ro-color': 'Color trademark',
-      'eu-word': 'European Union trademark',
-      'eu-logo': 'EU logo',
-      'monitoring-brand': 'Trademark monitoring',
-    },
-    statuses: {
-      pending_payment: 'Pending payment',
-      paid: 'Paid',
-      processing: 'Processing',
-      completed: 'Completed',
-    },
-  },
-}
+const {
+  languages,
+  locale,
+  selectedLanguage,
+  setLanguage,
+  t,
+} = usePreferredLanguage('account')
 
-const t = computed(() => translations[selectedLanguage.value])
-const locale = computed(() => selectedLanguage.value === 'ro' ? 'ro-RO' : 'en-US')
+useHead(() => ({
+  title: t.value.metaTitle,
+}))
+
+const {
+  cartCount,
+  cartCurrencies,
+  cartItems,
+  cartTotal,
+  clearCart,
+  loadCart,
+  removeFromCart,
+} = useCart()
+const {
+  authHeaders,
+  authHydrating,
+  authToken,
+  clearSession,
+  currentUser,
+  logout: logoutSession,
+  persistSession,
+  verifyStoredSession,
+} = useAuthSession()
 const authSubmitLabel = computed(() => authMode.value === 'login' ? t.value.loginSubmit : t.value.registerSubmit)
-const cartTotal = computed(() => cartItems.value.reduce((sum, item) => sum + Number(item.total || 0), 0))
-const cartCurrencies = computed(() => [...new Set(cartItems.value.map(item => item.currency || 'RON'))])
 const formattedCartTotal = computed(() => cartCurrencies.value.length === 1 ? formatMoney(cartTotal.value, cartCurrencies.value[0]) : t.value.mixedCurrencyCartTotal)
 const accountCheckoutStatus = computed(() => currentUser.value?.billing_complete ? t.value.checkoutReady : t.value.checkoutBillingRequired)
 const paymentReturnState = computed(() => route.query.payment?.toString() || '')
@@ -867,14 +339,6 @@ const billingFieldLabels = computed(() => {
   }
 })
 
-function setLanguage(code) {
-  selectedLanguage.value = code
-}
-
-function authHeaders() {
-  return authToken.value ? { Authorization: `Bearer ${authToken.value}` } : {}
-}
-
 function productTitle(code) {
   return t.value.products[code] || code
 }
@@ -897,6 +361,20 @@ function errorMessage(payload, fallback) {
     .join('; ') || fallback
 }
 
+function updateAuthForm(form) {
+  Object.assign(authForm, form)
+}
+
+function setAuthMode(mode) {
+  authMode.value = mode
+  mfaChallenge.value = null
+  authForm.otpCode = ''
+}
+
+function updateBillingForm(form) {
+  Object.assign(billingForm, form)
+}
+
 function openBillingModal() {
   billingMessage.value = ''
   accountMenuOpen.value = false
@@ -909,19 +387,18 @@ function closeBillingModal() {
   billingModalOpen.value = false
 }
 
-function persistSession(token, user) {
-  authToken.value = token
-  currentUser.value = user
-  window.localStorage.setItem('account-token', token)
-  window.localStorage.setItem('account-user', JSON.stringify(user))
+function openMfaResetModal() {
+  mfaResetError.value = ''
+  mfaResetForm.password = ''
+  mfaResetForm.otpCode = ''
+  mfaResetOpen.value = true
+  accountMenuOpen.value = false
 }
 
-function clearSession() {
-  authToken.value = ''
-  currentUser.value = null
-  account.value = null
-  window.localStorage.removeItem('account-token')
-  window.localStorage.removeItem('account-user')
+function closeMfaResetModal() {
+  if (resettingMfa.value) return
+
+  mfaResetOpen.value = false
 }
 
 function populateBillingForm(profile = {}) {
@@ -930,27 +407,6 @@ function populateBillingForm(profile = {}) {
   billingForm.taxId = profile.tax_id || ''
   billingForm.ownerName = profile.owner_name || ''
   billingForm.address = profile.address || ''
-}
-
-function persistCart() {
-  window.localStorage.setItem('cart-items', JSON.stringify(cartItems.value))
-}
-
-function loadCart() {
-  const storedCart = window.localStorage.getItem('cart-items')
-
-  try {
-    const parsedCart = storedCart ? JSON.parse(storedCart) : []
-    cartItems.value = Array.isArray(parsedCart) ? parsedCart : []
-  }
-  catch {
-    cartItems.value = []
-  }
-}
-
-function removeFromCart(id) {
-  cartItems.value = cartItems.value.filter(item => item.id !== id)
-  persistCart()
 }
 
 function invoiceLabel(purchase) {
@@ -1036,8 +492,7 @@ async function checkoutCart() {
       payloads.push(await submitCartItem(item))
     }
 
-    cartItems.value = []
-    persistCart()
+    clearCart()
     checkoutMessage.value = t.value.checkoutSuccess
     await loadAccount()
 
@@ -1061,6 +516,11 @@ async function submitAuth() {
   authenticating.value = true
 
   try {
+    if (mfaChallenge.value) {
+      await submitMfaCode()
+      return
+    }
+
     const isRegistering = authMode.value === 'register'
     const response = await fetch(`${config.public.apiBaseUrl}/api/v1/${isRegistering ? 'users' : 'session'}`, {
       method: 'POST',
@@ -1080,6 +540,12 @@ async function submitAuth() {
       throw new Error(errorMessage(payload, t.value.authError))
     }
 
+    if (payload.mfa_required) {
+      mfaChallenge.value = payload
+      authForm.otpCode = ''
+      return
+    }
+
     persistSession(payload.token, payload.user)
     await loadAccount()
     await verifyReturnedPayment()
@@ -1092,31 +558,78 @@ async function submitAuth() {
   }
 }
 
-async function hydrateSession() {
-  const storedToken = window.localStorage.getItem('account-token')
+async function submitMfaCode() {
+  const response = await fetch(`${config.public.apiBaseUrl}/api/v1/session/mfa`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      session: {
+        mfa_token: mfaChallenge.value.mfa_token,
+        otp_code: authForm.otpCode,
+      },
+    }),
+  })
+  const payload = await response.json().catch(() => ({}))
 
-  if (!storedToken) {
-    authHydrating.value = false
-    return
+  if (!response.ok) {
+    throw new Error(errorMessage(payload, t.value.mfaError))
   }
 
+  mfaChallenge.value = null
+  authForm.otpCode = ''
+  persistSession(payload.token, payload.user)
+  mfaRecoveryCodes.value = payload.recovery_codes || []
+  await loadAccount()
+  await verifyReturnedPayment()
+}
+
+async function resetOwnMfa() {
+  mfaResetError.value = ''
+  resettingMfa.value = true
+
   try {
-    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/session`, {
-      headers: { Authorization: `Bearer ${storedToken}` },
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/account/mfa/reset`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders(),
+      },
+      body: JSON.stringify({
+        mfa: {
+          password: mfaResetForm.password,
+          otp_code: mfaResetForm.otpCode,
+        },
+      }),
     })
     const payload = await response.json().catch(() => ({}))
 
-    if (!response.ok) throw new Error()
+    if (!response.ok) {
+      throw new Error(errorMessage(payload, t.value.mfaError))
+    }
 
-    persistSession(storedToken, payload.user)
+    mfaResetOpen.value = false
+    clearSession()
+    account.value = null
+    mfaChallenge.value = payload
+    authForm.otpCode = ''
+  }
+  catch (error) {
+    mfaResetError.value = error instanceof Error ? error.message : t.value.mfaError
+  }
+  finally {
+    resettingMfa.value = false
+  }
+}
+
+async function hydrateAccountSession() {
+  if (await verifyStoredSession()) {
     await loadAccount()
     await verifyReturnedPayment()
   }
-  catch {
-    clearSession()
-  }
-  finally {
-    authHydrating.value = false
+  else {
+    account.value = null
   }
 }
 
@@ -1239,29 +752,13 @@ async function removePurchase(purchase) {
 }
 
 async function logout() {
-  if (authToken.value) {
-    await fetch(`${config.public.apiBaseUrl}/api/v1/session`, {
-      method: 'DELETE',
-      headers: authHeaders(),
-    }).catch(() => {})
-  }
-
-  clearSession()
+  await logoutSession()
+  account.value = null
 }
 
 onMounted(() => {
-  const storedLanguage = window.localStorage.getItem('preferred-language')
-
-  if (storedLanguage && translations[storedLanguage]) {
-    selectedLanguage.value = storedLanguage
-  }
-
-  hydrateSession()
+  hydrateAccountSession()
   loadCart()
-})
-
-watch(selectedLanguage, (language) => {
-  window.localStorage.setItem('preferred-language', language)
 })
 </script>
 
@@ -1568,6 +1065,58 @@ a {
   color: var(--ink);
   padding: 13px 14px;
   font-weight: 400;
+}
+
+.mfa-panel {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(0, 173, 217, 0.28);
+  background: rgba(0, 173, 217, 0.08);
+}
+
+.mfa-panel p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.mfa-secret {
+  display: grid;
+  gap: 6px;
+}
+
+.mfa-secret img {
+  width: 192px;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.mfa-secret span {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.mfa-secret code {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  overflow-wrap: anywhere;
+  font-size: 0.88rem;
+}
+
+.recovery-code-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.recovery-code-list code {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  text-align: center;
+  font-weight: 700;
 }
 
 .billing-form,
@@ -1984,6 +1533,45 @@ a {
   place-items: center;
   background: rgba(9, 18, 32, 0.46);
   padding: 18px;
+}
+
+.modal-panel {
+  width: min(680px, 100%);
+  max-height: min(92vh, 820px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 24px;
+}
+
+.modal-panel__header {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.modal-panel__header span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.modal-panel__header h2 {
+  margin: 4px 0 0;
+}
+
+.modal-panel__header button {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  cursor: pointer;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+  font-weight: 700;
 }
 
 .billing-modal {

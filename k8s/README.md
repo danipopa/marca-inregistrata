@@ -31,6 +31,9 @@ Set:
 - `RAILS_MASTER_KEY` from `api/config/master.key`
 - `SECRET_KEY_BASE` from `cd api && bin/rails secret`
 - `DATABASE_PASSWORD` to the same value as `MYSQL_PASSWORD`
+- `ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY`
+- `ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY`
+- `ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT`
 
 Create the MySQL secret too:
 

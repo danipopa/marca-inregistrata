@@ -46,7 +46,7 @@ class Api::V1::Admin::SiteThemeControllerTest < ActionDispatch::IntegrationTest
           privacy_policy_content: "# Privacy\n\nCustom privacy"
         }
       },
-      headers: { "Authorization" => "Bearer #{admin.issue_auth_token!}" },
+      headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(admin)}" },
       as: :json
 
     assert_response :success

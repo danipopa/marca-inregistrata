@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_07_193000) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_12_121000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.integer "blob_id", null: false
     t.datetime "created_at", null: false
@@ -171,18 +171,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_07_193000) do
     t.datetime "created_at", null: false
     t.string "email", null: false
     t.string "google_sub"
+    t.datetime "mfa_challenge_created_at"
+    t.string "mfa_challenge_digest"
+    t.integer "mfa_failed_attempts", default: 0, null: false
+    t.datetime "mfa_locked_until"
     t.string "name"
+    t.datetime "otp_enabled_at"
+    t.string "otp_secret"
     t.string "owner_name"
     t.string "owner_type"
     t.string "password_digest", null: false
     t.string "password_salt", null: false
     t.string "phone"
+    t.text "recovery_codes_digest"
     t.string "tax_id"
     t.datetime "updated_at", null: false
     t.index ["admin"], name: "index_users_on_admin"
     t.index ["auth_token_digest"], name: "index_users_on_auth_token_digest", unique: true
     t.index ["email"], name: "index_users_on_email", unique: true
     t.index ["google_sub"], name: "index_users_on_google_sub", unique: true
+    t.index ["mfa_challenge_digest"], name: "index_users_on_mfa_challenge_digest", unique: true
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"

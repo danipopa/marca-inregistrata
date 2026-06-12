@@ -14,7 +14,9 @@
     "lint": "eslint ."
   },
   "dependencies": {
-    "nuxt": "^4.4.5"
+    "@nuxtjs/i18n": "^10.4.0",
+    "nuxt": "^4.4.5",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "@nuxt/devtools": "^3.2.4",

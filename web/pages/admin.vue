@@ -1,75 +1,19 @@
 <template>
   <div class="admin-page">
-    <header class="admin-header">
-      <div class="wrap admin-header__inner">
-        <NuxtLink
-          class="brand"
-          to="/"
-          :aria-label="themeForm.brand_name || 'SANDU și Asociații IP Attorney'"
-        >
-          <span
-            class="brand__logo"
-            :style="{ '--fallback-logo-image': `url(${logoUrl})` }"
-            role="img"
-            :aria-label="themeForm.brand_name || 'SANDU și Asociații IP Attorney'"
-          />
-          <small>ADMIN</small>
-        </NuxtLink>
-
-        <nav class="admin-nav">
-          <NuxtLink to="/">
-            Site
-          </NuxtLink>
-          <NuxtLink to="/account">
-            Account
-          </NuxtLink>
-        </nav>
-      </div>
-    </header>
+    <AdminHeader :brand-name="themeForm.brand_name || 'SANDU și Asociații IP Attorney'" />
 
     <main class="admin-main">
       <section class="wrap admin-layout">
         <div class="admin-panel">
-          <div
-            v-if="authHydrating"
-            class="admin-login"
-          >
-            <p class="muted">
-              Verifying session...
-            </p>
-          </div>
-
-          <form
-            v-else-if="!authToken"
-            class="admin-login"
-            @submit.prevent="login"
-          >
-            <label>
-              Email
-              <input
-                v-model="loginForm.email"
-                type="email"
-                placeholder="admin@example.com"
-                required
-              >
-            </label>
-            <label>
-              Password
-              <input
-                v-model="loginForm.password"
-                type="password"
-                placeholder="Minimum 8 characters"
-                required
-              >
-            </label>
-            <button
-              class="primary-btn"
-              type="submit"
-              :disabled="loading"
-            >
-              {{ loading ? 'Signing in...' : 'Sign in' }}
-            </button>
-          </form>
+          <AdminLoginPanel
+            v-if="authHydrating || !authToken"
+            :form="loginForm"
+            :hydrating="authHydrating"
+            :loading="loading"
+            :mfa-challenge="mfaChallenge"
+            @submit="login"
+            @update:form="updateLoginForm"
+          />
 
           <div
             v-else
@@ -80,648 +24,85 @@
               class="admin-shell"
               :class="{ collapsed: adminMenuCollapsed }"
             >
-              <aside class="task-sidebar">
-                <button
-                  class="sidebar-toggle"
-                  type="button"
-                  :aria-expanded="!adminMenuCollapsed"
-                  :aria-label="adminMenuCollapsed ? 'Show menu' : 'Hide menu'"
-                  @click="adminMenuCollapsed = !adminMenuCollapsed"
-                >
-                  <span
-                    class="hamburger-icon"
-                    aria-hidden="true"
-                  />
-                  <span v-if="!adminMenuCollapsed">Hide menu</span>
-                </button>
-
-                <button
-                  v-for="task in adminTasks"
-                  v-show="!adminMenuCollapsed"
-                  :key="task.id"
-                  class="task-button"
-                  :class="{ active: activeAdminTask === task.id }"
-                  type="button"
-                  @click="activeAdminTask = task.id"
-                >
-                  <span>{{ task.label }}</span>
-                </button>
-
-                <div
-                  v-show="!adminMenuCollapsed"
-                  class="signed-in-card"
-                >
-                  <span>Signed in as</span>
-                  <strong>{{ currentUser?.email }}</strong>
-                  <button
-                    class="ghost-btn"
-                    type="button"
-                    @click="logout"
-                  >
-                    Logout
-                  </button>
-                </div>
-              </aside>
+              <AdminSidebar
+                :active-task="activeAdminTask"
+                :collapsed="adminMenuCollapsed"
+                :tasks="adminTasks"
+                :user="currentUser"
+                @logout="logout"
+                @update:active-task="activeAdminTask = $event"
+                @update:collapsed="adminMenuCollapsed = $event"
+              />
 
               <div class="task-content">
-                <div
+                <AdminProductsSection
                   v-if="activeAdminTask === 'products'"
-                  class="admin-section"
-                >
-                  <div class="section-title">
-                    <h2>Products</h2>
-                    <button
-                      class="ghost-btn"
-                      type="button"
-                      @click="showNewProductForm"
-                    >
-                      Add product
-                    </button>
-                  </div>
+                  :categories="productCategories"
+                  :editing-product-id="editingProductId"
+                  :error="productError"
+                  :form="productForm"
+                  :image-uploading="imageUploading"
+                  :product-image="productImage"
+                  :saving="productSaving"
+                  :saving-price-id="savingProductPriceId"
+                  :selected-image-description="selectedImageDescription"
+                  :show-form="showProductForm"
+                  :upload-image-file="uploadImageFile"
+                  :upload-image-name="uploadImageName"
+                  :uploaded-images="uploadedProductImages"
+                  @delete-product="deleteProduct"
+                  @edit-product="editProduct"
+                  @hide-product-form="hideProductForm"
+                  @save-product="saveProduct"
+                  @save-product-price="saveProductPrice"
+                  @select-upload-image="selectUploadImage"
+                  @show-new-product-form="showNewProductForm"
+                  @update:form="updateProductForm"
+                  @update:upload-image-name="uploadImageName = $event"
+                  @update-product-price-draft="updateProductPriceDraft"
+                  @upload-product-image="uploadProductImage"
+                />
 
-                  <form
-                    v-if="showProductForm"
-                    class="product-form"
-                    @submit.prevent="saveProduct"
-                  >
-                    <div class="field-grid">
-                      <label>
-                        Code
-                        <input
-                          v-model="productForm.code"
-                          required
-                        >
-                      </label>
-                      <label>
-                        Position
-                        <input
-                          v-model.number="productForm.position"
-                          type="number"
-                          min="0"
-                          required
-                        >
-                      </label>
-                      <label>
-                        Currency
-                        <select v-model="productForm.currency">
-                          <option value="RON">RON</option>
-                          <option value="EUR">EUR</option>
-                        </select>
-                      </label>
-                      <label>
-                        Office
-                        <input
-                          v-model="productForm.region"
-                          required
-                        >
-                      </label>
-                      <label>
-                        Price label
-                        <input
-                          v-model="productForm.price_label"
-                          required
-                        >
-                      </label>
-                      <label>
-                        Base price Lei
-                        <input
-                          v-model.number="productForm.base_price_lei"
-                          type="number"
-                          min="0"
-                          required
-                        >
-                      </label>
-                      <label style="position:relative;">
-                        Image
-                        <div style="position:relative;">
-                          <select
-                            v-model="productForm.image_key"
-                            :title="selectedImageDescription"
-                          >
-                            <option value="">None</option>
-                            <option value="verbal">Marca verbala OSIM</option>
-                            <option value="black_white">Marca alb-negru</option>
-                            <option value="color">Marca color</option>
-                            <option
-                              v-for="image in uploadedProductImages"
-                              :key="image.key"
-                              :value="image.key"
-                            >
-                              {{ image.name }}
-                            </option>
-                          </select>
-                        </div>
-                      </label>
-                      <label>
-                        Upload image
-                        <input
-                          v-model="uploadImageName"
-                          type="text"
-                          placeholder="Display name"
-                        >
-                        <input
-                          type="file"
-                          accept="image/*"
-                          @change="selectUploadImage"
-                        >
-                        <button
-                          class="ghost-btn"
-                          type="button"
-                          :disabled="imageUploading || !uploadImageFile"
-                          @click="uploadProductImage"
-                        >
-                          {{ imageUploading ? 'Uploading...' : 'Upload image' }}
-                        </button>
-                      </label>
-                      <label class="checkbox-field">
-                        <input
-                          v-model="productForm.active"
-                          type="checkbox"
-                        >
-                        Active
-                      </label>
-                    </div>
-
-                    <div class="field-grid">
-                      <label>
-                        Title RO
-                        <input
-                          v-model="productForm.title_ro"
-                          required
-                        >
-                      </label>
-                      <label>
-                        Title EN
-                        <input
-                          v-model="productForm.title_en"
-                          required
-                        >
-                      </label>
-                      <label>
-                        Note RO
-                        <input v-model="productForm.note_ro">
-                      </label>
-                      <label>
-                        Note EN
-                        <input v-model="productForm.note_en">
-                      </label>
-                      <label>
-                        Tax RO
-                        <input v-model="productForm.tax_ro">
-                      </label>
-                      <label>
-                        Tax EN
-                        <input v-model="productForm.tax_en">
-                      </label>
-                      <label>
-                        Attributes RO
-                        <textarea
-                          v-model="productForm.items_ro"
-                          rows="4"
-                        />
-                      </label>
-                      <label>
-                        Attributes EN
-                        <textarea
-                          v-model="productForm.items_en"
-                          rows="4"
-                        />
-                      </label>
-                    </div>
-
-                    <div class="form-actions">
-                      <button
-                        class="primary-btn"
-                        type="submit"
-                        :disabled="productSaving"
-                      >
-                        {{ editingProductId ? 'Save changes' : 'Create product' }}
-                      </button>
-                      <button
-                        class="ghost-btn"
-                        type="button"
-                        @click="hideProductForm"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </form>
-
-                  <p
-                    v-if="productError"
-                    class="error-message"
-                  >
-                    {{ productError }}
-                  </p>
-
-                  <div class="admin-product-categories">
-                    <section
-                      v-for="category in productCategories"
-                      :key="category.id"
-                      class="admin-product-category"
-                    >
-                      <div class="product-category-heading">
-                        <h3>{{ category.label }}</h3>
-                        <span>{{ category.products.length }} produse</span>
-                      </div>
-
-                      <div class="admin-product-grid">
-                        <article
-                          v-for="product in category.products"
-                          :key="product.id"
-                          class="admin-product-card"
-                        >
-                          <div class="admin-product-card__top">
-                            <div class="admin-product-card__meta">
-                              <span class="country-pill">{{ product.region }}</span>
-                              <span :class="['status-pill', product.active ? 'active' : 'hidden']">
-                                {{ product.active ? 'Active' : 'Hidden' }}
-                              </span>
-                            </div>
-                            <h3>{{ product.translations.ro.title }}</h3>
-                            <img
-                              v-if="productImage(product)"
-                              class="admin-product-card__image"
-                              :src="productImage(product)"
-                              :alt="product.translations.ro.title"
-                            >
-                            <p v-if="product.translations.ro.note">
-                              {{ product.translations.ro.note }}
-                            </p>
-                          </div>
-
-                          <div class="admin-product-price">
-                            <span>{{ product.price }}</span>
-                            <small>{{ product.translations.ro.tax }}</small>
-                          </div>
-
-                          <form
-                            class="inline-price-form"
-                            @submit.prevent="saveProductPrice(product)"
-                          >
-                            <label>
-                              Display price
-                              <input
-                                v-model="product.priceDraft.price_label"
-                                required
-                              >
-                            </label>
-                            <label>
-                              Checkout amount
-                              <input
-                                v-model.number="product.priceDraft.base_price_lei"
-                                type="number"
-                                min="0"
-                                required
-                              >
-                            </label>
-                            <button
-                              class="ghost-btn"
-                              type="submit"
-                              :disabled="savingProductPriceId === product.id"
-                            >
-                              {{ savingProductPriceId === product.id ? 'Saving...' : 'Save price' }}
-                            </button>
-                          </form>
-
-                          <ul>
-                            <li
-                              v-for="item in product.translations.ro.items"
-                              :key="item"
-                            >
-                              {{ item }}
-                            </li>
-                          </ul>
-
-                          <div class="admin-product-code">
-                            <span>{{ product.code }}</span>
-                            <span>{{ product.currency }}</span>
-                          </div>
-
-                          <div class="product-actions">
-                            <button
-                              class="ghost-btn"
-                              type="button"
-                              @click="editProduct(product)"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              class="ghost-btn danger-btn"
-                              type="button"
-                              @click="deleteProduct(product)"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </article>
-                      </div>
-                    </section>
-                  </div>
-                </div>
-
-                <div
+                <AdminOrdersSection
                   v-else-if="activeAdminTask === 'orders'"
-                  class="admin-section"
-                >
-                  <div class="section-title">
-                    <h2>Orders</h2>
-                    <button
-                      class="ghost-btn"
-                      type="button"
-                      :disabled="loading"
-                      @click="loadDashboard"
-                    >
-                      Refresh
-                    </button>
-                  </div>
+                  :dashboard="dashboard"
+                  :event-date="eventDate"
+                  :event-label="eventLabel"
+                  :loading="loading"
+                  :order-date="orderDate"
+                  :order-time="orderTime"
+                  :order-type-label="orderTypeLabel"
+                  :payment-label="paymentLabel"
+                  :saving-order-id="savingOrderId"
+                  @download-order-invoice="downloadOrderInvoice"
+                  @refresh="loadDashboard"
+                  @save-order-comments="saveOrderComments"
+                  @save-order-status="saveOrderStatus"
+                  @update-order-field="updateOrderField"
+                />
 
-                  <div class="stats-grid">
-                    <article>
-                      <span>Orders</span>
-                      <strong>{{ dashboard.stats.orders_count }}</strong>
-                    </article>
-                    <article>
-                      <span>Pending</span>
-                      <strong>{{ dashboard.stats.pending_orders_count }}</strong>
-                    </article>
-                    <article>
-                      <span>Users</span>
-                      <strong>{{ dashboard.stats.users_count }}</strong>
-                    </article>
-                    <article>
-                      <span>Revenue</span>
-                      <strong>{{ dashboard.stats.revenue_lei.toLocaleString('ro-RO') }} Lei</strong>
-                    </article>
-                  </div>
-
-                  <div class="orders-table">
-                    <div class="orders-row orders-row--head">
-                      <span>Date</span>
-                      <span>Order</span>
-                      <span>Customer</span>
-                      <span>Status</span>
-                      <span>Total</span>
-                      <span>Admin comments</span>
-                    </div>
-                    <div
-                      v-for="order in dashboard.orders"
-                      :key="order.id"
-                      class="orders-row"
-                    >
-                      <span>
-                        <strong>{{ orderDate(order.created_at) }}</strong>
-                        <small>{{ orderTime(order.created_at) }}</small>
-                      </span>
-                      <span>
-                        <strong>#{{ order.id }} {{ order.mark }}</strong>
-                        <small>{{ order.product_name }} · {{ order.classes }} classes</small>
-                        <small>{{ orderTypeLabel(order.order_type) }}</small>
-                        <small v-if="order.owner_change_requested">Owner address/name change requested</small>
-                      </span>
-                      <span>
-                        <strong>{{ order.email }}</strong>
-                        <small>{{ order.phone }}</small>
-                        <small v-if="order.ip_address">IP: {{ order.ip_address }}</small>
-                      </span>
-                      <span class="order-payment">
-                        <label class="status-select">
-                          <span>Status</span>
-                          <select
-                            v-model="order.status"
-                            :disabled="savingOrderId === order.id"
-                            @change="saveOrderStatus(order)"
-                          >
-                            <option value="pending_payment">Pending payment</option>
-                            <option value="paid">Paid</option>
-                            <option value="processing">Processing</option>
-                            <option value="completed">Completed</option>
-                          </select>
-                        </label>
-                        <small>{{ paymentLabel(order.payment_method) }}</small>
-                      </span>
-                      <span>{{ order.total.formatted }}</span>
-                      <span class="order-comments">
-                        <button
-                          class="ghost-btn"
-                          type="button"
-                          @click="downloadOrderInvoice(order)"
-                        >
-                          {{ order.payment_method === 'transfer' ? 'Download proforma' : 'Download invoice' }}
-                        </button>
-                        <textarea
-                          v-model="order.admin_comments"
-                          rows="3"
-                          placeholder="Add internal note"
-                        />
-                        <button
-                          class="ghost-btn"
-                          type="button"
-                          :disabled="savingOrderId === order.id"
-                          @click="saveOrderComments(order)"
-                        >
-                          {{ savingOrderId === order.id ? 'Saving...' : 'Save' }}
-                        </button>
-                        <div class="order-log">
-                          <strong>Change log</strong>
-                          <ul v-if="order.events?.length">
-                            <li
-                              v-for="event in order.events"
-                              :key="event.id"
-                            >
-                              <span>{{ eventLabel(event) }}</span>
-                              <small>{{ event.admin_email || 'system' }} · {{ eventDate(event.created_at) }}</small>
-                            </li>
-                          </ul>
-                          <small v-else>No changes logged yet.</small>
-                        </div>
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                <div
+                <AdminSettingsSection
                   v-else
-                  class="admin-section"
-                >
-                  <div class="section-title">
-                    <h2>Settings</h2>
-                  </div>
-
-                  <div class="settings-grid">
-                    <article>
-                      <span>Admin account</span>
-                      <strong>{{ currentUser?.email }}</strong>
-                    </article>
-                    <article>
-                      <span>Product records</span>
-                      <strong>{{ products.length }}</strong>
-                    </article>
-                  </div>
-
-                  <form
-                    class="theme-form"
-                    @submit.prevent="saveTheme"
-                  >
-                    <div class="section-title">
-                      <h2>Website theme</h2>
-                      <button
-                        class="ghost-btn"
-                        type="button"
-                        :disabled="themeSaving"
-                        @click="loadTheme"
-                      >
-                        Reload
-                      </button>
-                    </div>
-
-                    <div class="theme-grid">
-                      <label class="theme-grid__wide">
-                        Brand name
-                        <input
-                          v-model="themeForm.brand_name"
-                          type="text"
-                          placeholder="SANDU și Asociații IP Attorney"
-                        >
-                      </label>
-                      <label class="theme-grid__wide">
-                        Homepage hero image
-                        <select v-model="themeForm.hero_image_key">
-                          <option value="">Built-in default image</option>
-                          <option
-                            v-for="image in uploadedThemeImages"
-                            :key="image.key"
-                            :value="image.key"
-                          >
-                            {{ image.name }}
-                          </option>
-                        </select>
-                      </label>
-                      <label class="theme-grid__wide">
-                        Website logo image
-                        <select v-model="themeForm.logo_image_key">
-                          <option value="">Built-in default logo</option>
-                          <option
-                            v-for="image in uploadedThemeImages"
-                            :key="image.key"
-                            :value="image.key"
-                          >
-                            {{ image.name }}
-                          </option>
-                        </select>
-                      </label>
-                      <label class="theme-grid__wide">
-                        Upload theme image
-                        <input
-                          v-model="uploadThemeImageName"
-                          type="text"
-                          placeholder="Display name"
-                        >
-                        <input
-                          type="file"
-                          accept="image/*"
-                          @change="selectUploadThemeImage"
-                        >
-                        <button
-                          class="ghost-btn"
-                          type="button"
-                          :disabled="themeImageUploading || !uploadThemeImageFile"
-                          @click="uploadThemeImage"
-                        >
-                          {{ themeImageUploading ? 'Uploading...' : 'Upload theme image' }}
-                        </button>
-                      </label>
-                      <label class="theme-grid__wide">
-                        Footer logo text
-                        <textarea
-                          v-model="themeForm.footer_text"
-                          rows="5"
-                          placeholder="Text shown next to the footer logo"
-                        />
-                      </label>
-                      <label class="theme-grid__wide">
-                        Terms and conditions
-                        <textarea
-                          v-model="themeForm.terms_content"
-                          rows="12"
-                          placeholder="# Termeni si conditii"
-                        />
-                      </label>
-                      <label class="theme-grid__wide">
-                        Privacy policy
-                        <textarea
-                          v-model="themeForm.privacy_policy_content"
-                          rows="16"
-                          placeholder="# Politica de confidentialitate"
-                        />
-                      </label>
-                      <label
-                        v-for="field in themeFields"
-                        :key="field.key"
-                      >
-                        {{ field.label }}
-                        <span
-                          v-if="field.type === 'color'"
-                          class="theme-color-control"
-                        >
-                          <input
-                            v-model="themeForm[field.key]"
-                            type="color"
-                          >
-                          <input
-                            v-model="themeForm[field.key]"
-                            type="text"
-                            placeholder="#00add9"
-                            pattern="^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$"
-                          >
-                        </span>
-                        <input
-                          v-else
-                          v-model="themeForm[field.key]"
-                          :placeholder="field.placeholder"
-                        >
-                      </label>
-                    </div>
-
-                    <div class="theme-preview">
-                      <span :style="{ background: themeForm.brand_color }" />
-                      <span :style="{ background: themeForm.primary_color }" />
-                      <span :style="{ background: themeForm.primary_dark_color }" />
-                      <strong :style="{ fontFamily: themeFontStack }">Theme preview</strong>
-                    </div>
-
-                    <div class="form-actions">
-                      <button
-                        class="primary-btn"
-                        type="submit"
-                        :disabled="themeSaving"
-                      >
-                        {{ themeSaving ? 'Saving theme...' : 'Save theme' }}
-                      </button>
-                    </div>
-
-                    <p
-                      v-if="themeMessage"
-                      class="success-message"
-                    >
-                      {{ themeMessage }}
-                    </p>
-                  </form>
-
-                  <h2>Recent users</h2>
-                  <div class="user-list">
-                    <article
-                      v-for="user in dashboard.users"
-                      :key="user.id"
-                    >
-                      <div>
-                        <strong>{{ user.email }}</strong>
-                        <span>{{ user.orders_count }} orders</span>
-                      </div>
-                      <span>{{ user.admin ? 'Admin' : 'Client' }}</span>
-                    </article>
-                  </div>
-                </div>
+                  :fields="themeFields"
+                  :form="themeForm"
+                  :products-count="products.length"
+                  :theme-font-stack="themeFontStack"
+                  :theme-image-uploading="themeImageUploading"
+                  :theme-message="themeMessage"
+                  :theme-saving="themeSaving"
+                  :upload-theme-image-file="uploadThemeImageFile"
+                  :upload-theme-image-name="uploadThemeImageName"
+                  :uploaded-images="uploadedThemeImages"
+                  :user="currentUser"
+                  :users="dashboard.users"
+                  @load-theme="loadTheme"
+                  @reset-user-mfa="resetUserMfa"
+                  @save-theme="saveTheme"
+                  @select-upload-theme-image="selectUploadThemeImage"
+                  @update:form="updateThemeForm"
+                  @update:upload-theme-image-name="uploadThemeImageName = $event"
+                  @upload-theme-image="uploadThemeImage"
+                />
               </div>
             </div>
           </div>
@@ -732,6 +113,43 @@
           >
             {{ errorMessage }}
           </p>
+
+          <div
+            v-if="mfaRecoveryCodes.length"
+            class="modal-backdrop"
+          >
+            <section
+              class="modal-panel"
+              aria-label="Recovery codes"
+            >
+              <div class="modal-panel__header">
+                <div>
+                  <span>Security</span>
+                  <h2>Save recovery codes</h2>
+                </div>
+              </div>
+              <p class="muted">
+                Save these one-time codes now. They are shown only once and can be used if the authenticator is unavailable.
+              </p>
+              <div class="recovery-code-list">
+                <code
+                  v-for="code in mfaRecoveryCodes"
+                  :key="code"
+                >
+                  {{ code }}
+                </code>
+              </div>
+              <div class="form-actions">
+                <button
+                  class="primary-btn"
+                  type="button"
+                  @click="mfaRecoveryCodes = []"
+                >
+                  I saved these codes
+                </button>
+              </div>
+            </section>
+          </div>
         </div>
       </section>
     </main>
@@ -740,14 +158,11 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import logoUrl from '../assets/images/LOGO_SANDU-removebg-preview.png'
 import blackWhiteTrademarkUrl from '../assets/images/MARCA_TA_ALB_NEGRU-removebg-preview.png'
 import colorTrademarkUrl from '../assets/images/MARCA_TA_COLOR-removebg-preview.png'
 import verbalTrademarkUrl from '../assets/images/MARCA_TA_VERBALA-removebg-preview.png'
 
 const config = useRuntimeConfig()
-const authToken = ref('')
-const currentUser = ref(null)
 const dashboard = ref(null)
 const products = ref([])
 const uploadedProductImages = ref([])
@@ -761,7 +176,6 @@ const savingOrderId = ref(null)
 const savingProductPriceId = ref(null)
 const errorMessage = ref('')
 const productError = ref('')
-const authHydrating = ref(true)
 const themeMessage = ref('')
 const uploadImageName = ref('')
 const uploadImageFile = ref(null)
@@ -801,6 +215,15 @@ const selectedImageDescription = computed(() => {
   return uploadedImage?.name || imageDescriptions[productForm.image_key] || ''
 })
 const themeFontStack = computed(() => `'${themeForm.font_family || 'Montserrat'}', sans-serif`)
+const {
+  authHeaders,
+  authHydrating,
+  authToken,
+  currentUser,
+  logout: logoutSession,
+  persistSession,
+  verifyStoredSession,
+} = useAuthSession()
 const productCategories = computed(() => {
   const categories = [
     { id: 'registration', label: 'Inregistrare marca', products: products.value.filter(product => productCategory(product) === 'registration') },
@@ -815,7 +238,10 @@ const productCategories = computed(() => {
 const loginForm = reactive({
   email: '',
   password: '',
+  otpCode: '',
 })
+const mfaChallenge = ref(null)
+const mfaRecoveryCodes = ref([])
 const productForm = reactive(defaultProductForm())
 const themeForm = reactive(defaultThemeForm())
 
@@ -913,23 +339,28 @@ function hideProductForm() {
   showProductForm.value = false
 }
 
-function authHeaders() {
-  return authToken.value ? { Authorization: `Bearer ${authToken.value}` } : {}
-}
-
-function persistSession(token, user) {
-  authToken.value = token
-  currentUser.value = user
-  window.localStorage.setItem('account-token', token)
-  window.localStorage.setItem('account-user', JSON.stringify(user))
-}
-
-function clearSession() {
-  authToken.value = ''
-  currentUser.value = null
+function clearAdminSession() {
   dashboard.value = null
-  window.localStorage.removeItem('account-token')
-  window.localStorage.removeItem('account-user')
+}
+
+function updateLoginForm(form) {
+  Object.assign(loginForm, form)
+}
+
+function updateProductForm(form) {
+  Object.assign(productForm, form)
+}
+
+function updateThemeForm(form) {
+  Object.assign(themeForm, form)
+}
+
+function updateProductPriceDraft(product, field, value) {
+  product.priceDraft[field] = value
+}
+
+function updateOrderField(order, field, value) {
+  order[field] = value
 }
 
 function paymentLabel(paymentMethod) {
@@ -1024,6 +455,11 @@ async function login() {
   loading.value = true
 
   try {
+    if (mfaChallenge.value) {
+      await submitMfaCode()
+      return
+    }
+
     const response = await fetch(`${config.public.apiBaseUrl}/api/v1/session`, {
       method: 'POST',
       headers: {
@@ -1046,6 +482,12 @@ async function login() {
       throw new Error('This account does not have admin access.')
     }
 
+    if (payload.mfa_required) {
+      mfaChallenge.value = payload
+      loginForm.otpCode = ''
+      return
+    }
+
     persistSession(payload.token, payload.user)
     await loadDashboard()
     await loadProducts()
@@ -1054,7 +496,7 @@ async function login() {
     await loadTheme()
   }
   catch (error) {
-    clearSession()
+    clearAdminSession()
     errorMessage.value = error instanceof Error ? error.message : 'Could not sign in.'
   }
   finally {
@@ -1062,34 +504,50 @@ async function login() {
   }
 }
 
-async function hydrateSession() {
-  const storedToken = window.localStorage.getItem('account-token')
+async function submitMfaCode() {
+  const response = await fetch(`${config.public.apiBaseUrl}/api/v1/session/mfa`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      session: {
+        mfa_token: mfaChallenge.value.mfa_token,
+        otp_code: loginForm.otpCode,
+      },
+    }),
+  })
+  const payload = await response.json().catch(() => ({}))
 
-  if (!storedToken) {
-    authHydrating.value = false
-    return
+  if (!response.ok) {
+    throw new Error(payload.message || 'Invalid authenticator code.')
   }
 
-  try {
-    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/session`, {
-      headers: { Authorization: `Bearer ${storedToken}` },
-    })
-    const payload = await response.json().catch(() => ({}))
+  if (!payload.user?.admin) {
+    throw new Error('This account does not have admin access.')
+  }
 
-    if (!response.ok || !payload.user?.admin) throw new Error()
+  mfaChallenge.value = null
+  loginForm.otpCode = ''
+  persistSession(payload.token, payload.user)
+  mfaRecoveryCodes.value = payload.recovery_codes || []
+  await loadDashboard()
+  await loadProducts()
+  await loadProductImages()
+  await loadThemeImages()
+  await loadTheme()
+}
 
-    persistSession(storedToken, payload.user)
+async function hydrateSession() {
+  if (await verifyStoredSession({ requireAdmin: true })) {
     await loadDashboard()
     await loadProducts()
     await loadProductImages()
     await loadThemeImages()
     await loadTheme()
   }
-  catch {
-    clearSession()
-  }
-  finally {
-    authHydrating.value = false
+  else {
+    clearAdminSession()
   }
 }
 
@@ -1547,15 +1005,33 @@ async function deleteProduct(product) {
   }
 }
 
-async function logout() {
-  if (authToken.value) {
-    await fetch(`${config.public.apiBaseUrl}/api/v1/session`, {
+async function resetUserMfa(user) {
+  if (!window.confirm(`Reset MFA for ${user.email}?`)) return
+
+  errorMessage.value = ''
+
+  try {
+    const response = await fetch(`${config.public.apiBaseUrl}/api/v1/admin/users/${user.id}/mfa`, {
       method: 'DELETE',
       headers: authHeaders(),
-    }).catch(() => {})
-  }
+    })
+    const payload = await response.json().catch(() => ({}))
 
-  clearSession()
+    if (!response.ok) {
+      throw new Error(payload.message || 'Could not reset MFA.')
+    }
+
+    themeMessage.value = payload.message || 'MFA was reset for this user.'
+    await loadDashboard()
+  }
+  catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Could not reset MFA.'
+  }
+}
+
+async function logout() {
+  await logoutSession()
+  clearAdminSession()
 }
 
 onMounted(() => {
@@ -1806,6 +1282,44 @@ a {
   color: var(--ink);
   padding: 13px 14px;
   font-weight: 400;
+}
+
+.mfa-panel {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba(0, 173, 217, 0.28);
+  background: rgba(0, 173, 217, 0.08);
+}
+
+.mfa-panel p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.mfa-secret {
+  display: grid;
+  gap: 6px;
+}
+
+.mfa-secret img {
+  width: 192px;
+  max-width: 100%;
+  border: 1px solid var(--line);
+  background: #fff;
+}
+
+.mfa-secret span {
+  font-size: 0.82rem;
+  color: var(--muted);
+}
+
+.mfa-secret code {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  overflow-wrap: anywhere;
+  font-size: 0.88rem;
 }
 
 .product-form textarea {
@@ -2314,6 +1828,58 @@ a {
   color: #8f3d22;
   padding: 14px;
   font-family: var(--font-family, 'Montserrat', sans-serif);
+  font-weight: 700;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  background: rgba(9, 18, 32, 0.46);
+  padding: 18px;
+}
+
+.modal-panel {
+  width: min(680px, 100%);
+  max-height: min(92vh, 820px);
+  overflow: auto;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 24px;
+}
+
+.modal-panel__header {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.modal-panel__header span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.modal-panel__header h2 {
+  margin: 4px 0 0;
+}
+
+.recovery-code-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 18px 0;
+}
+
+.recovery-code-list code {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  text-align: center;
   font-weight: 700;
 }
 

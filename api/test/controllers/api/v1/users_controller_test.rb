@@ -1,7 +1,7 @@
 require "test_helper"
 
 class Api::V1::UsersControllerTest < ActionDispatch::IntegrationTest
-  test "registers a user and returns a token" do
+  test "registers a user and returns an mfa challenge" do
     assert_difference("User.count", 1) do
       post api_v1_users_url,
         params: {
@@ -14,7 +14,10 @@ class Api::V1::UsersControllerTest < ActionDispatch::IntegrationTest
     end
 
     assert_response :created
-    assert response.parsed_body["token"].present?
+    assert_equal true, response.parsed_body["mfa_required"]
+    assert_equal true, response.parsed_body["mfa_setup_required"]
+    assert response.parsed_body["mfa_token"].present?
+    assert response.parsed_body.dig("mfa", "secret").present?
     assert_equal "client@example.com", response.parsed_body.dig("user", "email")
   end
 

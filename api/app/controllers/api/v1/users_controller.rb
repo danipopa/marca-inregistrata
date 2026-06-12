@@ -7,10 +7,7 @@ module Api
           password: user_params[:password]
         )
 
-        render json: {
-          token: user.issue_auth_token!,
-          user: serialize_user(user)
-        }, status: :created
+        render json: serialize_mfa_challenge(user), status: :created
       rescue ActiveRecord::RecordInvalid => error
         errors = error.record.errors.to_hash.presence || { password: ["must be at least 8 characters"] }
 

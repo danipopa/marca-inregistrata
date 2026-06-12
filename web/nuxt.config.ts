@@ -1,4 +1,5 @@
 export default defineNuxtConfig({
+  modules: ['@nuxtjs/i18n'],
   devtools: { enabled: true },
   app: {
     head: {
@@ -15,4 +16,14 @@ export default defineNuxtConfig({
     },
   },
   compatibilityDate: 'latest',
+  i18n: {
+    defaultLocale: 'ro',
+    strategy: 'no_prefix',
+    detectBrowserLanguage: false,
+    locales: [
+      { code: 'ro', name: 'Romana' },
+      { code: 'en', name: 'English' },
+    ],
+    vueI18n: 'i18n.config.ts',
+  },
 })

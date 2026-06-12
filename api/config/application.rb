@@ -28,5 +28,23 @@ module Api
     # Middleware like session, flash, cookies can be added back manually.
     # Skip views, helpers and assets when generating a new resource.
     config.api_only = true
+
+    encryption_fallbacks = Rails.env.production? ? {} : {
+      primary_key: "a" * 64,
+      deterministic_key: "b" * 64,
+      key_derivation_salt: "c" * 64
+    }
+    config.active_record.encryption.primary_key =
+      ENV["ACTIVE_RECORD_ENCRYPTION_PRIMARY_KEY"].presence ||
+      credentials.dig(:active_record_encryption, :primary_key).presence ||
+      encryption_fallbacks[:primary_key]
+    config.active_record.encryption.deterministic_key =
+      ENV["ACTIVE_RECORD_ENCRYPTION_DETERMINISTIC_KEY"].presence ||
+      credentials.dig(:active_record_encryption, :deterministic_key).presence ||
+      encryption_fallbacks[:deterministic_key]
+    config.active_record.encryption.key_derivation_salt =
+      ENV["ACTIVE_RECORD_ENCRYPTION_KEY_DERIVATION_SALT"].presence ||
+      credentials.dig(:active_record_encryption, :key_derivation_salt).presence ||
+      encryption_fallbacks[:key_derivation_salt]
   end
 end

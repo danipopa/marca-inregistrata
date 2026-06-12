@@ -7,7 +7,7 @@ class Api::V1::PaymentVerificationsControllerTest < ActionDispatch::IntegrationT
 
     with_class_method(Payments::StripeCheckout, :paid?, true) do
       post verify_payment_path(order),
-        headers: { "Authorization" => "Bearer #{user.issue_auth_token!}" },
+        headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(user)}" },
         as: :json
     end
 
@@ -22,7 +22,7 @@ class Api::V1::PaymentVerificationsControllerTest < ActionDispatch::IntegrationT
 
     with_class_method(Payments::StripeCheckout, :paid?, false) do
       post verify_payment_path(order),
-        headers: { "Authorization" => "Bearer #{user.issue_auth_token!}" },
+        headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(user)}" },
         as: :json
     end
 
@@ -37,7 +37,7 @@ class Api::V1::PaymentVerificationsControllerTest < ActionDispatch::IntegrationT
 
     with_class_method(Payments::PaypalCheckout, :capture!, true) do
       post verify_payment_path(order),
-        headers: { "Authorization" => "Bearer #{user.issue_auth_token!}" },
+        headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(user)}" },
         as: :json
     end
 
@@ -52,7 +52,7 @@ class Api::V1::PaymentVerificationsControllerTest < ActionDispatch::IntegrationT
     order = trademark_request_for(other_user, payment_method: "card", payment_provider: "stripe")
 
     post verify_payment_path(order),
-      headers: { "Authorization" => "Bearer #{user.issue_auth_token!}" },
+      headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(user)}" },
       as: :json
 
     assert_response :not_found

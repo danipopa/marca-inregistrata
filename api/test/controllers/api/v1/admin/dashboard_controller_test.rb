@@ -11,7 +11,7 @@ class Api::V1::Admin::DashboardControllerTest < ActionDispatch::IntegrationTest
     user = User.create_with_password!(email: "client@example.com", password: "password123")
 
     get api_v1_admin_dashboard_url,
-      headers: { "Authorization" => "Bearer #{user.issue_auth_token!}" },
+      headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(user)}" },
       as: :json
 
     assert_response :forbidden
@@ -33,7 +33,7 @@ class Api::V1::Admin::DashboardControllerTest < ActionDispatch::IntegrationTest
     )
 
     get api_v1_admin_dashboard_url,
-      headers: { "Authorization" => "Bearer #{admin.issue_auth_token!}" },
+      headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(admin)}" },
       as: :json
 
     assert_response :success
@@ -65,7 +65,7 @@ class Api::V1::Admin::DashboardControllerTest < ActionDispatch::IntegrationTest
           admin_comments: "Client asked for invoice details."
         }
       },
-      headers: { "Authorization" => "Bearer #{admin.issue_auth_token!}" },
+      headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(admin)}" },
       as: :json
 
     assert_response :success
@@ -94,7 +94,7 @@ class Api::V1::Admin::DashboardControllerTest < ActionDispatch::IntegrationTest
           status: "paid"
         }
       },
-      headers: { "Authorization" => "Bearer #{admin.issue_auth_token!}" },
+      headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(admin)}" },
       as: :json
 
     assert_response :success
