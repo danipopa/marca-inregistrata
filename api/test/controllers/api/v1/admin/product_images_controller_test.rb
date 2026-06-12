@@ -15,7 +15,7 @@ class Api::V1::Admin::ProductImagesControllerTest < ActionDispatch::IntegrationT
           file: image_file
         }
       },
-      headers: { "Authorization" => "Bearer #{admin.issue_auth_token!}" }
+      headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(admin)}" }
 
     assert_response :created
     assert_equal "Custom logo", response.parsed_body.dig("image", "name")
@@ -23,7 +23,7 @@ class Api::V1::Admin::ProductImagesControllerTest < ActionDispatch::IntegrationT
     assert_match(%r{/api/v1/product_images/\d+}, response.parsed_body.dig("image", "url"))
 
     get api_v1_admin_product_images_url,
-      headers: { "Authorization" => "Bearer #{admin.issue_auth_token!}" },
+      headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(admin)}" },
       as: :json
 
     assert_response :success

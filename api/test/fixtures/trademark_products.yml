@@ -85,3 +85,57 @@ eu_logo:
   items_en: '["legal fee included: 240 EUR","official taxes included: 380 EUR","NICE class details","secure processing"]'
   position: 5
   active: true
+
+renew_ro_word:
+  code: renew-ro-word
+  currency: RON
+  region: OSIM
+  price_label: 1.691 Lei
+  base_price_lei: 1691
+  title_ro: Reinnoire marca verbala OSIM
+  title_en: OSIM word trademark renewal
+  note_ro: prelungire protectie pentru 10 ani
+  note_en: 10-year protection renewal
+  tax_ro: 991 Lei taxe + 700 Lei onorariu
+  tax_en: 991 Lei fees + 700 Lei legal fee
+  items_ro: '["include taxa introducere mandatar","include taxa eliberare certificat reinnoire","o clasa NISA inclusa"]'
+  items_en: '["representative filing fee included","renewal certificate fee included","one NICE class included"]'
+  image_key: verbal
+  position: 101
+  active: true
+
+renew_eu_word:
+  code: renew-eu-word
+  currency: EUR
+  region: EUIPO
+  price_label: 1.000 EUR
+  base_price_lei: 1000
+  title_ro: Reinnoire marca verbala EUIPO
+  title_en: EUIPO word trademark renewal
+  note_ro: prelungire protectie la nivel european
+  note_en: EU-wide protection renewal
+  tax_ro: 850 EUR taxe + 150 EUR onorariu
+  tax_en: 850 EUR fees + 150 EUR legal fee
+  items_ro: '["o clasa NISA inclusa","valabilitate reinnoita pentru 10 ani"]'
+  items_en: '["one NICE class included","renewed validity for 10 years"]'
+  image_key: verbal
+  position: 104
+  active: true
+
+monitoring_brand:
+  code: monitoring-brand
+  currency: RON
+  region: OSIM / EUIPO / WIPO
+  price_label: 726 Lei / an
+  base_price_lei: 726
+  title_ro: Monitorizare marca
+  title_en: Trademark monitoring
+  note_ro: serviciu anual pentru o marca monitorizata
+  note_en: annual service for one monitored trademark
+  tax_ro: TVA inclus
+  tax_en: VAT included
+  items_ro: '["identificare marci identice sau similare","monitorizare OSIM, EUIPO si WIPO","raportare lunara pe email","propuneri de solutii juridice"]'
+  items_en: '["identical or similar trademark identification","OSIM, EUIPO and WIPO monitoring","monthly email reporting","legal solution proposals"]'
+  image_key: verbal
+  position: 120
+  active: true

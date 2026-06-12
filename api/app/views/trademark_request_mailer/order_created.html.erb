@@ -3,6 +3,10 @@
 <h2>Comanda</h2>
 <p><strong>Marca:</strong> <%= @trademark_request.mark %></p>
 <p><strong>Produs:</strong> <%= @trademark_request.product_name %> (<%= @trademark_request.product_code %>)</p>
+<p><strong>Tip comanda:</strong> <%= { "monitoring" => "Monitorizare marca", "renewal" => "Reinnoire marca", "registration" => "Inregistrare marca" }.fetch(@trademark_request.order_type, @trademark_request.order_type) %></p>
+<% if @trademark_request.owner_change_requested? %>
+  <p><strong>Modificare adresa/nume titular:</strong> Da</p>
+<% end %>
 <p><strong>Total:</strong> <%= @trademark_request.formatted_total %></p>
 <p><strong>Status:</strong> <%= @trademark_request.status %></p>
 <p><strong>Metoda plata:</strong> <%= @trademark_request.payment_method.presence || "Nespecificata" %></p>

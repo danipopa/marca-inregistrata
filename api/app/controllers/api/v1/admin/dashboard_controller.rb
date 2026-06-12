@@ -5,7 +5,7 @@ module Api
         before_action :authenticate_admin!
 
         def show
-          orders = TrademarkRequest.includes(:user).order(created_at: :desc)
+          orders = TrademarkRequest.includes(:user, events: :admin_user).order(created_at: :desc)
 
           render json: {
             stats: {
@@ -26,6 +26,8 @@ module Api
             id: order.id,
             product_code: order.product_code,
             product_name: order.product_name,
+            order_type: order.order_type,
+            owner_change_requested: order.owner_change_requested,
             mark: order.mark,
             classes: order.classes_count,
             status: order.status,
@@ -35,6 +37,7 @@ module Api
             phone: order.phone,
             ip_address: order.ip_address,
             admin_comments: order.admin_comments.to_s,
+            events: order.events.sort_by(&:created_at).reverse.first(20).map { |event| serialize_event(event) },
             total: {
               amount: order.total_lei,
               currency: order.currency,
@@ -50,6 +53,18 @@ module Api
             orders_count: user.trademark_requests.count,
             created_at: user.created_at.iso8601
           )
+        end
+
+        def serialize_event(event)
+          {
+            id: event.id,
+            action: event.action,
+            field_name: event.field_name,
+            old_value: event.old_value,
+            new_value: event.new_value,
+            admin_email: event.admin_user&.email,
+            created_at: event.created_at.iso8601
+          }
         end
       end
     end

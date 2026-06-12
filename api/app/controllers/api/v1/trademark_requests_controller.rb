@@ -42,6 +42,7 @@ module Api
           :primary_class,
           :goods,
           :payment,
+          :owner_change_requested,
           :terms
         )
       end
@@ -85,6 +86,8 @@ module Api
             code: trademark_request.product_code,
             name: trademark_request.product_name
           },
+          order_type: trademark_request.order_type,
+          owner_change_requested: trademark_request.owner_change_requested,
           total: {
             amount: trademark_request.total_lei,
             currency: trademark_request.currency,

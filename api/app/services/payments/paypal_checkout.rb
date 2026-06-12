@@ -6,6 +6,10 @@ module Payments
       new(trademark_request).create!
     end
 
+    def self.capture!(trademark_request)
+      new(trademark_request).capture!
+    end
+
     def initialize(trademark_request)
       @trademark_request = trademark_request
     end
@@ -26,6 +30,21 @@ module Payments
         provider_id: payload.fetch("id"),
         checkout_url: approve_link
       }
+    end
+
+    def capture!
+      raise MissingCredentials, "PAYPAL_CLIENT_ID or PAYPAL_CLIENT_SECRET is missing" if client_id.blank? || client_secret.blank?
+      raise ProviderError, "PayPal order ID is missing" if trademark_request.payment_provider_id.blank?
+
+      response = post_json("#{base_url}/v2/checkout/orders/#{trademark_request.payment_provider_id}/capture", {}, access_token)
+      payload = JSON.parse(response.body)
+
+      return true if response.is_a?(Net::HTTPSuccess) && payload["status"] == "COMPLETED"
+
+      issue = payload["message"] || payload["name"] || "PayPal payment capture failed"
+      raise ProviderError, issue unless already_captured?(payload)
+
+      order_completed?
     end
 
     private
@@ -59,6 +78,29 @@ module Payments
       request.body = JSON.generate(payload)
 
       Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+    end
+
+    def get_json(url, token)
+      uri = URI(url)
+      request = Net::HTTP::Get.new(uri)
+      request["Authorization"] = "Bearer #{token}"
+      request["Content-Type"] = "application/json"
+
+      Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) { |http| http.request(request) }
+    end
+
+    def already_captured?(payload)
+      payload["name"] == "UNPROCESSABLE_ENTITY" &&
+        payload.fetch("details", []).any? { |detail| detail["issue"] == "ORDER_ALREADY_CAPTURED" }
+    end
+
+    def order_completed?
+      response = get_json("#{base_url}/v2/checkout/orders/#{trademark_request.payment_provider_id}", access_token)
+      payload = JSON.parse(response.body)
+
+      raise ProviderError, payload["message"] || "PayPal payment verification failed" unless response.is_a?(Net::HTTPSuccess)
+
+      payload["status"] == "COMPLETED"
     end
 
     def order_payload

@@ -33,6 +33,22 @@ module Api
           status: :unprocessable_entity
       end
 
+      def destroy_purchase
+        purchase = accessible_account_purchases.find(params[:purchase_id])
+
+        unless purchase.status == "pending_payment"
+          return render json: {
+            message: "Comenzile confirmate nu pot fi eliminate din cont."
+          }, status: :unprocessable_entity
+        end
+
+        purchase.update!(removed_from_account_at: Time.current)
+
+        render json: {
+          message: "Comanda a fost eliminata din cont."
+        }
+      end
+
       private
 
       def account_params
@@ -51,9 +67,14 @@ module Api
       end
 
       def account_purchases
+        accessible_account_purchases
+          .where(removed_from_account_at: nil)
+          .order(created_at: :desc)
+      end
+
+      def accessible_account_purchases
         TrademarkRequest
           .where("user_id = :user_id OR lower(email) = :email", user_id: current_user.id, email: current_user.email)
-          .order(created_at: :desc)
       end
 
       def serialize_purchase(purchase)
@@ -61,10 +82,13 @@ module Api
           id: purchase.id,
           product_code: purchase.product_code,
           product_name: purchase.product_name,
+          order_type: purchase.order_type,
+          owner_change_requested: purchase.owner_change_requested,
           mark: purchase.mark,
           classes: purchase.classes_count,
           status: purchase.status,
           payment_method: purchase.payment_method,
+          removable: purchase.status == "pending_payment",
           total: {
             amount: purchase.total_lei,
             currency: purchase.currency,

@@ -10,7 +10,7 @@ class Api::V1::TrademarkRequestsControllerTest < ActionDispatch::IntegrationTest
       owner_name: "Client SRL",
       address: "Strada Test 1"
     )
-    token = user.issue_auth_token!
+    token = issue_mfa_auth_token(user)
 
     assert_difference("TrademarkRequest.count", 1) do
       assert_emails 1 do
@@ -50,7 +50,7 @@ class Api::V1::TrademarkRequestsControllerTest < ActionDispatch::IntegrationTest
 
   test "requires completed account billing profile" do
     user = User.create_with_password!(email: "client@example.com", password: "password123")
-    token = user.issue_auth_token!
+    token = issue_mfa_auth_token(user)
 
     assert_no_difference("TrademarkRequest.count") do
       post api_v1_trademark_requests_url,
