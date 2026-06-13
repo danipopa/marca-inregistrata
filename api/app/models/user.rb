@@ -3,6 +3,7 @@ class User < ApplicationRecord
   PASSWORD_LENGTH = 32
   MAX_MFA_ATTEMPTS = 5
   MFA_LOCK_DURATION = 15.minutes
+  PASSWORD_RESET_TOKEN_TTL = 30.minutes
   RECOVERY_CODE_COUNT = 10
   RECOVERY_CODE_LENGTH = 12
 
@@ -71,6 +72,15 @@ class User < ApplicationRecord
   def issue_auth_token!
     token = SecureRandom.urlsafe_base64(32)
     update!(auth_token_digest: self.class.digest_token(token), auth_token_created_at: Time.current)
+    token
+  end
+
+  def issue_password_reset_token!
+    token = SecureRandom.urlsafe_base64(32)
+    update!(
+      password_reset_token_digest: self.class.digest_token(token),
+      password_reset_sent_at: Time.current
+    )
     token
   end
 
@@ -144,6 +154,27 @@ class User < ApplicationRecord
 
   def enable_mfa!
     update!(otp_enabled_at: Time.current)
+  end
+
+  def valid_password_reset_token?(token)
+    return false if token.blank? || password_reset_token_digest.blank? || password_reset_sent_at.blank?
+    return false if password_reset_sent_at < PASSWORD_RESET_TOKEN_TTL.ago
+
+    ActiveSupport::SecurityUtils.secure_compare(password_reset_token_digest, self.class.digest_token(token))
+  end
+
+  def reset_password!(password:)
+    update!(
+      password: password,
+      auth_token_digest: nil,
+      auth_token_created_at: nil,
+      mfa_challenge_digest: nil,
+      mfa_challenge_created_at: nil,
+      mfa_failed_attempts: 0,
+      mfa_locked_until: nil,
+      password_reset_token_digest: nil,
+      password_reset_sent_at: nil
+    )
   end
 
   def clear_mfa_challenge!
