@@ -96,6 +96,15 @@
         {{ authenticating ? labels.loading : (mfaChallenge ? labels.mfaVerifyButton : submitLabel) }}
       </button>
 
+      <button
+        v-if="!mfaChallenge && mode === 'login'"
+        class="text-link"
+        type="button"
+        @click="$emit('reset-password')"
+      >
+        {{ labels.resetPassword }}
+      </button>
+
       <p class="muted">
         {{ mfaChallenge ? labels.mfaNote : labels.authNote }}
       </p>
@@ -107,7 +116,7 @@
 import { ref, watch } from 'vue'
 import QRCode from 'qrcode'
 
-defineEmits(['submit', 'update:form', 'update:mode'])
+defineEmits(['reset-password', 'submit', 'update:form', 'update:mode'])
 
 const props = defineProps({
   authenticating: {
@@ -156,3 +165,18 @@ watch(
   { immediate: true },
 )
 </script>
+
+<style scoped>
+.text-link {
+  border: 0;
+  background: transparent;
+  color: var(--brand, #00add9);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  justify-self: start;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+</style>

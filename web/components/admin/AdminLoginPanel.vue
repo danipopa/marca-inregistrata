@@ -77,6 +77,15 @@
     >
       {{ loading ? 'Signing in...' : (mfaChallenge ? 'Verify code' : 'Sign in') }}
     </button>
+
+    <button
+      v-if="!mfaChallenge"
+      class="text-link"
+      type="button"
+      @click="$emit('reset-password')"
+    >
+      Forgot password?
+    </button>
   </form>
 </template>
 
@@ -84,7 +93,7 @@
 import { ref, watch } from 'vue'
 import QRCode from 'qrcode'
 
-const emit = defineEmits(['submit', 'update:form'])
+const emit = defineEmits(['reset-password', 'submit', 'update:form'])
 
 const props = defineProps({
   form: {
@@ -128,3 +137,17 @@ function updateField(field, value) {
   })
 }
 </script>
+
+<style scoped>
+.text-link {
+  border: 0;
+  background: transparent;
+  color: var(--brand, #00add9);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+</style>
