@@ -1,8 +1,8 @@
 class AddVerificationProduct < ActiveRecord::Migration[8.1]
   def up
     now = Time.current
-    product = {
-      code: "verification-brand",
+    product = create_insertable_model.find_or_initialize_by(code: "verification-brand")
+    product.assign_attributes(
       currency: "RON",
       region: "OSIM / EUIPO",
       price_label: "0 Lei",
@@ -26,11 +26,10 @@ class AddVerificationProduct < ActiveRecord::Migration[8.1]
       image_key: nil,
       position: 80,
       active: true,
-      created_at: now,
+      created_at: product.created_at || now,
       updated_at: now
-    }
-
-    create_insertable_model.upsert_all([ product ], unique_by: :code)
+    )
+    product.save!
   end
 
   def down
