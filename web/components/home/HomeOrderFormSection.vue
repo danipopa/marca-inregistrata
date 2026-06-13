@@ -46,6 +46,7 @@
             <select
               :value="selectedProductCode"
               required
+              :class="{ 'field-error': isFieldInvalid('product') }"
               @change="$emit('update:selectedProductCode', $event.target.value)"
             >
               <option
@@ -56,6 +57,12 @@
                 {{ plan.region }} - {{ plan.title }} ({{ plan.price }})
               </option>
             </select>
+            <p
+              v-if="isFieldInvalid('product')"
+              class="field-hint field-hint--error"
+            >
+              {{ labels.requiredFieldHint }}
+            </p>
           </label>
           <label>
             {{ labels.markLabel }} *
@@ -64,8 +71,15 @@
               type="text"
               :placeholder="labels.markPlaceholder"
               required
+              :class="{ 'field-error': isFieldInvalid('mark') }"
               @input="updateForm('mark', $event.target.value)"
             >
+            <p
+              v-if="isFieldInvalid('mark')"
+              class="field-hint field-hint--error"
+            >
+              {{ labels.requiredFieldHint }}
+            </p>
           </label>
           <label>
             {{ labels.classesLabel }} *
@@ -113,7 +127,7 @@
               <button
                 type="button"
                 class="nisa-picker__trigger"
-                :class="{ empty: !selectedNiceClass }"
+                :class="{ 'empty': !selectedNiceClass, 'field-error': isFieldInvalid('niceClass') }"
                 :aria-expanded="nisaPickerOpen"
                 @click="$emit('update:nisaPickerOpen', !nisaPickerOpen)"
               >
@@ -142,6 +156,12 @@
                 </button>
               </div>
             </div>
+            <p
+              v-if="isFieldInvalid('niceClass')"
+              class="field-hint field-hint--error"
+            >
+              {{ labels.requiredFieldHint }}
+            </p>
           </label>
           <div
             v-if="selectedNiceClass"
@@ -189,10 +209,17 @@
               :checked="form.terms"
               type="checkbox"
               required
+              :class="{ 'field-error': isFieldInvalid('terms') }"
               @change="updateForm('terms', $event.target.checked)"
             >
             <span>{{ labels.termsLabel }}</span>
           </label>
+          <p
+            v-if="isFieldInvalid('terms')"
+            class="field-hint field-hint--error"
+          >
+            {{ labels.requiredFieldHint }}
+          </p>
         </div>
 
         <div class="form-actions">
@@ -208,6 +235,7 @@
             v-if="currentStep < steps.length - 1"
             type="button"
             class="primary-btn"
+            :disabled="nextDisabled"
             @click="$emit('update:currentStep', currentStep + 1)"
           >
             {{ labels.next }}
@@ -216,6 +244,7 @@
             v-else
             type="button"
             class="primary-btn"
+            :disabled="submitDisabled"
             @click="$emit('addToCart')"
           >
             {{ labels.addToCart }}
@@ -229,6 +258,24 @@
           {{ cartMessage }}
         </p>
 
+        <div
+          v-if="cartMessage"
+          class="post-add-actions"
+        >
+          <NuxtLink
+            class="primary-btn"
+            to="/checkout"
+          >
+            {{ labels.checkout }}
+          </NuxtLink>
+          <NuxtLink
+            class="ghost-btn"
+            to="/"
+          >
+            {{ labels.continueShopping }}
+          </NuxtLink>
+        </div>
+
         <p
           v-if="submitError"
           class="error-message"
@@ -241,6 +288,8 @@
 </template>
 
 <script setup>
+import { computed } from 'vue'
+
 const emit = defineEmits([
   'addToCart',
   'selectNiceClass',
@@ -317,6 +366,37 @@ const props = defineProps({
   },
 })
 
+const nextDisabled = computed(() => {
+  if (props.currentStep === 0) {
+    return !props.selectedProductCode || !props.form.mark?.trim()
+  }
+
+  if (props.currentStep === 1) {
+    return !props.selectedNiceClass
+  }
+
+  return false
+})
+
+const submitDisabled = computed(() => !props.form.terms)
+
+function isFieldInvalid(field) {
+  if (props.currentStep === 0) {
+    return (field === 'product' && !props.selectedProductCode)
+      || (field === 'mark' && !props.form.mark?.trim())
+  }
+
+  if (props.currentStep === 1) {
+    return field === 'niceClass' && !props.selectedNiceClass
+  }
+
+  if (props.currentStep === 2) {
+    return field === 'terms' && !props.form.terms
+  }
+
+  return false
+}
+
 function updateForm(field, value) {
   emit('update:form', {
     ...props.form,
@@ -324,3 +404,34 @@ function updateForm(field, value) {
   })
 }
 </script>
+
+<style scoped>
+.primary-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  filter: grayscale(0.15);
+}
+
+.field-error {
+  border-color: #c44d4d !important;
+  box-shadow: inset 0 0 0 1px #c44d4d;
+}
+
+.field-hint {
+  margin: 8px 0 0;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.field-hint--error {
+  color: #a23b3b;
+}
+
+.post-add-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 16px;
+}
+</style>
