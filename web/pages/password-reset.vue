@@ -85,7 +85,7 @@
               class="ghost-btn"
               to="/account"
             >
-              {{ accountLabels.login }}
+              {{ accountLabels.backToLogin }}
             </NuxtLink>
           </div>
         </form>

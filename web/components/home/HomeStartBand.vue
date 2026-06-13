@@ -15,7 +15,7 @@
       </p>
       <a
         class="outline-btn"
-        href="#formular"
+        href="/order"
         @click.prevent="$emit('openVerificationForm')"
       >{{ labels.startCta }}</a>
     </div>

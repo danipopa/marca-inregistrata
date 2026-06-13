@@ -55,31 +55,6 @@
         @update:form="updateMonitoringForm"
       />
 
-      <HomeOrderFormSection
-        :cart-message="cartMessage"
-        :class-label="classLabel"
-        :current-step="currentStep"
-        :form="form"
-        :formatted-total="formattedTotal"
-        :is-osim-renewal-product="Boolean(isOsimRenewalProduct)"
-        :labels="t"
-        :nice-classes="niceClasses"
-        :nisa-picker-open="nisaPickerOpen"
-        :plans="orderFormPlans"
-        :selected-nice-class="selectedNiceClass"
-        :selected-product="selectedProduct"
-        :selected-product-code="selectedProductCode"
-        :steps="steps"
-        :submit-error="submitError"
-        :visible="orderFormVisible"
-        @add-to-cart="addToCart"
-        @select-nice-class="selectNiceClass"
-        @update:current-step="currentStep = $event"
-        @update:form="updateOrderForm"
-        @update:nisa-picker-open="nisaPickerOpen = $event"
-        @update:selected-product-code="selectProduct"
-      />
-
       <HomeContactSection
         :error="contactError"
         :form="contactForm"
@@ -102,7 +77,7 @@
 </template>
 
 <script setup>
-import { computed, nextTick, onMounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, reactive, ref } from 'vue'
 import { niceClasses2024 } from '~/data/niceClasses2024'
 import blackWhiteTrademarkUrl from '../assets/images/MARCA_TA_ALB_NEGRU-removebg-preview.png'
 import colorTrademarkUrl from '../assets/images/MARCA_TA_COLOR-removebg-preview.png'
@@ -117,12 +92,8 @@ const selectedCurrency = ref('RON')
 const selectedProductCode = ref('ro-word')
 const productCatalog = ref([])
 const siteTheme = ref({})
-const currentStep = ref(0)
-const orderFormVisible = ref(false)
-const submitError = ref('')
 const cartMessage = ref('')
 const monitoringError = ref('')
-const nisaPickerOpen = ref(false)
 const contactSubmitting = ref(false)
 const contactError = ref('')
 const contactSuccess = ref('')
@@ -143,20 +114,11 @@ const {
 const brandName = computed(() => siteTheme.value.brand_name || 'SANDU și Asociații IP Attorney')
 const footerCopy = computed(() => siteTheme.value.footer_text || t.value.footerCopy)
 const copyrightText = computed(() => `© 2026 ${brandName.value}. ${t.value.rightsReserved}`)
-const steps = computed(() => t.value.steps)
 
 useHead(() => ({
   title: t.value.metaTitle,
 }))
 
-const form = reactive({
-  mark: '',
-  classes: 1,
-  primaryClass: '',
-  goods: '',
-  ownerChangeRequested: false,
-  terms: false,
-})
 const monitoringForm = reactive({
   mark: '',
   offices: ['RO', 'EM'],
@@ -204,21 +166,12 @@ const niceClasses = computed(() => niceClasses2024.map(niceClass => ({
   typeLabel: niceClass.type === 'goods' ? t.value.niceGoods : t.value.niceServices,
   detail: selectedLanguage.value === 'ro' ? niceClass.officialRo : niceClass.summaryEn,
 })))
-const selectedNiceClass = computed(() => niceClasses.value.find(niceClass => niceClass.value === form.primaryClass))
-const orderFormPlans = computed(() => plans.value.filter(plan => !isMonitoringCode(plan.code)))
 const registrationPlans = computed(() => plans.value.filter(plan => !isRenewalCode(plan.code) && !isMonitoringCode(plan.code) && !isVerificationCode(plan.code)))
 const renewalPlans = computed(() => plans.value.filter(plan => isRenewalCode(plan.code)))
 const visiblePlans = computed(() => registrationPlans.value.filter(plan => plan.currency === selectedCurrency.value))
-const selectedProduct = computed(() => plans.value.find(plan => plan.code === selectedProductCode.value) || plans.value[0] || null)
 const monitoringProduct = computed(() => plans.value.find(plan => plan.code === 'monitoring-brand') || t.value.products['monitoring-brand'])
-const selectedProductCurrency = computed(() => selectedProduct.value?.currency || 'RON')
-const isOsimRenewalProduct = computed(() => selectedProduct.value && isOsimRenewalCode(selectedProduct.value.code))
-const total = computed(() => selectedProduct.value ? selectedProduct.value.baseLei + extraClassTotal(form.classes, selectedProduct.value.code) + ownerChangeTotal.value : 0)
-const ownerChangeTotal = computed(() => isOsimRenewalProduct.value && form.ownerChangeRequested ? 477 : 0)
-const formattedTotal = computed(() => formatMoney(total.value, selectedProductCurrency.value))
 const monitoringTotal = computed(() => Number(monitoringProduct.value?.baseLei || monitoringProduct.value?.base_lei || 726))
 const monitoringPriceLabel = computed(() => formatMoney(monitoringTotal.value, 'RON'))
-const canAddToCart = computed(() => selectedProduct.value && form.mark && form.primaryClass && form.terms)
 const canAddMonitoringToCart = computed(() => monitoringForm.mark.trim().length >= 2 && monitoringForm.terms)
 
 async function loadProducts() {
@@ -255,18 +208,6 @@ function isRenewalCode(code) {
   return code?.startsWith('renew-')
 }
 
-function isOsimRenewalCode(code) {
-  return code?.startsWith('renew-ro-')
-}
-
-function isOsimCode(code) {
-  return code?.startsWith('ro-') || code?.startsWith('renew-ro-')
-}
-
-function isEuipoCode(code) {
-  return code?.startsWith('eu-') || code?.startsWith('renew-eu-')
-}
-
 function isMonitoringCode(code) {
   return code?.startsWith('monitoring-')
 }
@@ -280,47 +221,10 @@ function formatMoney(amount, currency = 'RON') {
   return `${Number(amount || 0).toLocaleString(locale.value)} ${suffix}`
 }
 
-function extraClassTotal(count, productCode) {
-  const classCount = Math.max(1, Math.min(Number(count || 1), 11))
-  if (isOsimCode(productCode)) return (classCount - 1) * 254
-  if (isEuipoCode(productCode)) {
-    return {
-      1: 0,
-      2: 50,
-      3: 200,
-      4: 350,
-      5: 500,
-      6: 650,
-      7: 800,
-      8: 950,
-      9: 1100,
-      10: 1250,
-      11: 1400,
-    }[classCount] || 0
-  }
-  if (isVerificationCode(productCode)) return 0
-  return (classCount - 1) * 449
-}
-
-function classLabel(count) {
-  if (count === 1) return t.value.oneClass
-  if (selectedProduct.value) {
-    return t.value.renewalMultipleClasses(count, extraClassTotal(count, selectedProduct.value.code), selectedProductCurrency.value === 'EUR' ? 'EUR' : 'Lei')
-  }
-  return t.value.multipleClasses(count)
-}
-
-function selectProduct(code) {
-  selectedProductCode.value = code
-  if (!isOsimRenewalCode(code)) form.ownerChangeRequested = false
-}
-
 function openOrderForm(code = selectedProductCode.value) {
-  selectProduct(code)
-  orderFormVisible.value = true
-  currentStep.value = 0
-  nextTick(() => {
-    document.getElementById('formular')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  navigateTo({
+    path: '/order',
+    query: { code },
   })
 }
 
@@ -331,44 +235,14 @@ function openVerificationForm() {
 
 function setLanguage(code) {
   setPreferredLanguage(code)
-  form.primaryClass = ''
-  nisaPickerOpen.value = false
 }
 
 function updateMonitoringForm(updatedForm) {
   Object.assign(monitoringForm, updatedForm)
 }
 
-function updateOrderForm(updatedForm) {
-  Object.assign(form, updatedForm)
-}
-
 function updateContactForm(updatedForm) {
   Object.assign(contactForm, updatedForm)
-}
-
-function selectNiceClass(niceClass) {
-  form.primaryClass = niceClass.value
-  nisaPickerOpen.value = false
-}
-
-function buildCartItem() {
-  if (!selectedProduct.value) return null
-
-  return {
-    id: crypto.randomUUID(),
-    productCode: selectedProductCode.value,
-    productTitle: selectedProduct.value.title,
-    mark: form.mark,
-    classes: form.classes,
-    primaryClass: form.primaryClass,
-    goods: form.goods,
-    ownerChangeRequested: isOsimRenewalProduct.value && form.ownerChangeRequested,
-    terms: form.terms,
-    total: total.value,
-    currency: selectedProductCurrency.value,
-    formattedTotal: formattedTotal.value,
-  }
 }
 
 function monitoringGoodsDescription() {
@@ -401,25 +275,6 @@ function addMonitoringToCart() {
     currency: 'RON',
     formattedTotal: monitoringPriceLabel.value,
   })
-  cartMessage.value = t.value.cartAdded
-}
-
-function addToCart() {
-  submitError.value = ''
-  cartMessage.value = ''
-
-  if (!canAddToCart.value) {
-    if (!form.mark) submitError.value = t.value.missingMark
-    else if (!form.primaryClass) submitError.value = t.value.missingNiceClass
-    else if (!form.terms) submitError.value = t.value.missingTerms
-    else submitError.value = t.value.submitError
-    return
-  }
-
-  const cartItem = buildCartItem()
-  if (!cartItem) return
-
-  addCartItem(cartItem)
   cartMessage.value = t.value.cartAdded
 }
 
@@ -467,10 +322,6 @@ onMounted(() => {
   loadCart()
   loadProducts()
   loadSiteTheme()
-})
-
-watch(selectedProductCode, (code) => {
-  if (!isOsimRenewalCode(code)) form.ownerChangeRequested = false
 })
 </script>
 

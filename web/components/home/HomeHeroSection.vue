@@ -23,7 +23,7 @@
           >{{ labels.heroAccount }}</a>
           <a
             class="text-link"
-            href="#formular"
+            href="/order"
             @click.prevent="$emit('openOrderForm')"
           >{{ labels.heroForm }}</a>
         </div>
