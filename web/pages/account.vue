@@ -29,6 +29,7 @@
           :mfa-challenge="mfaChallenge"
           :mode="authMode"
           :submit-label="authSubmitLabel"
+          @reset-password="goToPasswordReset"
           @submit="submitAuth"
           @update:form="updateAuthForm"
           @update:mode="setAuthMode"
@@ -369,6 +370,13 @@ function setAuthMode(mode) {
   authMode.value = mode
   mfaChallenge.value = null
   authForm.otpCode = ''
+}
+
+function goToPasswordReset() {
+  navigateTo({
+    path: '/password-reset',
+    query: authForm.email ? { email: authForm.email } : {},
+  })
 }
 
 function updateBillingForm(form) {

@@ -11,6 +11,7 @@
             :hydrating="authHydrating"
             :loading="loading"
             :mfa-challenge="mfaChallenge"
+            @reset-password="goToPasswordReset"
             @submit="login"
             @update:form="updateLoginForm"
           />
@@ -345,6 +346,10 @@ function clearAdminSession() {
 
 function updateLoginForm(form) {
   Object.assign(loginForm, form)
+}
+
+function goToPasswordReset() {
+  navigateTo('/password-reset')
 }
 
 function updateProductForm(form) {
