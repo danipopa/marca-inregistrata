@@ -13,6 +13,7 @@ Rails.application.routes.draw do
       resource :session, only: %i[create show destroy]
       post "session/mfa", to: "sessions#mfa"
       post "session/google", to: "sessions#google"
+      resource :password_reset, only: %i[create update]
       get "account", to: "accounts#show"
       patch "account", to: "accounts#update"
       post "account/mfa/reset", to: "account_mfa#reset"

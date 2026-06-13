@@ -18,6 +18,30 @@ class UserTest < ActiveSupport::TestCase
     assert_nil User.find_by_token("not-the-token")
   end
 
+  test "issues and validates password reset tokens" do
+    user = User.create_with_password!(email: "client@example.com", password: "password123")
+    token = user.issue_password_reset_token!
+
+    assert user.valid_password_reset_token?(token)
+    refute user.valid_password_reset_token?("not-the-token")
+    assert user.password_reset_token_digest.present?
+    assert user.password_reset_sent_at.present?
+  end
+
+  test "resets password and clears auth state" do
+    user = User.create_with_password!(email: "client@example.com", password: "password123")
+    auth_token = user.issue_auth_token!
+    user.issue_password_reset_token!
+
+    user.reset_password!(password: "newpassword456")
+
+    assert user.authenticate("newpassword456")
+    assert_nil user.auth_token_digest
+    assert_nil user.password_reset_token_digest
+    assert_nil user.password_reset_sent_at
+    assert_nil User.find_by_token(auth_token)
+  end
+
   test "creates or links a google identity" do
     existing_user = User.create_with_password!(email: "client@example.com", password: "password123")
 
