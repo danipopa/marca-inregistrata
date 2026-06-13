@@ -52,10 +52,10 @@
             </li>
           </ul>
           <a
-            href="#formular"
+            href="/order"
             class="register-btn"
             @click.prevent="$emit('openOrderForm', plan.code)"
-          >{{ labels.buy }}</a>
+          >{{ labels.continueWizard }}</a>
         </article>
       </div>
     </div>

@@ -98,7 +98,7 @@
 
       <button
         v-if="!mfaChallenge && mode === 'login'"
-        class="text-link"
+        class="ghost-btn reset-password-btn"
         type="button"
         @click="$emit('reset-password')"
       >
@@ -167,16 +167,11 @@ watch(
 </script>
 
 <style scoped>
-.text-link {
-  border: 0;
-  background: transparent;
-  color: var(--brand, #00add9);
+.reset-password-btn {
+  border-color: var(--line, #ded8cf);
+  background: #fff;
+  color: var(--ink, #1f1d1a);
   cursor: pointer;
-  font: inherit;
   font-weight: 700;
-  justify-self: start;
-  padding: 0;
-  text-decoration: underline;
-  text-underline-offset: 4px;
 }
 </style>
