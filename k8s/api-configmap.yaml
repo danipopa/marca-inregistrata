@@ -16,3 +16,5 @@ data:
   DATABASE_CACHE_NAME: marca_inregistrata_cache
   DATABASE_QUEUE_NAME: marca_inregistrata_queue
   DATABASE_CABLE_NAME: marca_inregistrata_cable
+  PAYPAL_BASE_URL: https://api-m.sandbox.paypal.com
+  FRONTEND_URL: https://inregistrare-marca.com

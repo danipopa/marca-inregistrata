@@ -123,8 +123,8 @@ defineEmits(['update:selectedLanguage'])
 
 .brand__logo {
   display: block;
-  width: 158px;
-  height: 52px;
+  width: 196px;
+  height: 64px;
   background-image: var(--fallback-logo-image);
   background-position: left center;
   background-repeat: no-repeat;
@@ -152,6 +152,11 @@ defineEmits(['update:selectedLanguage'])
     align-items: flex-start;
     flex-direction: column;
     padding: 14px 0;
+  }
+
+  .brand__logo {
+    width: 176px;
+    height: 58px;
   }
 
   .main-nav {
