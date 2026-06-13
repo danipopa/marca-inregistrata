@@ -4,16 +4,18 @@ class AddRenewalProductsAndRequestOptions < ActiveRecord::Migration[8.1]
     add_column :trademark_requests, :owner_change_requested, :boolean, null: false, default: false unless column_exists?(:trademark_requests, :owner_change_requested)
 
     now = Time.current
-    products = renewal_products.map do |product|
-      product.merge(
-        items_ro: product[:items_ro].to_json,
-        items_en: product[:items_en].to_json,
-        created_at: now,
-        updated_at: now
+    renewal_products.each do |attributes|
+      product = create_insertable_model.find_or_initialize_by(code: attributes[:code])
+      product.assign_attributes(
+        attributes.except(:code, :items_ro, :items_en).merge(
+          items_ro: attributes[:items_ro].to_json,
+          items_en: attributes[:items_en].to_json,
+          created_at: product.created_at || now,
+          updated_at: now
+        )
       )
+      product.save!
     end
-
-    create_insertable_model.upsert_all(products, unique_by: :code)
   end
 
   def down
