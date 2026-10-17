@@ -59,7 +59,7 @@ This establishes technical SEO foundations; it does not promise search ranking, 
 
 ## Google Search Console
 
-The domain owner must add and verify a Search Console domain property, normally through its DNS TXT record. No Google credentials or verification tokens have been added. Once the production changes are live, submit `https://inregistrare-marca.com/sitemap.xml`, inspect the home URL, and monitor indexing, search queries, impressions, clicks, and Core Web Vitals. Search Console metrics are separate from the first-party Traffic dashboard.
+For the current Search Console URL-prefix property, the repository includes `web/public/google5b3305c96c68d751.html`. After deploying the updated web image, open `https://inregistrare-marca.com/google5b3305c96c68d751.html` and click **Verify** in Search Console. Keep the file in source control and future deployments. A domain-wide property instead requires DNS verification. No Google account credentials are stored in the application; the verification file is intended to be public. Once verified, submit `https://inregistrare-marca.com/sitemap.xml`, inspect the home URL, and monitor indexing, search queries, impressions, clicks, and Core Web Vitals. Search Console metrics are separate from the first-party Traffic dashboard.
 
 Google documentation: [developer SEO guide](https://developers.google.com/search/docs/fundamentals/get-started-developers), [JavaScript SEO](https://developers.google.com/search/docs/crawling-indexing/javascript/javascript-seo-basics).
 
