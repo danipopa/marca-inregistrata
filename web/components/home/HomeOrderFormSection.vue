@@ -65,7 +65,7 @@
             </p>
           </label>
           <label>
-            {{ labels.markLabel }} *
+            {{ markLabel }} *
             <input
               :value="form.mark"
               type="text"
@@ -81,8 +81,8 @@
               {{ labels.requiredFieldHint }}
             </p>
           </label>
-          <label>
-            {{ labels.classesLabel }} *
+          <label v-if="!isVerificationProduct">
+            {{ isRenewalProduct ? labels.renewalClassesLabel : labels.classesLabel }} *
             <select
               :value="form.classes"
               @change="updateForm('classes', Number($event.target.value))"
@@ -98,7 +98,7 @@
           </label>
           <div class="included-box">
             <strong>{{ labels.includedTitle }}</strong>
-            <span>{{ labels.includedCopy }}</span>
+            <span>{{ isRenewalProduct ? labels.renewalIncludedCopy : labels.includedCopy }}</span>
           </div>
           <label
             v-if="isOsimRenewalProduct"
@@ -117,11 +117,11 @@
           v-else-if="currentStep === 1"
           class="form-step"
         >
-          <h2>{{ labels.stepTwoTitle }}</h2>
+          <h2>{{ isVerificationProduct ? labels.verificationStepTwoTitle : labels.stepTwoTitle }}</h2>
           <p class="muted">
-            {{ labels.stepTwoCopy }}
+            {{ isVerificationProduct ? labels.verificationStepTwoCopy : labels.stepTwoCopy }}
           </p>
-          <label>
+          <label v-if="!isVerificationProduct">
             {{ labels.primaryClassLabel }} *
             <div class="nisa-picker">
               <button
@@ -164,7 +164,7 @@
             </p>
           </label>
           <div
-            v-if="selectedNiceClass"
+            v-if="!isVerificationProduct && selectedNiceClass"
             class="nice-class-details"
           >
             <div class="nice-class-details__head">
@@ -179,8 +179,8 @@
               <span v-if="form.classes > 1">{{ labels.extraClassesHint }}</span>
             </div>
           </div>
-          <label>
-            {{ labels.goodsLabel }}
+          <label v-if="!isRenewalProduct">
+            {{ isVerificationProduct ? labels.verificationGoodsLabel : labels.goodsLabel }}
             <textarea
               :value="form.goods"
               rows="5"
@@ -235,8 +235,7 @@
             v-if="currentStep < steps.length - 1"
             type="button"
             class="primary-btn"
-            :disabled="nextDisabled"
-            @click="$emit('update:currentStep', currentStep + 1)"
+            @click="goToNextStep"
           >
             {{ labels.next }}
           </button>
@@ -244,8 +243,7 @@
             v-else
             type="button"
             class="primary-btn"
-            :disabled="submitDisabled"
-            @click="$emit('addToCart')"
+            @click="addToCart"
           >
             {{ labels.addToCart }}
           </button>
@@ -288,7 +286,7 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 const emit = defineEmits([
   'addToCart',
@@ -366,28 +364,42 @@ const props = defineProps({
   },
 })
 
-const nextDisabled = computed(() => {
+const isRenewalProduct = computed(() => props.selectedProductCode.startsWith('renew-'))
+const isVerificationProduct = computed(() => props.selectedProductCode.startsWith('verification-'))
+const markLabel = computed(() => {
+  if (isVerificationProduct.value) return props.labels.verificationMarkLabel
+  if (isRenewalProduct.value) return props.labels.renewalMarkLabel
+  return props.labels.markLabel
+})
+
+const attemptedSteps = ref(new Set())
+
+const currentStepInvalid = computed(() => {
   if (props.currentStep === 0) {
     return !props.selectedProductCode || !props.form.mark?.trim()
   }
 
   if (props.currentStep === 1) {
-    return !props.selectedNiceClass
+    return !isVerificationProduct.value && !props.selectedNiceClass
   }
 
   return false
 })
 
-const submitDisabled = computed(() => !props.form.terms)
+function hasAttemptedCurrentStep() {
+  return attemptedSteps.value.has(props.currentStep)
+}
 
 function isFieldInvalid(field) {
+  if (!hasAttemptedCurrentStep()) return false
+
   if (props.currentStep === 0) {
     return (field === 'product' && !props.selectedProductCode)
       || (field === 'mark' && !props.form.mark?.trim())
   }
 
   if (props.currentStep === 1) {
-    return field === 'niceClass' && !props.selectedNiceClass
+    return !isVerificationProduct.value && field === 'niceClass' && !props.selectedNiceClass
   }
 
   if (props.currentStep === 2) {
@@ -395,6 +407,24 @@ function isFieldInvalid(field) {
   }
 
   return false
+}
+
+function markCurrentStepAttempted() {
+  attemptedSteps.value = new Set([...attemptedSteps.value, props.currentStep])
+}
+
+function goToNextStep() {
+  markCurrentStepAttempted()
+  if (currentStepInvalid.value) return
+
+  emit('update:currentStep', props.currentStep + 1)
+}
+
+function addToCart() {
+  markCurrentStepAttempted()
+  if (currentStepInvalid.value) return
+
+  emit('addToCart')
 }
 
 function updateForm(field, value) {

@@ -8,12 +8,12 @@ module Api
         unless current_user.billing_complete?
           return render json: {
             message: "Completeaza datele de contact si facturare in cont inainte de checkout.",
-            errors: { account: ["billing profile is incomplete"] }
+            errors: { account: [ "billing profile is incomplete" ] }
           }, status: :unprocessable_entity
         end
 
         unless ActiveModel::Type::Boolean.new.cast(request_params[:terms])
-          return render json: { errors: { terms: ["must be accepted"] } }, status: :unprocessable_entity
+          return render json: { errors: { terms: [ "must be accepted" ] } }, status: :unprocessable_entity
         end
 
         trademark_request = TrademarkRequest.new(trademark_request_attributes)
@@ -41,6 +41,8 @@ module Api
           :classes,
           :primary_class,
           :goods,
+          :registration_number,
+          :registration_office,
           :payment,
           :owner_change_requested,
           :terms
@@ -49,11 +51,11 @@ module Api
 
       def attach_checkout!(trademark_request)
         checkout = case trademark_request.payment_method
-                   when "card"
+        when "card"
                      Payments::StripeCheckout.create!(trademark_request)
-                   when "paypal"
+        when "paypal"
                      Payments::PaypalCheckout.create!(trademark_request)
-                   end
+        end
 
         return unless checkout
 

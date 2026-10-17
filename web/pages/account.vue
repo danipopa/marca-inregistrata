@@ -218,6 +218,7 @@
 import { computed, onMounted, reactive, ref } from 'vue'
 
 const config = useRuntimeConfig()
+const { trackEvent, trackPurchase } = useAnalytics()
 const route = useRoute()
 const authMode = ref('login')
 const account = ref(null)
@@ -465,6 +466,8 @@ async function submitCartItem(item) {
         classes: item.classes,
         primary_class: item.primaryClass,
         goods: item.goods,
+        registration_number: item.registrationNumber,
+        registration_office: item.registrationOffice,
         owner_change_requested: item.ownerChangeRequested,
         payment: checkoutPayment.value,
         terms: item.terms,
@@ -491,13 +494,17 @@ async function checkoutCart() {
     return
   }
 
+  if (!cartItems.value.length) return
+  trackEvent('begin_checkout', { items: cartItems.value })
   submittingCheckout.value = true
 
   try {
     const payloads = []
 
     for (const item of cartItems.value) {
-      payloads.push(await submitCartItem(item))
+      const result = await submitCartItem(item)
+      payloads.push(result)
+      trackEvent('order_submitted', { items: [result] })
     }
 
     clearCart()
@@ -678,6 +685,7 @@ async function verifyReturnedPayment() {
       throw new Error(payload.message || t.value.paymentNotVerified)
     }
 
+    trackPurchase(payload)
     paymentVerificationState.value = payload.verified ? 'verified' : 'failed'
     paymentVerificationMessage.value = payload.verified ? t.value.paymentVerified : t.value.paymentNotVerified
     await loadAccount()

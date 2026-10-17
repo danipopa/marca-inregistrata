@@ -3,7 +3,6 @@
     <div class="wrap top-strip__inner">
       <div class="contact-line">
         <a href="tel:0770898767">0770 898 767</a>
-        <a href="mailto:contact@inregistrare-marca.com">contact@inregistrare-marca.com</a>
         <a
           v-if="showOfficeEmail"
           href="mailto:office@sandusiasociatii.ro"

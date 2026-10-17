@@ -79,6 +79,8 @@ class TrademarkRequestTest < ActiveSupport::TestCase
       email: "client@example.com",
       phone: "0712345678",
       product_code: "monitoring-brand",
+      registration_number: "000123",
+      registration_office: "OSIM",
       classes_count: 6
     )
 

@@ -31,10 +31,13 @@
       />
 
       <HomeRenewalSection
+        :currencies="currencies"
         :labels="t"
-        :plans="renewalPlans"
+        :plans="visibleRenewalPlans"
+        :selected-currency="selectedRenewalCurrency"
         :selected-product-code="selectedProductCode"
         @open-order-form="openOrderForm"
+        @update:selected-currency="selectedRenewalCurrency = $event"
       />
 
       <HomeStartBand
@@ -48,9 +51,7 @@
         :form="monitoringForm"
         :labels="t"
         :message="cartMessage"
-        :nice-classes="niceClasses"
         :price-label="monitoringPriceLabel"
-        :selected-language="selectedLanguage"
         @add-monitoring-to-cart="addMonitoringToCart"
         @update:form="updateMonitoringForm"
       />
@@ -78,7 +79,6 @@
 
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
-import { niceClasses2024 } from '~/data/niceClasses2024'
 import blackWhiteTrademarkUrl from '../assets/images/MARCA_TA_ALB_NEGRU-removebg-preview.png'
 import colorTrademarkUrl from '../assets/images/MARCA_TA_COLOR-removebg-preview.png'
 import heroHomeUrl from '../assets/images/home_img.png'
@@ -91,6 +91,7 @@ const currencies = [
 const selectedCurrency = ref('RON')
 const selectedProductCode = ref('ro-word')
 const productCatalog = ref([])
+const selectedRenewalCurrency = ref('RON')
 const siteTheme = ref({})
 const cartMessage = ref('')
 const monitoringError = ref('')
@@ -119,10 +120,12 @@ useHead(() => ({
   title: t.value.metaTitle,
 }))
 
+const { trackEvent } = useAnalytics()
+
 const monitoringForm = reactive({
   mark: '',
-  offices: ['RO', 'EM'],
-  classes: [],
+  registrationNumber: '',
+  registrationOffice: '',
   notes: '',
   terms: false,
 })
@@ -139,40 +142,44 @@ const productImages = {
   color: colorTrademarkUrl,
 }
 
+function defaultProductImage(product) {
+  const configuredImage = productImages[product.image_key]
+  if (configuredImage) return configuredImage
+  if (product.region !== 'EUIPO' && !isRenewalCode(product.code)) return
+
+  const trademarkType = [
+    product.code,
+    product.translations?.ro?.title,
+    product.translations?.en?.title,
+  ].filter(Boolean).join(' ').toLowerCase()
+
+  if (/\b(word|verbal[ae]?)\b/.test(trademarkType)) return productImages.verbal
+  if (/\b(monochrome|alb[ -]negru|black[ -]and[ -]white)\b/.test(trademarkType)) return productImages.black_white
+  if (/\b(colou?r)\b/.test(trademarkType)) return productImages.color
+}
+
 const plans = computed(() => productCatalog.value.map((product) => {
   const translatedProduct = product.translations?.[selectedLanguage.value] || t.value.products[product.code]
 
   return {
     ...product,
     ...translatedProduct,
-    image: product.image || productImages[product.image_key],
+    image: product.image || defaultProductImage(product),
     baseLei: product.baseLei ?? product.base_lei,
   }
 }))
-function niceClassTitle(niceClass) {
-  const text = selectedLanguage.value === 'ro' ? niceClass.officialRo : niceClass.summaryEn
-  return text.split(';')[0].trim()
-}
 
-const niceClasses = computed(() => niceClasses2024.map(niceClass => ({
-  ...niceClass,
-  title: niceClassTitle(niceClass),
-  label: selectedLanguage.value === 'ro'
-    ? `Clasa ${niceClass.number}: ${niceClassTitle(niceClass)}`
-    : `Class ${niceClass.number}: ${niceClassTitle(niceClass)}`,
-  value: selectedLanguage.value === 'ro'
-    ? `Clasa ${niceClass.number}: ${niceClassTitle(niceClass)}`
-    : `Class ${niceClass.number}: ${niceClassTitle(niceClass)}`,
-  typeLabel: niceClass.type === 'goods' ? t.value.niceGoods : t.value.niceServices,
-  detail: selectedLanguage.value === 'ro' ? niceClass.officialRo : niceClass.summaryEn,
-})))
 const registrationPlans = computed(() => plans.value.filter(plan => !isRenewalCode(plan.code) && !isMonitoringCode(plan.code) && !isVerificationCode(plan.code)))
 const renewalPlans = computed(() => plans.value.filter(plan => isRenewalCode(plan.code)))
+const visibleRenewalPlans = computed(() => renewalPlans.value.filter(plan => plan.currency === selectedRenewalCurrency.value))
 const visiblePlans = computed(() => registrationPlans.value.filter(plan => plan.currency === selectedCurrency.value))
 const monitoringProduct = computed(() => plans.value.find(plan => plan.code === 'monitoring-brand') || t.value.products['monitoring-brand'])
 const monitoringTotal = computed(() => Number(monitoringProduct.value?.baseLei || monitoringProduct.value?.base_lei || 726))
 const monitoringPriceLabel = computed(() => formatMoney(monitoringTotal.value, 'RON'))
-const canAddMonitoringToCart = computed(() => monitoringForm.mark.trim().length >= 2 && monitoringForm.terms)
+const canAddMonitoringToCart = computed(() => monitoringForm.mark.trim().length >= 2
+  && monitoringForm.registrationNumber.trim().length > 0
+  && ['OSIM', 'EUIPO', 'WIPO'].includes(monitoringForm.registrationOffice)
+  && monitoringForm.terms)
 
 async function loadProducts() {
   try {
@@ -246,10 +253,11 @@ function updateContactForm(updatedForm) {
 }
 
 function monitoringGoodsDescription() {
-  const offices = monitoringForm.offices.length ? monitoringForm.offices.join(', ') : 'OSIM, EUIPO, WIPO'
-  const classes = monitoringForm.classes.length ? monitoringForm.classes.join(', ') : '-'
-  const notes = monitoringForm.notes.trim() || '-'
-  return `Oficii monitorizate: ${offices}\nClase NISA urmarite: ${classes}\nObservatii: ${notes}`
+  return [
+    `${t.value.monitoringRegistrationNumberLabel}: ${monitoringForm.registrationNumber.trim()}`,
+    `${t.value.monitoringRegistrationOfficeLabel}: ${monitoringForm.registrationOffice}`,
+    `${t.value.monitoringNotesLabel}: ${monitoringForm.notes.trim() || '-'}`,
+  ].join('\n')
 }
 
 function addMonitoringToCart() {
@@ -257,13 +265,23 @@ function addMonitoringToCart() {
   cartMessage.value = ''
 
   if (!canAddMonitoringToCart.value) {
-    monitoringError.value = !monitoringForm.mark ? t.value.missingMark : t.value.missingTerms
+    if (monitoringForm.mark.trim().length < 2) {
+      monitoringError.value = t.value.missingMark
+    }
+    else if (!monitoringForm.registrationNumber.trim() || !['OSIM', 'EUIPO', 'WIPO'].includes(monitoringForm.registrationOffice)) {
+      monitoringError.value = t.value.monitoringMissingRegistration
+    }
+    else {
+      monitoringError.value = t.value.missingTerms
+    }
     return
   }
 
   addCartItem({
     id: crypto.randomUUID(),
     productCode: 'monitoring-brand',
+    registrationNumber: monitoringForm.registrationNumber.trim(),
+    registrationOffice: monitoringForm.registrationOffice,
     productTitle: monitoringProduct.value?.title || t.value.products['monitoring-brand'].title,
     mark: monitoringForm.mark,
     classes: 1,
@@ -304,6 +322,7 @@ async function submitContactMessage() {
       throw new Error(payload.message || t.value.contactError)
     }
 
+    trackEvent('generate_lead')
     contactForm.name = ''
     contactForm.email = ''
     contactForm.phone = ''
@@ -786,8 +805,7 @@ a {
   margin-top: 0;
 }
 
-.monitoring-form input:not([type="checkbox"]),
-.monitoring-form select,
+.monitoring-form input:not([type="checkbox"]):not([type="radio"]),
 .monitoring-form textarea {
   width: 100%;
   border: 1px solid #cfc7bc;
@@ -801,8 +819,36 @@ a {
   resize: vertical;
 }
 
-.monitoring-form select[multiple] {
-  min-height: 150px;
+.monitoring-offices {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.monitoring-offices legend {
+  margin-bottom: 8px;
+  padding: 0;
+  color: #2d2924;
+  font-family: var(--font-family, 'Montserrat', sans-serif);
+  font-weight: 700;
+}
+
+.monitoring-office-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.monitoring-form .monitoring-office-option {
+  display: flex;
+  align-items: center;
+  font-weight: 400;
+}
+
+.monitoring-office-option input {
+  margin: 0;
+  accent-color: var(--ink);
 }
 
 .monitoring-price {
@@ -868,7 +914,7 @@ a {
 
 .renewal-copy h2 {
   margin: 0 0 18px;
-  font-family: var(--display-font-family, 'Playfair Display', serif);
+  font-family: 'Montserrat', sans-serif;
   font-size: 46px;
   font-weight: 500;
   line-height: 1;
@@ -897,25 +943,11 @@ a {
 .renewal-plans {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: 18px;
 }
 
 .renewal-card {
-  min-height: 0;
   background: #fff;
-  padding: 20px;
-}
-
-.renewal-card .price-card__top {
-  min-height: 0;
-}
-
-.renewal-card .price {
-  margin: 16px 0;
-}
-
-.renewal-card ul {
-  margin-bottom: 18px;
 }
 
 .cart-layout {
@@ -1174,7 +1206,8 @@ a {
 }
 
 .start-band {
-  background: var(--cream);
+  background: #00add9;
+  color: #081632;
   border-block: 1px solid var(--line);
   padding: 36px 0;
 }
@@ -1192,9 +1225,22 @@ a {
 
 .start-band p {
   margin: 0;
-  color: var(--muted);
+  color: inherit;
   font-family: var(--font-family, 'Montserrat', sans-serif);
   line-height: 1.6;
+}
+
+.start-band .outline-btn {
+  border-color: #fff;
+  background: #fff;
+  color: #081632;
+}
+
+.start-band .outline-btn:hover,
+.start-band .outline-btn:focus-visible {
+  border-color: #081632;
+  background: #081632;
+  color: #fff;
 }
 
 .outline-btn,

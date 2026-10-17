@@ -104,10 +104,20 @@ defineProps({
 
 <style scoped>
 .site-footer {
+  --footer-font-size: 14px;
   background: var(--brand);
   color: #f8f3ea;
   font-family: var(--font-family, 'Montserrat', sans-serif);
+  font-size: var(--footer-font-size);
   padding: 42px 0 22px;
+}
+
+.site-footer p,
+.site-footer h2,
+.site-footer a,
+.site-footer span {
+  font-size: var(--footer-font-size);
+  line-height: 1.5;
 }
 
 .wrap {
@@ -117,8 +127,13 @@ defineProps({
 
 .footer-grid {
   display: grid;
-  grid-template-columns: minmax(220px, 320px) minmax(220px, 320px) repeat(3, minmax(110px, 0.7fr));
-  gap: clamp(24px, 3vw, 48px);
+  grid-template-columns:
+    minmax(180px, 1.1fr)
+    minmax(180px, 1fr)
+    minmax(120px, 0.7fr)
+    minmax(240px, 1.1fr)
+    minmax(120px, 0.65fr);
+  gap: clamp(20px, 2vw, 36px);
   align-items: start;
 }
 
@@ -138,8 +153,6 @@ defineProps({
   min-width: 0;
   margin: 0;
   color: #f8f3ea;
-  font-size: 14px;
-  line-height: 1.3;
 }
 
 .footer-column {
@@ -151,7 +164,6 @@ defineProps({
 .footer-column h2 {
   margin: 0 0 8px;
   color: #fff;
-  font-size: 13px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
@@ -159,9 +171,8 @@ defineProps({
 .footer-column a,
 .footer-column span {
   color: #fff;
-  font-size: 16px;
-  line-height: 1.35;
   text-decoration: none;
+  overflow-wrap: anywhere;
 }
 
 .footer-column a:hover {
@@ -178,7 +189,6 @@ defineProps({
   border-top: 1px solid rgba(248, 243, 234, 0.16);
   padding-top: 18px;
   color: #b8afa2;
-  font-size: 13px;
 }
 
 .legal-links {

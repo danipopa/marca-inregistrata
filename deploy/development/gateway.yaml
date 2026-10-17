@@ -1,0 +1,91 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: marca-gateway
+data:
+  default.conf: |
+    map $uri $traffic_path {
+      default "(other)";
+      / "/";
+      /order "/order";
+      /checkout "/checkout";
+      /account "/account";
+      /admin "/admin";
+      /robots.txt "/robots.txt";
+      /sitemap.xml "/sitemap.xml";
+      ~^/api/ "/api/*";
+      ~^/_nuxt/ "/_nuxt/*";
+    }
+    log_format traffic_json escape=json '{"event":"gateway_request","method":"$request_method","path":"$traffic_path","status":$status,"bytes_sent":$bytes_sent,"duration_s":$request_time}';
+    access_log /dev/stdout traffic_json;
+    server {
+      listen 8080;
+      client_max_body_size 10m;
+      location /api {
+        proxy_pass http://marca-api:3000;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+      }
+      location / {
+        proxy_pass http://marca-web:80;
+        proxy_set_header Host $http_host;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+      }
+    }
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: marca-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: marca-gateway
+  template:
+    metadata:
+      labels:
+        app: marca-gateway
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:stable-alpine
+          ports:
+            - containerPort: 8080
+              name: http
+          volumeMounts:
+            - name: config
+              mountPath: /etc/nginx/conf.d
+              readOnly: true
+          readinessProbe:
+            tcpSocket:
+              port: http
+          resources:
+            requests:
+              cpu: 25m
+              memory: 32Mi
+            limits:
+              memory: 128Mi
+      volumes:
+        - name: config
+          configMap:
+            name: marca-gateway
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: marca-gateway
+  annotations:
+    metallb.io/address-pool: inregistrare-marca
+    metallb.io/loadBalancerIPs: 192.168.100.240
+spec:
+  type: LoadBalancer
+  selector:
+    app: marca-gateway
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+      nodePort: 30081

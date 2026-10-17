@@ -24,6 +24,13 @@
           <strong>{{ purchase.product_name || productTitle(purchase.product_code) }}</strong>
           <span>{{ purchase.mark }} · {{ purchase.classes }} {{ labels.niceClasses }}</span>
           <small v-if="purchase.owner_change_requested">{{ labels.ownerChangeCartLabel }}</small>
+          <small v-if="purchase.monitoring">
+            {{ labels.monitoringStatusLabel }}:
+            {{ labels.monitoringStatuses[purchase.monitoring.status] || purchase.monitoring.status }}
+          </small>
+          <small v-if="purchase.monitoring?.registration_number">
+            {{ purchase.monitoring.registration_office }} · {{ purchase.monitoring.registration_number }}
+          </small>
         </div>
         <div class="purchase-item__meta">
           <strong>{{ purchase.total.formatted }}</strong>

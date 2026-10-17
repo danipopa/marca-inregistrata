@@ -82,6 +82,16 @@
                   @update-order-field="updateOrderField"
                 />
 
+                <AdminTrafficSection
+                  v-else-if="activeAdminTask === 'traffic'"
+                  :auth-token="authToken"
+                />
+
+                <AdminMonitoringSection
+                  v-else-if="activeAdminTask === 'monitoring'"
+                  :auth-token="authToken"
+                />
+
                 <AdminSettingsSection
                   v-else
                   :fields="themeFields"
@@ -189,6 +199,8 @@ const adminMenuCollapsed = ref(false)
 const adminTasks = [
   { id: 'products', label: 'Products' },
   { id: 'orders', label: 'Orders' },
+  { id: 'monitoring', label: 'Monitoring' },
+  { id: 'traffic', label: 'Traffic' },
   { id: 'settings', label: 'Settings' },
 ]
 const productImages = {
@@ -525,7 +537,13 @@ async function submitMfaCode() {
   const payload = await response.json().catch(() => ({}))
 
   if (!response.ok) {
-    throw new Error(payload.message || 'Invalid authenticator code.')
+    if (payload.errors?.mfa?.includes('challenge expired')) {
+      mfaChallenge.value = null
+      loginForm.otpCode = ''
+      throw new Error('Your authenticator session expired. Sign in again to continue setup.')
+    }
+
+    throw new Error(payload.message || 'Invalid authenticator code. Use the code for the setup key shown here and check that your phone uses automatic date and time.')
   }
 
   if (!payload.user?.admin) {

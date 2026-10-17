@@ -11,7 +11,8 @@
     "build": "nuxt build",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test:analytics": "node --test test/analytics.test.mjs"
   },
   "dependencies": {
     "@nuxtjs/i18n": "^10.4.0",

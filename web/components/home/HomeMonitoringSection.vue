@@ -57,43 +57,38 @@
               >
             </label>
 
-            <div class="field-grid">
-              <label>
-                {{ labels.monitoringOfficeLabel }}
-                <select
-                  :value="form.offices"
-                  multiple
-                  @change="updateForm('offices', selectedValues($event))"
-                >
-                  <option value="RO">
-                    OSIM / RO
-                  </option>
-                  <option value="EM">
-                    EUIPO / UE
-                  </option>
-                  <option value="WO">
-                    WIPO
-                  </option>
-                </select>
-              </label>
+            <label>
+              {{ labels.monitoringRegistrationNumberLabel }}
+              <input
+                :value="form.registrationNumber"
+                type="text"
+                :placeholder="labels.monitoringRegistrationNumberPlaceholder"
+                maxlength="255"
+                required
+                @input="updateForm('registrationNumber', $event.target.value)"
+              >
+            </label>
 
-              <label>
-                {{ labels.monitoringClassLabel }}
-                <select
-                  :value="form.classes"
-                  multiple
-                  @change="updateForm('classes', selectedValues($event))"
+            <fieldset class="monitoring-offices">
+              <legend>{{ labels.monitoringRegistrationOfficeLabel }}</legend>
+              <div class="monitoring-office-options">
+                <label
+                  v-for="office in ['OSIM', 'EUIPO', 'WIPO']"
+                  :key="office"
+                  class="monitoring-office-option"
                 >
-                  <option
-                    v-for="niceClass in niceClasses"
-                    :key="niceClass.number"
-                    :value="String(niceClass.number)"
+                  <input
+                    type="radio"
+                    name="monitoring-registration-office"
+                    :value="office"
+                    :checked="form.registrationOffice === office"
+                    required
+                    @change="updateForm('registrationOffice', office)"
                   >
-                    {{ selectedLanguage === 'ro' ? `Clasa ${niceClass.number}` : `Class ${niceClass.number}` }}
-                  </option>
-                </select>
-              </label>
-            </div>
+                  <span>{{ office }}</span>
+                </label>
+              </div>
+            </fieldset>
 
             <label>
               {{ labels.monitoringNotesLabel }}
@@ -167,23 +162,11 @@ const props = defineProps({
     type: String,
     default: '',
   },
-  niceClasses: {
-    type: Array,
-    required: true,
-  },
   priceLabel: {
     type: String,
     required: true,
   },
-  selectedLanguage: {
-    type: String,
-    required: true,
-  },
 })
-
-function selectedValues(event) {
-  return Array.from(event.target.selectedOptions).map(option => option.value)
-}
 
 function updateForm(field, value) {
   emit('update:form', {

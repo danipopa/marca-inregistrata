@@ -6,7 +6,7 @@
     <div class="wrap">
       <div class="section-head">
         <p class="eyebrow">
-          OSIM / EUIPO
+          {{ labels.pricingEyebrow }}
         </p>
         <h2>{{ labels.pricingTitle }}</h2>
       </div>

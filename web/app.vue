@@ -1,5 +1,13 @@
 <template>
   <NuxtPage />
+  <button
+    v-if="!showCookieBanner"
+    class="cookie-preferences"
+    type="button"
+    @click="showCookieBanner = true"
+  >
+    Preferințe cookies
+  </button>
   <aside
     v-if="showCookieBanner"
     class="cookie-banner"
@@ -7,11 +15,15 @@
   >
     <div class="cookie-copy">
       <p>
-        Acest site foloseste cookies pentru functionare, cos, autentificare si imbunatatirea experientei. Afla mai multe despre politica noastra de cookies.
+        Folosim cookies esențiale pentru funcționare, coș și autentificare.
+        <span v-if="usesGoogleAnalytics">Cu acordul dvs., folosim Google Analytics pentru statistici despre vizite și conversii.</span>
+        <span v-else>Cu acordul dvs., colectăm statistici despre vizite și pagini accesate.</span>
+        <NuxtLink to="/politica-de-confidentialitate">Politica de confidențialitate și cookies</NuxtLink>.
       </p>
       <details>
         <summary>Detalii</summary>
         <p>
+          <span v-if="usesGoogleAnalytics">Cu acordul dvs., folosim Google Analytics pentru statistici despre pagini și conversii. Google poate procesa date în afara Spațiului Economic European. Puteți retrage acordul din Preferințe cookies.</span>
           Dovada acordului este salvata cu versiunea politicii, data acceptarii, identificatorul consimtamantului, adresa IP si user agent. Nu vindem date personale.
         </p>
       </details>
@@ -44,10 +56,12 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
+import { analyticsProvider } from './utils/analytics'
+import { ANALYTICS_CONSENT_VERSION, CONSENT_STORAGE_KEY } from './utils/traffic'
 
-const COOKIE_POLICY_VERSION = '2026-05-28'
-const COOKIE_CONSENT_KEY = 'cookie-consent-proof'
+const COOKIE_POLICY_VERSION = ANALYTICS_CONSENT_VERSION
+const COOKIE_CONSENT_KEY = CONSENT_STORAGE_KEY
 const DEFAULT_THEME = {
   primary_color: '#00add9',
   primary_dark_color: '#00add9',
@@ -70,6 +84,7 @@ const DEFAULT_THEME = {
 }
 
 const config = useRuntimeConfig()
+const usesGoogleAnalytics = computed(() => analyticsProvider(config.public) === 'google')
 const showCookieBanner = ref(false)
 const savingCookieConsent = ref(false)
 const cookieError = ref('')
@@ -192,6 +207,7 @@ async function saveCookiePolicy(accepted) {
       accepted,
       accepted_at: payload.consent?.accepted_at || new Date().toISOString(),
     }))
+    window.dispatchEvent(new Event('cookie-consent-updated'))
     showCookieBanner.value = false
   }
   catch (error) {
@@ -211,6 +227,8 @@ onMounted(() => {
 
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap');
+
+.cookie-preferences { display: block; margin: 12px auto; padding: 8px 12px; font: inherit; font-size: 12px; cursor: pointer; }
 
 .cookie-banner {
   position: fixed;

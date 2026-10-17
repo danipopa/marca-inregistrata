@@ -25,7 +25,25 @@
         </div>
       </div>
 
-      <div class="renewal-plans">
+      <div
+        class="currency-tabs"
+        role="tablist"
+        :aria-label="labels.currencyLabel"
+      >
+        <button
+          v-for="currency in currencies"
+          :key="currency.code"
+          type="button"
+          role="tab"
+          :aria-selected="selectedCurrency === currency.code"
+          :class="{ active: selectedCurrency === currency.code }"
+          @click="$emit('update:selectedCurrency', currency.code)"
+        >
+          {{ currency.label }}
+        </button>
+      </div>
+
+      <div class="price-grid renewal-plans">
         <article
           v-for="plan in plans"
           :key="plan.code"
@@ -35,6 +53,12 @@
           <div class="price-card__top">
             <span class="country-pill">{{ plan.region }}</span>
             <h3>{{ plan.title }}</h3>
+            <img
+              v-if="plan.image"
+              class="price-card__image"
+              :src="plan.image"
+              :alt="plan.title"
+            >
             <p v-if="plan.note">
               {{ plan.note }}
             </p>
@@ -58,14 +82,25 @@
           >{{ labels.continueWizard }}</a>
         </article>
       </div>
+
+      <p
+        v-if="!plans.length"
+        class="empty-products"
+      >
+        {{ labels.emptyProducts }}
+      </p>
     </div>
   </section>
 </template>
 
 <script setup>
-defineEmits(['openOrderForm'])
+defineEmits(['openOrderForm', 'update:selectedCurrency'])
 
 defineProps({
+  currencies: {
+    type: Array,
+    required: true,
+  },
   labels: {
     type: Object,
     required: true,
@@ -78,5 +113,16 @@ defineProps({
     type: String,
     required: true,
   },
+  selectedCurrency: {
+    type: String,
+    required: true,
+  },
 })
 </script>
+
+<style scoped>
+.renewal-section,
+.renewal-section :deep(*) {
+  font-family: 'Montserrat', sans-serif;
+}
+</style>

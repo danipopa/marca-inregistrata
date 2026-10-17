@@ -1,0 +1,83 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: inregistrare-marca
+resources:
+  - ../../k8s
+  - gateway.yaml
+images:
+  - name: ghcr.io/danipopa/inregistrare-marca-api
+    newName: 192.168.100.16:30501/inregistrare-marca-api
+    newTag: development
+  - name: ghcr.io/danipopa/inregistrare-marca-web
+    newName: 192.168.100.16:30501/inregistrare-marca-web
+    newTag: development
+patches:
+  - target:
+      kind: Ingress
+      name: inregistrare-marca
+    patch: |-
+      $patch: delete
+      apiVersion: networking.k8s.io/v1
+      kind: Ingress
+      metadata:
+        name: inregistrare-marca
+  - target:
+      kind: PersistentVolume
+      name: marca-mysql-data
+    patch: |-
+      - op: remove
+        path: /spec/hostPath
+      - op: add
+        path: /spec/nfs
+        value:
+          server: 192.168.100.1
+          path: /home/storage/ns/inregistrare-marca/mysql
+  - target:
+      kind: PersistentVolume
+      name: marca-api-storage
+    patch: |-
+      - op: remove
+        path: /spec/hostPath
+      - op: add
+        path: /spec/nfs
+        value:
+          server: 192.168.100.1
+          path: /home/storage/ns/inregistrare-marca/storage
+      - op: add
+        path: /spec/claimRef
+        value:
+          namespace: inregistrare-marca
+          name: marca-api-storage
+  - target:
+      kind: Deployment
+      name: marca-(api|web)
+    patch: |-
+      - op: remove
+        path: /spec/template/spec/imagePullSecrets
+  - target:
+      kind: ConfigMap
+      name: marca-api-config
+    patch: |-
+      - op: replace
+        path: /data/FRONTEND_URL
+        value: http://192.168.100.240
+      - op: add
+        path: /data/APP_HOST
+        value: "192.168.100.240"
+  - target:
+      kind: ConfigMap
+      name: marca-web-config
+    patch: |-
+      - op: replace
+        path: /data/NUXT_PUBLIC_SITE_INDEXABLE
+        value: "false"
+  - target:
+      kind: ConfigMap
+      name: marca-web-config
+    patch: |-
+      - op: replace
+        path: /data/NUXT_PUBLIC_ANALYTICS_PROVIDER
+        value: "none"
+      - op: replace
+        path: /data/NUXT_PUBLIC_GOOGLE_ANALYTICS_ID
+        value: ""

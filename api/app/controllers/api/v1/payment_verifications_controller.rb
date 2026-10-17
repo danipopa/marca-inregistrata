@@ -43,7 +43,9 @@ module Api
           id: order.id,
           status: order.status,
           payment_method: order.payment_method,
-          payment_provider: order.payment_provider
+          payment_provider: order.payment_provider,
+          product: { code: order.product_code },
+          total: { amount: order.total_lei, currency: order.currency }
         }
       end
     end

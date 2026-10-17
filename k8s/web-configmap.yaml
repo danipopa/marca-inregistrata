@@ -4,5 +4,10 @@ metadata:
   name: marca-web-config
   namespace: inregistrare-marca
 data:
+  NUXT_PUBLIC_ANALYTICS_PROVIDER: "google"
+  NUXT_PUBLIC_GOOGLE_ANALYTICS_ID: "G-0V8E4ME4Y2"
+  NUXT_PUBLIC_GOOGLE_ANALYTICS_DEBUG: "false"
+  NUXT_PUBLIC_SITE_URL: "https://inregistrare-marca.com"
+  NUXT_PUBLIC_SITE_INDEXABLE: "true"
   NUXT_PUBLIC_API_BASE_URL: ""
   NUXT_PUBLIC_GOOGLE_CLIENT_ID: "501838652278-q9f3j3icg9nf99c4ucedbe0rvvaurneh.apps.googleusercontent.com"

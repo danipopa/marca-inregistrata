@@ -68,6 +68,7 @@ module Api
 
       def account_purchases
         accessible_account_purchases
+          .includes(:monitoring_subscription)
           .where(removed_from_account_at: nil)
           .order(created_at: :desc)
       end
@@ -87,6 +88,14 @@ module Api
           mark: purchase.mark,
           classes: purchase.classes_count,
           status: purchase.status,
+          monitoring: purchase.monitoring_subscription ? {
+            status: purchase.monitoring_subscription.display_status,
+            registration_number: purchase.monitoring_subscription.registration_number,
+            registration_office: purchase.monitoring_subscription.registration_office,
+            last_checked_at: purchase.monitoring_subscription.last_checked_at,
+            next_check_at: purchase.monitoring_subscription.next_check_at,
+            expires_at: purchase.monitoring_subscription.expires_at
+          } : nil,
           payment_method: purchase.payment_method,
           removable: purchase.status == "pending_payment",
           total: {

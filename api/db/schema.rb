@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_12_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_10_17_120000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.integer "blob_id", null: false
     t.datetime "created_at", null: false
@@ -50,6 +50,64 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_140000) do
     t.string "version", null: false
     t.index ["accepted_at"], name: "index_cookie_consents_on_accepted_at"
     t.index ["consent_id"], name: "index_cookie_consents_on_consent_id", unique: true
+  end
+
+  create_table "monitoring_checks", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "error_message"
+    t.datetime "finished_at"
+    t.integer "monitoring_subscription_id", null: false
+    t.integer "new_matches_count", default: 0, null: false
+    t.string "provider", null: false
+    t.integer "results_count", default: 0, null: false
+    t.datetime "started_at", null: false
+    t.string "status", default: "running", null: false
+    t.datetime "updated_at", null: false
+    t.index ["monitoring_subscription_id"], name: "index_monitoring_checks_on_monitoring_subscription_id"
+  end
+
+  create_table "monitoring_matches", force: :cascade do |t|
+    t.string "application_number"
+    t.datetime "created_at", null: false
+    t.string "external_id", null: false
+    t.datetime "first_seen_at", null: false
+    t.string "identity_key", limit: 64, null: false
+    t.datetime "last_seen_at", null: false
+    t.integer "monitoring_subscription_id", null: false
+    t.string "name", null: false
+    t.datetime "notified_at"
+    t.string "office", null: false
+    t.string "registration_number"
+    t.string "review_status", default: "pending", null: false
+    t.string "source_url", limit: 2048
+    t.string "trademark_status"
+    t.datetime "updated_at", null: false
+    t.index ["monitoring_subscription_id", "identity_key"], name: "index_monitoring_matches_identity", unique: true
+    t.index ["monitoring_subscription_id"], name: "index_monitoring_matches_on_monitoring_subscription_id"
+  end
+
+  create_table "monitoring_subscriptions", force: :cascade do |t|
+    t.datetime "activated_at"
+    t.integer "consecutive_failures", default: 0, null: false
+    t.datetime "created_at", null: false
+    t.datetime "expires_at"
+    t.integer "interval_hours", default: 24, null: false
+    t.datetime "last_checked_at"
+    t.string "last_error"
+    t.datetime "last_report_at"
+    t.datetime "last_success_at"
+    t.datetime "lease_expires_at"
+    t.string "lease_token"
+    t.datetime "next_check_at"
+    t.datetime "next_report_at"
+    t.boolean "notifications_enabled", default: true, null: false
+    t.string "registration_number"
+    t.string "registration_office"
+    t.string "status", default: "pending_activation", null: false
+    t.integer "trademark_request_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["status", "next_check_at"], name: "index_monitoring_subscriptions_on_status_and_next_check_at"
+    t.index ["trademark_request_id"], name: "index_monitoring_subscriptions_on_trademark_request_id", unique: true
   end
 
   create_table "product_images", force: :cascade do |t|
@@ -146,6 +204,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_140000) do
     t.string "primary_class"
     t.string "product_code", default: "ro-word", null: false
     t.string "product_name", default: "Marca verbala", null: false
+    t.string "registration_number"
+    t.string "registration_office"
     t.datetime "removed_from_account_at"
     t.string "status", default: "new", null: false
     t.string "tax_id"
@@ -161,6 +221,26 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_140000) do
     t.index ["removed_from_account_at"], name: "index_trademark_requests_on_removed_from_account_at"
     t.index ["status"], name: "index_trademark_requests_on_status"
     t.index ["user_id"], name: "index_trademark_requests_on_user_id"
+  end
+
+  create_table "traffic_page_views", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "path", limit: 100, null: false
+    t.string "referrer_host", limit: 255
+    t.string "session_key", limit: 64, null: false
+    t.string "visitor_key", limit: 64, null: false
+    t.index ["created_at"], name: "index_traffic_page_views_on_created_at"
+    t.index ["visitor_key", "created_at"], name: "index_traffic_page_views_on_visitor_key_and_created_at"
+  end
+
+  create_table "traffic_request_metrics", force: :cascade do |t|
+    t.bigint "duration_ms_max", default: 0, null: false
+    t.bigint "duration_ms_total", default: 0, null: false
+    t.string "endpoint", limit: 180, null: false
+    t.datetime "hour", null: false
+    t.bigint "requests_count", default: 0, null: false
+    t.integer "status", null: false
+    t.index ["hour", "endpoint", "status"], name: "index_traffic_request_bucket", unique: true
   end
 
   create_table "users", force: :cascade do |t|
@@ -198,6 +278,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_12_140000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "monitoring_checks", "monitoring_subscriptions"
+  add_foreign_key "monitoring_matches", "monitoring_subscriptions"
+  add_foreign_key "monitoring_subscriptions", "trademark_requests"
   add_foreign_key "trademark_request_events", "trademark_requests"
   add_foreign_key "trademark_request_events", "users", column: "admin_user_id"
   add_foreign_key "trademark_requests", "users"

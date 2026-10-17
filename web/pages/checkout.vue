@@ -40,6 +40,7 @@
 import { computed, onMounted, ref } from 'vue'
 
 const config = useRuntimeConfig()
+const { trackEvent } = useAnalytics()
 const checkoutPayment = ref('card')
 const submittingCheckout = ref(false)
 const checkoutMessage = ref('')
@@ -111,6 +112,8 @@ async function submitCartItem(item) {
         classes: item.classes,
         primary_class: item.primaryClass,
         goods: item.goods,
+        registration_number: item.registrationNumber,
+        registration_office: item.registrationOffice,
         owner_change_requested: item.ownerChangeRequested,
         payment: checkoutPayment.value,
         terms: item.terms,
@@ -140,13 +143,17 @@ async function checkoutCart() {
     return
   }
 
+  if (!cartItems.value.length) return
+  trackEvent('begin_checkout', { items: cartItems.value })
   submittingCheckout.value = true
 
   try {
     const payloads = []
 
     for (const item of cartItems.value) {
-      payloads.push(await submitCartItem(item))
+      const result = await submitCartItem(item)
+      payloads.push(result)
+      trackEvent('order_submitted', { items: [result] })
     }
 
     clearCart()

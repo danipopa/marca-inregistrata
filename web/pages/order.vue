@@ -25,7 +25,7 @@
           </p>
         </div>
         <NuxtLink
-          class="outline-btn"
+          class="back-home-link"
           to="/"
         >
           {{ t.backToHome }}
@@ -100,7 +100,8 @@ const {
 const brandName = computed(() => siteTheme.value.brand_name || 'SANDU și Asociații IP Attorney')
 const footerCopy = computed(() => siteTheme.value.footer_text || t.value.footerCopy)
 const copyrightText = computed(() => `© 2026 ${brandName.value}. ${t.value.rightsReserved}`)
-const steps = computed(() => t.value.steps)
+const isVerificationProduct = computed(() => selectedProductCode.value.startsWith('verification-'))
+const steps = computed(() => t.value.steps.map((step, index) => isVerificationProduct.value && index === 1 ? t.value.verificationStepTwoTitle : step))
 
 useHead(() => ({
   title: t.value.wizardMetaTitle,
@@ -179,6 +180,7 @@ function formatMoney(amount, currency = 'RON') {
 }
 
 function extraClassTotal(count, productCode) {
+  if (productCode?.startsWith('verification-')) return 0
   const classCount = Math.max(1, Math.min(Number(count || 1), 11))
   if (isOsimCode(productCode)) return (classCount - 1) * 254
   if (isEuipoCode(productCode)) {
@@ -236,9 +238,9 @@ function buildCartItem() {
     productCode: selectedProductCode.value,
     productTitle: selectedProduct.value.title,
     mark: form.mark,
-    classes: form.classes,
-    primaryClass: form.primaryClass,
-    goods: form.goods,
+    classes: isVerificationProduct.value ? 1 : form.classes,
+    primaryClass: isVerificationProduct.value ? '' : form.primaryClass,
+    goods: selectedProductCode.value.startsWith('renew-') ? '' : form.goods,
     ownerChangeRequested: isOsimRenewalProduct.value && form.ownerChangeRequested,
     terms: form.terms,
     total: total.value,
@@ -251,9 +253,10 @@ function addToCart() {
   submitError.value = ''
   cartMessage.value = ''
 
-  if (!selectedProduct.value || !form.mark || !form.primaryClass || !form.terms) {
+  const missingNiceClass = !isVerificationProduct.value && !form.primaryClass
+  if (!selectedProduct.value || !form.mark || missingNiceClass || !form.terms) {
     if (!form.mark) submitError.value = t.value.missingMark
-    else if (!form.primaryClass) submitError.value = t.value.missingNiceClass
+    else if (missingNiceClass) submitError.value = t.value.missingNiceClass
     else if (!form.terms) submitError.value = t.value.missingTerms
     else submitError.value = t.value.submitError
     return
@@ -310,6 +313,11 @@ watch(
 
 watch(selectedProductCode, (code) => {
   if (!isOsimRenewalCode(code)) form.ownerChangeRequested = false
+  if (code.startsWith('verification-')) {
+    form.classes = 1
+    form.primaryClass = ''
+    nisaPickerOpen.value = false
+  }
 })
 
 onMounted(() => {
@@ -361,19 +369,45 @@ onMounted(() => {
   text-transform: uppercase;
 }
 
-.outline-btn {
+.back-home-link {
   display: inline-flex;
   align-items: center;
+  gap: 10px;
   justify-content: center;
   min-height: 44px;
-  border: 1px solid var(--line, #ded8cf);
-  background: #fff;
+  border: 1px solid rgba(31, 29, 26, 0.14);
+  background: rgba(255, 255, 255, 0.78);
   color: var(--ink, #1f1d1a);
-  padding: 0 18px;
+  padding: 0 16px 0 14px;
+  box-shadow: 0 12px 30px rgba(31, 29, 26, 0.07);
   font-family: var(--font-family, 'Montserrat', sans-serif);
   font-size: 14px;
   font-weight: 700;
   text-decoration: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.back-home-link::before {
+  content: "";
+  display: block;
+  width: 9px;
+  height: 9px;
+  border-bottom: 2px solid currentColor;
+  border-left: 2px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.back-home-link:hover,
+.back-home-link:focus-visible {
+  border-color: var(--gold, #00add9);
+  box-shadow: 0 16px 34px rgba(31, 29, 26, 0.1);
+  color: var(--brand, #1f1d1a);
+  transform: translateX(-2px);
+}
+
+.back-home-link:focus-visible {
+  outline: 3px solid rgba(0, 173, 217, 0.22);
+  outline-offset: 3px;
 }
 
 .wrap {
@@ -385,6 +419,10 @@ onMounted(() => {
   .order-intro {
     flex-direction: column;
     align-items: start;
+  }
+
+  .back-home-link {
+    align-self: start;
   }
 }
 </style>

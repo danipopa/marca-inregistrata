@@ -1,4 +1,5 @@
 import { computed, ref } from 'vue'
+import { useAnalytics } from './useAnalytics'
 
 const cartItems = ref([])
 
@@ -7,6 +8,7 @@ function persistCart() {
 }
 
 export function useCart() {
+  const { trackEvent } = useAnalytics()
   function loadCart() {
     if (typeof window === 'undefined') return
 
@@ -21,6 +23,7 @@ export function useCart() {
   function addCartItem(item) {
     cartItems.value = [...cartItems.value, item]
     persistCart()
+    trackEvent('add_to_cart', { items: [item] })
   }
 
   function clearCart() {

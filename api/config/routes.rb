@@ -8,6 +8,7 @@ Rails.application.routes.draw do
       resources :theme_images, only: :show
       resource :site_theme, only: :show
       resources :cookie_consents, only: :create
+      resources :traffic_page_views, only: :create
       post "trademark_monitoring/search", to: "trademark_monitoring#search"
       resources :users, only: :create
       resource :session, only: %i[create show destroy]
@@ -22,7 +23,12 @@ Rails.application.routes.draw do
       post "account/purchases/:purchase_id/verify_payment", to: "payment_verifications#create"
 
       namespace :admin do
+        resources :monitoring_subscriptions, only: %i[index show update] do
+          post :check, on: :member
+        end
+        resources :monitoring_matches, only: :update
         get "dashboard", to: "dashboard#show"
+        get "traffic", to: "traffic#show"
         resources :trademark_requests, only: :update
         resources :trademark_requests, only: [] do
           resource :invoice, only: :show

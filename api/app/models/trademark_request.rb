@@ -17,8 +17,13 @@ class TrademarkRequest < ApplicationRecord
 
   belongs_to :user, optional: true
   has_many :events, class_name: "TrademarkRequestEvent", dependent: :destroy
+  has_one :monitoring_subscription, dependent: :destroy
 
   before_validation :set_defaults
+  after_save_commit :sync_monitoring_subscription, if: -> { order_type == "monitoring" }
+  validates :registration_number, presence: true, on: :create, if: -> { order_type == "monitoring" }
+  validates :registration_number, length: { maximum: 255 }
+  validates :registration_office, inclusion: { in: MonitoringSubscription::OFFICES }, on: :create, if: -> { order_type == "monitoring" }
 
   validates :mark, :email, :phone, :product_code, :product_name, presence: true
   validate :product_code_exists
@@ -38,7 +43,13 @@ class TrademarkRequest < ApplicationRecord
 
   private
 
+  def sync_monitoring_subscription
+    MonitoringSubscription.sync_for_order!(self)
+  end
+
   def set_defaults
+    self.registration_number = registration_number.to_s.strip.presence
+    self.registration_office = registration_office.to_s.strip.upcase.presence
     self.classes_count ||= 1
     self.product_code = product_code.presence || "ro-word"
     product = TrademarkProduct.active.find_by(code: product_code)

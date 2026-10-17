@@ -15,10 +15,6 @@
 
         <div class="contact-details">
           <div>
-            <span>{{ labels.contactAddressLabel }}</span>
-            <strong>Str. C. Libertății, Nr. 42, Sector 3, București</strong>
-          </div>
-          <div>
             <span>Email</span>
             <a href="mailto:office@sandusiasociatii.ro">office@sandusiasociatii.ro</a>
             <a href="mailto:contact@inregistrare-marca.com">contact@inregistrare-marca.com</a>
