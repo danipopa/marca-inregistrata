@@ -16,16 +16,16 @@ class Api::V1::Admin::TrademarkProductsControllerTest < ActionDispatch::Integrat
           region: product.region,
           price_label: product.price_label,
           base_price_lei: product.base_price_lei,
-          items_ro: ["onorariu actualizat", "taxe OSIM actualizate"],
-          items_en: ["updated fee", "updated OSIM taxes"]
+          items_ro: [ "onorariu actualizat", "taxe OSIM actualizate" ],
+          items_en: [ "updated fee", "updated OSIM taxes" ]
         }
       },
       headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(admin)}" },
       as: :json
 
     assert_response :success
-    assert_equal ["onorariu actualizat", "taxe OSIM actualizate"], product.reload.items_ro_list
-    assert_equal ["onorariu actualizat", "taxe OSIM actualizate"], response.parsed_body.dig("product", "translations", "ro", "items")
+    assert_equal [ "onorariu actualizat", "taxe OSIM actualizate" ], product.reload.items_ro_list
+    assert_equal [ "onorariu actualizat", "taxe OSIM actualizate" ], response.parsed_body.dig("product", "translations", "ro", "items")
   end
 
   test "updates product price fields only" do
@@ -70,5 +70,28 @@ class Api::V1::Admin::TrademarkProductsControllerTest < ActionDispatch::Integrat
     assert_response :success
     serialized_product = response.parsed_body["products"].find { |item| item["id"] == product.id }
     assert_match(%r{/api/v1/product_images/#{product_image.id}}, serialized_product["image"])
+  end
+  test "admin can save and clear class prices and customers cannot change them" do
+    admin = User.create_with_password!(email: "class-prices-admin@example.com", password: "password123")
+    admin.update!(admin: true)
+    product = trademark_products(:ro_word)
+    headers = { "Authorization" => "Bearer #{issue_mfa_auth_token(admin)}" }
+    patch api_v1_admin_trademark_product_url(product), params: { trademark_product: { class_prices: { "2" => 2800, "3" => 3200 } } }, headers: headers, as: :json
+    assert_response :success
+    assert_equal({ "2" => 2800, "3" => 3200 }, product.reload.class_prices)
+    assert_equal 3200, response.parsed_body.dig("product", "class_prices", "3")
+    get api_v1_trademark_products_url, as: :json
+    public_product = response.parsed_body["products"].find { |item| item["id"] == product.id }
+    assert_equal 2800, public_product.dig("class_prices", "2")
+    customer = User.create_with_password!(email: "class-prices-customer@example.com", password: "password123")
+    patch api_v1_admin_trademark_product_url(product), params: { trademark_product: { class_prices: { "2" => 1 } } }, headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(customer)}" }, as: :json
+    assert_response :forbidden
+    assert_equal 2800, product.reload.class_prices["2"]
+    patch api_v1_admin_trademark_product_url(product), params: { trademark_product: { class_prices: { "2" => -1 } } }, headers: headers, as: :json
+    assert_response :unprocessable_entity
+    assert_equal 2800, product.reload.class_prices["2"]
+    patch api_v1_admin_trademark_product_url(product), params: { trademark_product: { class_prices: {} } }, headers: headers, as: :json
+    assert_response :success
+    assert_equal({}, product.reload.class_prices)
   end
 end

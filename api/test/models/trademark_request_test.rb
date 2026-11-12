@@ -117,4 +117,27 @@ class TrademarkRequestTest < ActiveSupport::TestCase
     assert_equal 300, request.total_lei
     assert_equal "300 Lei", request.formatted_total
   end
+  test "uses configured product class totals and adds renewal options separately" do
+    product = trademark_products(:renew_ro_word)
+    product.update!(class_prices: { "3" => 2500 })
+    order = TrademarkRequest.new(mark: "CLASS PRICES", email: "price@example.com", phone: "0712345678", product_code: product.code, classes_count: 3, owner_change_requested: true)
+    assert order.valid?
+    assert_equal 2977, order.total_lei
+  end
+
+  test "catalog price changes do not reprice an existing order on payment or comment updates" do
+    product = trademark_products(:ro_word)
+    product.update!(class_prices: { "3" => 2500 })
+    order = TrademarkRequest.create!(mark: "PRICE SNAPSHOT", email: "price@example.com", phone: "0712345678", product_code: product.code, classes_count: 3)
+    assert_equal 250000, order.total_cents
+    currency = order.currency
+    product.update!(class_prices: { "3" => 9000 }, currency: "EUR")
+    order.update!(status: "paid", admin_comments: "Payment verified")
+    assert_equal 250000, order.reload.total_cents
+    assert_equal currency, order.currency
+    newer_order = TrademarkRequest.new(mark: "NEW PRICE", email: "new-price@example.com", phone: "0712345678", product_code: product.code, classes_count: 3)
+    assert newer_order.valid?
+    assert_equal 900000, newer_order.total_cents
+    assert_equal "EUR", newer_order.currency
+  end
 end

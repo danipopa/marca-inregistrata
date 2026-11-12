@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_10_17_120000) do
+ActiveRecord::Schema[8.1].define(version: 2026_11_01_090000) do
   create_table "active_storage_attachments", force: :cascade do |t|
     t.integer "blob_id", null: false
     t.datetime "created_at", null: false
@@ -147,6 +147,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_10_17_120000) do
   create_table "trademark_products", force: :cascade do |t|
     t.boolean "active", default: true, null: false
     t.integer "base_price_lei", default: 0, null: false
+    t.json "class_prices"
     t.string "code", null: false
     t.datetime "created_at", null: false
     t.string "currency", default: "RON", null: false

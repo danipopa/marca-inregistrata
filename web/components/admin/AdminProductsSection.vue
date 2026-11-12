@@ -62,7 +62,7 @@
           >
         </label>
         <label>
-          Base price Lei
+          {{ supportsClassPricing(form) ? 'Preț pentru 1 clasă' : 'Preț serviciu' }} ({{ form.currency }})
           <input
             :value="form.base_price_lei"
             type="number"
@@ -188,6 +188,14 @@
         </label>
       </div>
 
+      <AdminClassPricesEditor
+        v-if="supportsClassPricing(form)"
+        :model-value="form.class_prices"
+        :product="form"
+        :base-price="form.base_price_lei"
+        @update:model-value="updateForm('class_prices', $event)"
+      />
+
       <div class="form-actions">
         <button
           class="primary-btn"
@@ -213,109 +221,127 @@
       {{ error }}
     </p>
 
-    <div class="admin-product-categories">
+    <div class="admin-office-groups">
       <section
-        v-for="category in categories"
-        :key="category.id"
-        class="admin-product-category"
+        v-for="office in categories"
+        :key="office.id"
+        class="admin-office-group"
       >
-        <div class="product-category-heading">
-          <h3>{{ category.label }}</h3>
-          <span>{{ category.products.length }} produse</span>
+        <div class="office-group-heading">
+          <h3>{{ office.label }}</h3><span>{{ office.products.length }} produse</span>
         </div>
-
-        <div class="admin-product-grid">
-          <article
-            v-for="product in category.products"
-            :key="product.id"
-            class="admin-product-card"
+        <div class="admin-product-categories">
+          <section
+            v-for="category in office.categories"
+            :key="category.id"
+            class="admin-product-category"
           >
-            <div class="admin-product-card__top">
-              <div class="admin-product-card__meta">
-                <span class="country-pill">{{ product.region }}</span>
-                <span :class="['status-pill', product.active ? 'active' : 'hidden']">
-                  {{ product.active ? 'Active' : 'Hidden' }}
-                </span>
-              </div>
-              <h3>{{ product.translations.ro.title }}</h3>
-              <img
-                v-if="productImage(product)"
-                class="admin-product-card__image"
-                :src="productImage(product)"
-                :alt="product.translations.ro.title"
+            <div class="product-category-heading">
+              <h4>{{ category.label }}</h4>
+              <span>{{ category.products.length }} produse</span>
+            </div>
+
+            <div class="admin-product-grid">
+              <article
+                v-for="product in category.products"
+                :key="product.id"
+                class="admin-product-card"
               >
-              <p v-if="product.translations.ro.note">
-                {{ product.translations.ro.note }}
-              </p>
-            </div>
+                <div class="admin-product-card__top">
+                  <div class="admin-product-card__meta">
+                    <span class="country-pill">{{ office.id === 'other' ? (product.office || product.region) : office.label }}</span>
+                    <span :class="['status-pill', product.active ? 'active' : 'hidden']">
+                      {{ product.active ? 'Active' : 'Hidden' }}
+                    </span>
+                  </div>
+                  <h3>{{ product.translations.ro.title }}</h3>
+                  <img
+                    v-if="productImage(product)"
+                    class="admin-product-card__image"
+                    :src="productImage(product)"
+                    :alt="product.translations.ro.title"
+                  >
+                  <p v-if="product.translations.ro.note">
+                    {{ product.translations.ro.note }}
+                  </p>
+                </div>
 
-            <div class="admin-product-price">
-              <span>{{ product.price }}</span>
-              <small>{{ product.translations.ro.tax }}</small>
-            </div>
+                <div class="admin-product-price">
+                  <span>{{ product.price }}</span>
+                  <small>{{ product.translations.ro.tax }}</small>
+                </div>
 
-            <form
-              class="inline-price-form"
-              @submit.prevent="$emit('saveProductPrice', product)"
-            >
-              <label>
-                Display price
-                <input
-                  :value="product.priceDraft.price_label"
-                  required
-                  @input="$emit('updateProductPriceDraft', product, 'price_label', $event.target.value)"
+                <form
+                  class="inline-price-form"
+                  @submit.prevent="$emit('saveProductPrice', product)"
                 >
-              </label>
-              <label>
-                Checkout amount
-                <input
-                  :value="product.priceDraft.base_price_lei"
-                  type="number"
-                  min="0"
-                  required
-                  @input="$emit('updateProductPriceDraft', product, 'base_price_lei', Number($event.target.value))"
-                >
-              </label>
-              <button
-                class="ghost-btn"
-                type="submit"
-                :disabled="savingPriceId === product.id"
-              >
-                {{ savingPriceId === product.id ? 'Saving...' : 'Save price' }}
-              </button>
-            </form>
+                  <label>
+                    Display price
+                    <input
+                      :value="product.priceDraft.price_label"
+                      required
+                      @input="$emit('updateProductPriceDraft', product, 'price_label', $event.target.value)"
+                    >
+                  </label>
+                  <label>
+                    {{ supportsClassPricing(product) ? 'Preț pentru 1 clasă' : 'Preț serviciu' }} ({{ product.currency }})
+                    <input
+                      :value="product.priceDraft.base_price_lei"
+                      type="number"
+                      min="0"
+                      required
+                      @input="$emit('updateProductPriceDraft', product, 'base_price_lei', Number($event.target.value))"
+                    >
+                  </label>
+                  <AdminClassPricesEditor
+                    v-if="supportsClassPricing(product)"
+                    :model-value="product.priceDraft.class_prices"
+                    :product="product"
+                    :base-price="product.priceDraft.base_price_lei"
+                    @update:model-value="$emit('updateProductPriceDraft', product, 'class_prices', $event)"
+                  />
+                  <button
+                    class="ghost-btn"
+                    type="submit"
+                    :disabled="savingPriceId === product.id"
+                  >
+                    {{ savingPriceId === product.id ? 'Saving...' : 'Save price' }}
+                  </button>
+                </form>
 
-            <ul>
-              <li
-                v-for="item in product.translations.ro.items"
-                :key="item"
-              >
-                {{ item }}
-              </li>
-            </ul>
+                <ul>
+                  <li
+                    v-for="item in product.translations.ro.items"
+                    :key="item"
+                  >
+                    {{ item }}
+                  </li>
+                </ul>
 
-            <div class="admin-product-code">
-              <span>{{ product.code }}</span>
-              <span>{{ product.currency }}</span>
+                <div class="admin-product-code">
+                  <span>{{ product.code }}</span>
+                  <span>{{ product.currency }}</span>
+                </div>
+
+                <div class="product-actions">
+                  <button
+                    class="ghost-btn"
+                    type="button"
+                    @click="$emit('editProduct', product)"
+                  >
+                    Edit
+                  </button>
+                  <button
+                    class="ghost-btn danger-btn"
+                    type="button"
+                    @click="$emit('deleteProduct', product)"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </article>
             </div>
-
-            <div class="product-actions">
-              <button
-                class="ghost-btn"
-                type="button"
-                @click="$emit('editProduct', product)"
-              >
-                Edit
-              </button>
-              <button
-                class="ghost-btn danger-btn"
-                type="button"
-                @click="$emit('deleteProduct', product)"
-              >
-                Delete
-              </button>
-            </div>
-          </article>
+          </section>
         </div>
       </section>
     </div>
@@ -323,6 +349,8 @@
 </template>
 
 <script setup>
+import { supportsClassPricing } from '../../utils/productPricing'
+
 const emit = defineEmits([
   'deleteProduct',
   'editProduct',
@@ -399,3 +427,12 @@ function updateForm(field, value) {
   })
 }
 </script>
+
+<style scoped>
+.admin-office-groups { display: grid; gap: 32px; }
+.admin-office-group { min-width: 0; }
+.office-group-heading { display: flex; gap: 16px; align-items: center; margin: 16px 0; padding: 16px; border-left: 4px solid #00add9; border-radius: 6px; background: #eefaff; }
+.office-group-heading h3 { margin: 0; font-size: 24px; }
+.office-group-heading span { color: #68635c; font-size: 13px; }
+.product-category-heading h4 { margin: 0; font-size: 18px; }
+</style>

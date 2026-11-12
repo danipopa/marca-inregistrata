@@ -22,7 +22,7 @@
 <p><strong>Adresa:</strong> <%= @trademark_request.address.presence || "-" %></p>
 
 <h2>Detalii marca</h2>
-<p><strong>Clasa principala:</strong> <%= @trademark_request.primary_class.presence || "-" %></p>
+<p><strong>Clase NISA:</strong> <%= @trademark_request.primary_class.presence || "-" %></p>
 <p><strong>Numar clase:</strong> <%= @trademark_request.classes_count %></p>
 <p><strong>Produse/servicii:</strong></p>
 <p><%= simple_format(@trademark_request.goods.presence || "-") %></p>

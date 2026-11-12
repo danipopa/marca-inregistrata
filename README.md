@@ -10,6 +10,24 @@ Website and API for trademark registration requests.
 
 ## Development
 
+Start the database tunnel, Rails API and Nuxt together from the project root:
+
+```bash
+./dev.sh
+```
+
+Open `http://localhost:3000`. Press Ctrl+C to stop the processes started by the
+script. An existing MySQL tunnel is reused and left running. First use configures
+ignored `api/.env.local` automatically; use `./dev.sh --configure` to refresh it.
+Install dependencies first with `(cd api && bundle install)` and
+`(cd web && npm install)`. SSH access to tux1 must be available (keys/agent for the
+background tunnel). The script requires Linux `setsid` and Bash 4.4 or later.
+Visitor tracking and search indexing are disabled for the local frontend.
+Use `./dev.sh --help` for port and SSH overrides. The script checks the database
+connection but does not run migrations automatically.
+
+To run the services separately:
+
 Configure the local API once with the development cluster's credentials:
 
 ```bash
@@ -66,3 +84,5 @@ that MySQL with `bash deploy/development/rails.sh`.
 Website analytics, technical request metrics, SEO configuration and release checks: [Traffic and SEO](docs/traffic-and-seo.md).
 
 Google Analytics setup: [GA4 integration](docs/google-analytics.md). SEO priorities and rollout: [SEO plan](docs/seo-plan.md).
+
+Admin office grouping and total prices by class count: [Product pricing](docs/product-pricing.md).

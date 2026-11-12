@@ -56,6 +56,7 @@ module Api
             :image_key,
             :position,
             :active,
+            class_prices: {},
             items_ro: [],
             items_en: []
           )

@@ -1,6 +1,6 @@
 import { defineEventHandler, setHeader } from 'h3'
 import { useRuntimeConfig } from 'nitropack/runtime'
-import { isSiteIndexable, siteOrigin } from '../../utils/seo'
+import { isSiteIndexable, siteOrigin } from '~~/utils/seo.js'
 
 export default defineEventHandler((event) => {
   const config = useRuntimeConfig(event)

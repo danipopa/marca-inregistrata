@@ -48,6 +48,27 @@ class Api::V1::TrademarkRequestsControllerTest < ActionDispatch::IntegrationTest
     assert_equal user, TrademarkRequest.last.user
   end
 
+  test "preserves multiple selected NICE classes and charges by their count" do
+    user = User.create_with_password!(email: "multi-class@example.com", password: "password123")
+    user.update!(phone: "0712345678", owner_type: "Societate", tax_id: "RO12345678", owner_name: "Client SRL", address: "Strada Test 1")
+    selected_classes = "Clasa 9; Clasa 35; Clasa 42"
+
+    post api_v1_trademark_requests_url,
+      params: { trademark_request: {
+        mark: "MULTI CLASS", product_code: "ro-color", classes: 3,
+        primary_class: selected_classes, goods: "Produse si servicii", payment: "transfer", terms: true
+      } },
+      headers: { "Authorization" => "Bearer #{issue_mfa_auth_token(user)}" }, as: :json
+
+    assert_response :created
+    order = TrademarkRequest.find(response.parsed_body["id"])
+    assert_equal 3, order.classes_count
+    assert_equal selected_classes, order.primary_class
+    product = TrademarkProduct.find_by!(code: "ro-color")
+    assert_equal (product.base_price_lei + 2 * TrademarkRequest::OSIM_CLASS_PRICE) * 100, order.total_cents
+    assert_includes ActionMailer::Base.deliveries.last.text_part.body.to_s, selected_classes
+  end
+
   test "requires completed account billing profile" do
     user = User.create_with_password!(email: "client@example.com", password: "password123")
     token = issue_mfa_auth_token(user)

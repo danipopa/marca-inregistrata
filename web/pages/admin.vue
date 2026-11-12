@@ -168,6 +168,7 @@
 </template>
 
 <script setup>
+import { productOffice, classPriceDraft, serializeClassPrices, supportsClassPricing } from '../utils/productPricing'
 import { computed, onMounted, reactive, ref } from 'vue'
 import blackWhiteTrademarkUrl from '../assets/images/MARCA_TA_ALB_NEGRU-removebg-preview.png'
 import colorTrademarkUrl from '../assets/images/MARCA_TA_COLOR-removebg-preview.png'
@@ -245,7 +246,12 @@ const productCategories = computed(() => {
     { id: 'verification', label: 'Verificare marca', products: products.value.filter(product => productCategory(product) === 'verification') },
   ]
 
-  return categories.filter(category => category.products.length)
+  return ['OSIM', 'EUIPO', 'other'].map(office => ({
+    id: office,
+    label: office === 'other' ? 'Alte servicii / oficii' : office,
+    products: products.value.filter(product => productOffice(product) === office),
+    categories: categories.map(category => ({ ...category, products: category.products.filter(product => productOffice(product) === office) })).filter(category => category.products.length),
+  })).filter(office => office.products.length)
 })
 
 const loginForm = reactive({
@@ -265,6 +271,7 @@ function defaultProductForm() {
     region: 'OSIM',
     price_label: '',
     base_price_lei: 0,
+    class_prices: {},
     title_ro: '',
     title_en: '',
     note_ro: '',
@@ -448,6 +455,7 @@ function withPriceDraft(product) {
     priceDraft: {
       price_label: product.price,
       base_price_lei: product.base_lei,
+      class_prices: classPriceDraft(product),
     },
   }
 }
@@ -909,6 +917,7 @@ async function saveProductPrice(product) {
         trademark_product: {
           price_label: product.priceDraft.price_label,
           base_price_lei: product.priceDraft.base_price_lei,
+          class_prices: supportsClassPricing(product) ? serializeClassPrices(product.priceDraft.class_prices) : {},
         },
       }),
     })
@@ -940,6 +949,7 @@ function editProduct(product) {
     region: product.region,
     price_label: product.price,
     base_price_lei: product.base_lei,
+    class_prices: classPriceDraft(product),
     title_ro: product.translations.ro.title,
     title_en: product.translations.en.title,
     note_ro: product.translations.ro.note,
@@ -962,6 +972,7 @@ function productPayload() {
       region: productForm.region,
       price_label: productForm.price_label,
       base_price_lei: productForm.base_price_lei,
+      class_prices: supportsClassPricing(productForm) ? serializeClassPrices(productForm.class_prices) : {},
       title_ro: productForm.title_ro,
       title_en: productForm.title_en,
       note_ro: productForm.note_ro,

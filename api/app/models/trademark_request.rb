@@ -1,19 +1,7 @@
 class TrademarkRequest < ApplicationRecord
-  OSIM_CLASS_PRICE = 254
+  OSIM_CLASS_PRICE = TrademarkProduct::OSIM_CLASS_PRICE
   OSIM_RENEWAL_OWNER_CHANGE_PRICE = 477
-  EUIPO_EXTRA_CLASS_TOTALS = {
-    1 => 0,
-    2 => 50,
-    3 => 200,
-    4 => 350,
-    5 => 500,
-    6 => 650,
-    7 => 800,
-    8 => 950,
-    9 => 1_100,
-    10 => 1_250,
-    11 => 1_400
-  }.freeze
+  EUIPO_EXTRA_CLASS_TOTALS = TrademarkProduct::EUIPO_CLASS_SURCHARGES
 
   belongs_to :user, optional: true
   has_many :events, class_name: "TrademarkRequestEvent", dependent: :destroy
@@ -53,14 +41,15 @@ class TrademarkRequest < ApplicationRecord
     self.classes_count ||= 1
     self.product_code = product_code.presence || "ro-word"
     product = TrademarkProduct.active.find_by(code: product_code)
-    self.product_name = product.title_ro if product
-    self.currency = product&.currency || "RON"
+    reprice = new_record? || will_save_change_to_product_code? || will_save_change_to_classes_count? || will_save_change_to_owner_change_requested?
+    self.product_name = product.title_ro if product && reprice
+    self.currency = product&.currency || "RON" if reprice
     self.order_type = order_type_for(product_code)
     self.owner_change_requested = false unless osim_renewal_product?(product_code)
     self.status = "pending_payment" if status.blank? || status == "new"
     self.admin_comments = "" if has_attribute?(:admin_comments) && admin_comments.blank?
     self.email = email.to_s.strip.downcase
-    self.total_cents = total_units(product) * 100
+    self.total_cents = total_units(product) * 100 if reprice
   end
 
   def product_code_exists
@@ -70,22 +59,7 @@ class TrademarkRequest < ApplicationRecord
   end
 
   def total_units(product)
-    base = product&.base_price_lei || 0
-    base + extra_class_total(product) + owner_change_total(product)
-  end
-
-  def extra_class_total(product)
-    count = classes_count.to_i.clamp(1, 11)
-
-    if osim_product?(product&.code)
-      (count - 1) * OSIM_CLASS_PRICE
-    elsif euipo_product?(product&.code)
-      EUIPO_EXTRA_CLASS_TOTALS.fetch(count, 0)
-    elsif monitoring_product?(product&.code) || verification_product?(product&.code)
-      0
-    else
-      0
-    end
+    (product&.price_for_classes(classes_count) || 0) + owner_change_total(product)
   end
 
   def order_type_for(code)
