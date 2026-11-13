@@ -33,60 +33,12 @@
       >
         <p>{{ labels.billingCopy }}</p>
 
-        <label>
-          {{ labels.phone }}
-          <input
-            :value="form.phone"
-            type="tel"
-            :placeholder="labels.phonePlaceholder"
-            required
-            @input="updateField('phone', $event.target.value)"
-          >
-        </label>
-
-        <label>
-          {{ labels.ownerType }}
-          <select
-            :value="form.ownerType"
-            @change="updateField('ownerType', $event.target.value)"
-          >
-            <option value="Societate">{{ labels.company }}</option>
-            <option value="Persoana fizica">{{ labels.person }}</option>
-          </select>
-        </label>
-
-        <div class="field-grid">
-          <label>
-            {{ fieldLabels.taxId }}
-            <input
-              :value="form.taxId"
-              type="text"
-              :placeholder="fieldLabels.taxIdPlaceholder"
-              @input="updateField('taxId', $event.target.value)"
-            >
-          </label>
-          <label>
-            {{ fieldLabels.ownerName }}
-            <input
-              :value="form.ownerName"
-              type="text"
-              :placeholder="fieldLabels.ownerNamePlaceholder"
-              required
-              @input="updateField('ownerName', $event.target.value)"
-            >
-          </label>
-        </div>
-
-        <label>
-          {{ fieldLabels.address }}
-          <textarea
-            :value="form.address"
-            rows="4"
-            :placeholder="fieldLabels.addressPlaceholder"
-            required
-            @input="updateField('address', $event.target.value)"
-          />
-        </label>
+        <AccountBillingFields
+          :form="form"
+          :labels="labels"
+          :field-labels="fieldLabels"
+          @update:form="$emit('update:form', $event)"
+        />
 
         <div class="modal-actions">
           <button
@@ -117,9 +69,9 @@
 </template>
 
 <script setup>
-const emit = defineEmits(['close', 'save', 'update:form'])
+defineEmits(['close', 'save', 'update:form'])
 
-const props = defineProps({
+defineProps({
   fieldLabels: {
     type: Object,
     required: true,
@@ -145,11 +97,4 @@ const props = defineProps({
     default: false,
   },
 })
-
-function updateField(field, value) {
-  emit('update:form', {
-    ...props.form,
-    [field]: value,
-  })
-}
 </script>

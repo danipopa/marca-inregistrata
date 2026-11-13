@@ -35,6 +35,11 @@
       {{ labels.emptyCart }}
     </p>
 
+    <slot
+      v-if="items.length"
+      name="billing"
+    />
+
     <div
       v-if="items.length"
       class="checkout-box"
@@ -82,7 +87,7 @@
       <button
         type="button"
         class="primary-btn"
-        :disabled="submitting"
+        :disabled="submitting || blocked"
         @click="$emit('checkout')"
       >
         {{ submitting ? labels.submitting : labels.checkout }}
@@ -122,6 +127,7 @@
 defineEmits(['checkout', 'removeItem', 'update:payment'])
 
 defineProps({
+  blocked: { type: Boolean, default: false },
   accountCheckoutStatus: {
     type: String,
     required: true,

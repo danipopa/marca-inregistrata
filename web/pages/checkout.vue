@@ -19,6 +19,7 @@
         <CheckoutPanel
           :account-checkout-status="accountCheckoutStatus"
           :authenticated="Boolean(authToken)"
+          :blocked="sessionLoading || submittingCheckout"
           :error="checkoutError"
           :formatted-total="formattedCartTotal"
           :items="cartItems"
@@ -30,7 +31,16 @@
           @checkout="checkoutCart"
           @remove-item="removeFromCart"
           @update:payment="checkoutPayment = $event"
-        />
+        >
+          <template #billing>
+            <CheckoutBilling
+              v-if="authToken && !sessionLoading"
+              ref="billingPanel"
+              :checkout-labels="t"
+              :disabled="submittingCheckout"
+            />
+          </template>
+        </CheckoutPanel>
       </section>
     </main>
   </div>
@@ -42,6 +52,8 @@ import { computed, onMounted, ref } from 'vue'
 const config = useRuntimeConfig()
 const { trackEvent } = useAnalytics()
 const checkoutPayment = ref('card')
+const billingPanel = ref(null)
+const sessionLoading = ref(true)
 const submittingCheckout = ref(false)
 const checkoutMessage = ref('')
 const checkoutError = ref('')
@@ -130,6 +142,7 @@ async function submitCartItem(item) {
 }
 
 async function checkoutCart() {
+  if (sessionLoading.value || submittingCheckout.value) return
   checkoutError.value = ''
   checkoutMessage.value = ''
 
@@ -137,6 +150,8 @@ async function checkoutCart() {
     checkoutError.value = t.value.checkoutLoginRequired
     return
   }
+
+  if (!await billingPanel.value?.save() || submittingCheckout.value) return
 
   if (!currentUser.value?.billing_complete) {
     checkoutError.value = t.value.checkoutBillingRequired
@@ -172,9 +187,14 @@ async function checkoutCart() {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   loadCart()
-  verifyStoredSession()
+  try {
+    await verifyStoredSession()
+  }
+  finally {
+    sessionLoading.value = false
+  }
 })
 </script>
 
